@@ -1,21 +1,20 @@
 package garbage
 
-type Resource int
+// Resource is a concrete type of recyclable brought by pupils to events
+type Resource string
 
 const (
-	Gadgets Resource = iota
-	Paper
-	Plastic
+	Gadgets Resource = "gadgets"
+	Paper   Resource = "paper"
+	Plastic Resource = "plastic"
 )
 
-func (r Resource) String() string {
-	switch r {
-	case Gadgets:
-		return "gadgets"
-	case Paper:
-		return "paper"
-	case Plastic:
-		return "plastic"
+// IsValid indicates whether a given resource is one of the known. Used, for example, in json decoding
+func (r Resource) IsValid() bool {
+	for _, resource := range []Resource{Gadgets, Paper, Plastic} {
+		if r == resource {
+			return true
+		}
 	}
-	return ""
+	return false
 }
