@@ -1,4 +1,4 @@
-// package validation provides tools to validate some input and return a convenient error
+// Package validation provides tools to validate some input and return a convenient error
 package validation
 
 // Validator is a general validation interface
