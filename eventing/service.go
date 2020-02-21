@@ -2,6 +2,7 @@
 package eventing
 
 import (
+	"context"
 	"time"
 
 	"github.com/shanvl/garbage-events-service"
@@ -11,11 +12,14 @@ import (
 type Service interface {
 	// CreateEvent creates and stores an event
 	CreateEvent(date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
+	// DeleteEvent deletes an event
+	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 }
 
 // Repository provides methods to work with event's persistence
 type Repository interface {
 	StoreEvent(event *garbage.Event) (garbage.EventID, error)
+	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 }
 
 // IDGenerator is used to to generate unique IDs
@@ -66,6 +70,24 @@ func (s *service) CreateEvent(date time.Time, name string, resourcesAllowed []ga
 		return "", err
 	}
 	return eventID, nil
+}
+
+// DeleteEvent deletes an event
+func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
+	// check if there's eventID
+	if err := s.valid.Validate(func() (isValid bool, errKey string, errDesc string) {
+		if len(eventID) <= 0 {
+			return false, "eventID", "eventID must be provided"
+		}
+		return true, "", ""
+	}); err != nil {
+		return "", err
+	}
+	deletedID, err := s.repo.DeleteEvent(ctx, eventID)
+	if err != nil {
+		return "", err
+	}
+	return deletedID, nil
 }
 
 // NewService returns an instance of Service w/ all its dependencies

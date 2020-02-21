@@ -1,6 +1,8 @@
 package eventing
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -10,18 +12,17 @@ import (
 )
 
 func Test_service_CreateEvent(t *testing.T) {
-	repository := &mock.EventingRepository{
-		StoreEventFn: func(e *garbage.Event) (id garbage.EventID, err error) {
-			return e.ID, nil
-		},
+	var repository mock.EventingRepository
+	repository.StoreEventFn = func(e *garbage.Event) (id garbage.EventID, err error) {
+		return e.ID, nil
 	}
-	idGenerator := &mock.IDGenerator{
-		GenerateEventIDFn: func() garbage.EventID {
-			return "123"
-		},
+	var idGenerator mock.IDGenerator
+	idGenerator.GenerateEventIDFn = func() garbage.EventID {
+		return "123"
 	}
 	validator := validation.NewValidator()
-	s := NewService(repository, idGenerator, validator)
+	s := NewService(&repository, &idGenerator, validator)
+
 	type args struct {
 		date             time.Time
 		name             string
@@ -93,6 +94,75 @@ func Test_service_CreateEvent(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("CreateEvent() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_service_DeleteEvent(t *testing.T) {
+	var repository mock.EventingRepository
+	repository.DeleteEventFn = func(ctx context.Context, eventID garbage.EventID) (id garbage.EventID, err error) {
+		if eventID == "not_found" {
+			return "", errors.New("repo's not found error")
+		}
+		return eventID, nil
+	}
+	var idGenerator mock.IDGenerator
+	idGenerator.GenerateEventIDFn = func() garbage.EventID {
+		return "123"
+	}
+	validator := validation.NewValidator()
+	s := NewService(&repository, &idGenerator, validator)
+
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		eventID garbage.EventID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    garbage.EventID
+		wantErr bool
+	}{
+		{
+			name: "no eventID",
+			args: args{
+				ctx:     ctx,
+				eventID: "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "no event with such eventID",
+			args: args{
+				ctx:     ctx,
+				eventID: "not_found",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "👍",
+			args: args{
+				ctx:     ctx,
+				eventID: "123",
+			},
+			want:    "123",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.DeleteEvent(tt.args.ctx, tt.args.eventID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DeleteEvent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("DeleteEvent() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
