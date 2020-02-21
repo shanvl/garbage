@@ -43,8 +43,11 @@ func (s *service) CreateEvent(date time.Time, name string, resourcesAllowed []ga
 		}
 		return true, "", ""
 	}
-	// check that given resources are known
+	// check that provided resourcesAllowed exist and are known
 	validateResources := func() (isValid bool, errKey string, errDesc string) {
+		if len(resourcesAllowed) == 0 {
+			return false, "resourcesAllowed", "at least one resource must be specified"
+		}
 		for _, resource := range resourcesAllowed {
 			if !resource.IsValid() {
 				return false, "resourcesAllowed", "unknown resource"

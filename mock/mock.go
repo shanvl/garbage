@@ -13,3 +13,13 @@ func (r *EventingRepository) StoreEvent(e *garbage.Event) (garbage.EventID, erro
 	r.StoreEventInvoked = true
 	return r.StoreEventFn(e)
 }
+
+type IDGenerator struct {
+	GenerateEventIDFn      func() garbage.EventID
+	GenerateEventIDInvoked bool
+}
+
+func (g *IDGenerator) GenerateEventID() garbage.EventID {
+	g.GenerateEventIDInvoked = true
+	return g.GenerateEventIDFn()
+}
