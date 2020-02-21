@@ -8,16 +8,16 @@ import (
 
 // EventingRepository is a mock eventing usecase repository
 type EventingRepository struct {
-	StoreEventFn       func(e *garbage.Event) (garbage.EventID, error)
+	StoreEventFn       func(ctx context.Context, e *garbage.Event) (garbage.EventID, error)
 	StoreEventInvoked  bool
 	DeleteEventFn      func(ctx context.Context, id garbage.EventID) (garbage.EventID, error)
 	DeleteEventInvoked bool
 }
 
 // StoreEvent calls StoreEventFn
-func (r *EventingRepository) StoreEvent(e *garbage.Event) (garbage.EventID, error) {
+func (r *EventingRepository) StoreEvent(ctx context.Context, e *garbage.Event) (garbage.EventID, error) {
 	r.StoreEventInvoked = true
-	return r.StoreEventFn(e)
+	return r.StoreEventFn(ctx, e)
 }
 
 // DeleteEvent calls DeleteEvent

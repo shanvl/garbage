@@ -11,14 +11,14 @@ import (
 // Service is an interface providing methods to manage events
 type Service interface {
 	// CreateEvent creates and stores an event
-	CreateEvent(date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
+	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 }
 
 // Repository provides methods to work with event's persistence
 type Repository interface {
-	StoreEvent(event *garbage.Event) (garbage.EventID, error)
+	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 }
 
@@ -39,7 +39,7 @@ type service struct {
 }
 
 // CreateEvent creates and stores an event
-func (s *service) CreateEvent(date time.Time, name string, resourcesAllowed []garbage.Resource) (garbage.EventID, error) {
+func (s *service) CreateEvent(ctx context.Context, date time.Time, name string, resourcesAllowed []garbage.Resource) (garbage.EventID, error) {
 	// new event mustn't occur in the past
 	validateDate := func() (isValid bool, errKey string, errDesc string) {
 		if time.Now().After(date) {
@@ -65,7 +65,7 @@ func (s *service) CreateEvent(date time.Time, name string, resourcesAllowed []ga
 	}
 	id := s.idGen.GenerateEventID()
 	event := garbage.NewEvent(id, date, name, resourcesAllowed)
-	eventID, err := s.repo.StoreEvent(event)
+	eventID, err := s.repo.StoreEvent(ctx, event)
 	if err != nil {
 		return "", err
 	}

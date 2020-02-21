@@ -13,7 +13,7 @@ import (
 
 func Test_service_CreateEvent(t *testing.T) {
 	var repository mock.EventingRepository
-	repository.StoreEventFn = func(e *garbage.Event) (id garbage.EventID, err error) {
+	repository.StoreEventFn = func(ctx context.Context, e *garbage.Event) (id garbage.EventID, err error) {
 		return e.ID, nil
 	}
 	var idGenerator mock.IDGenerator
@@ -23,7 +23,10 @@ func Test_service_CreateEvent(t *testing.T) {
 	validator := validation.NewValidator()
 	s := NewService(&repository, &idGenerator, validator)
 
+	ctx := context.Background()
+
 	type args struct {
+		ctx              context.Context
 		date             time.Time
 		name             string
 		resourcesAllowed []garbage.Resource
@@ -37,6 +40,7 @@ func Test_service_CreateEvent(t *testing.T) {
 		{
 			name: "date is in the past",
 			args: args{
+				ctx:              ctx,
 				date:             time.Now().AddDate(0, 0, -1),
 				name:             "some name",
 				resourcesAllowed: []garbage.Resource{"plastic", "gadgets"},
@@ -47,6 +51,7 @@ func Test_service_CreateEvent(t *testing.T) {
 		{
 			name: "wrong resources",
 			args: args{
+				ctx:              ctx,
 				date:             time.Now().AddDate(0, 0, 1),
 				name:             "some name",
 				resourcesAllowed: []garbage.Resource{"plastI", "gadgets"},
@@ -57,6 +62,7 @@ func Test_service_CreateEvent(t *testing.T) {
 		{
 			name: "no resources",
 			args: args{
+				ctx:              ctx,
 				date:             time.Now().AddDate(0, 0, 1),
 				name:             "",
 				resourcesAllowed: nil,
@@ -67,6 +73,7 @@ func Test_service_CreateEvent(t *testing.T) {
 		{
 			name: "no name but that's ok",
 			args: args{
+				ctx:              ctx,
 				date:             time.Now().AddDate(0, 0, 1),
 				name:             "",
 				resourcesAllowed: []garbage.Resource{"plastic", "gadgets"},
@@ -77,6 +84,7 @@ func Test_service_CreateEvent(t *testing.T) {
 		{
 			name: "👍",
 			args: args{
+				ctx:              ctx,
 				date:             time.Now().AddDate(0, 0, 1),
 				name:             "some name",
 				resourcesAllowed: []garbage.Resource{"plastic", "gadgets"},
@@ -87,7 +95,7 @@ func Test_service_CreateEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.CreateEvent(tt.args.date, tt.args.name, tt.args.resourcesAllowed)
+			got, err := s.CreateEvent(tt.args.ctx, tt.args.date, tt.args.name, tt.args.resourcesAllowed)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateEvent() error = %v, wantErr %v", err, tt.wantErr)
 				return
