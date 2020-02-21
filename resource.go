@@ -9,8 +9,8 @@ const (
 	Plastic Resource = "plastic"
 )
 
-// IsValid indicates whether a given resource is one of the known. Used, for example, in json decoding
-func (r Resource) IsValid() bool {
+// IsKnown indicates whether a given resource is one of the known. Used, for example, in json decoding
+func (r Resource) IsKnown() bool {
 	for _, resource := range []Resource{Gadgets, Paper, Plastic} {
 		if r == resource {
 			return true

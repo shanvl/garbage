@@ -53,7 +53,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string, 
 			return false, "resourcesAllowed", "at least one resource must be specified"
 		}
 		for _, resource := range resourcesAllowed {
-			if !resource.IsValid() {
+			if !resource.IsKnown() {
 				return false, "resourcesAllowed", "unknown resource"
 			}
 		}
