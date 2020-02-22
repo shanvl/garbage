@@ -24,7 +24,7 @@ type Repository interface {
 
 // IDGenerator is used to to generate unique IDs
 type IDGenerator interface {
-	GenerateEventID() garbage.EventID
+	GenerateEventID() (garbage.EventID, error)
 }
 
 // Validator provides functions helping with params validation and returning a convenient error
@@ -63,7 +63,10 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string, 
 	if err := s.valid.Validate(validateDate, validateResources); err != nil {
 		return "", err
 	}
-	id := s.idGen.GenerateEventID()
+	id, err := s.idGen.GenerateEventID()
+	if err != nil {
+		return "", err
+	}
 	event := garbage.NewEvent(id, date, name, resourcesAllowed)
 	eventID, err := s.repo.StoreEvent(ctx, event)
 	if err != nil {

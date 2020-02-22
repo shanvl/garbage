@@ -26,12 +26,13 @@ func (r *EventingRepository) DeleteEvent(ctx context.Context, id garbage.EventID
 	return r.DeleteEventFn(ctx, id)
 }
 
+// IDGenerator mocks idgen package in order not to do extra work in tests
 type IDGenerator struct {
-	GenerateEventIDFn      func() garbage.EventID
+	GenerateEventIDFn      func() (garbage.EventID, error)
 	GenerateEventIDInvoked bool
 }
 
-func (g *IDGenerator) GenerateEventID() garbage.EventID {
+func (g *IDGenerator) GenerateEventID() (garbage.EventID, error) {
 	g.GenerateEventIDInvoked = true
 	return g.GenerateEventIDFn()
 }

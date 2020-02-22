@@ -17,8 +17,8 @@ func Test_service_CreateEvent(t *testing.T) {
 		return e.ID, nil
 	}
 	var idGenerator mock.IDGenerator
-	idGenerator.GenerateEventIDFn = func() garbage.EventID {
-		return "123"
+	idGenerator.GenerateEventIDFn = func() (garbage.EventID, error) {
+		return "123", nil
 	}
 	validator := validation.NewValidator()
 	s := NewService(&repository, &idGenerator, validator)
@@ -116,8 +116,8 @@ func Test_service_DeleteEvent(t *testing.T) {
 		return eventID, nil
 	}
 	var idGenerator mock.IDGenerator
-	idGenerator.GenerateEventIDFn = func() garbage.EventID {
-		return "123"
+	idGenerator.GenerateEventIDFn = func() (garbage.EventID, error) {
+		return "123", nil
 	}
 	validator := validation.NewValidator()
 	s := NewService(&repository, &idGenerator, validator)
