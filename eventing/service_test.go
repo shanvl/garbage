@@ -82,7 +82,7 @@ func Test_service_CreateEvent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "👍",
+			name: "ok case",
 			args: args{
 				ctx:              ctx,
 				date:             time.Now().AddDate(0, 0, 1),
@@ -153,7 +153,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "👍",
+			name: "correct eventID",
 			args: args{
 				ctx:     ctx,
 				eventID: "123",

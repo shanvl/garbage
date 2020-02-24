@@ -47,7 +47,6 @@ func TestErrValidation_Error(t *testing.T) {
 	}
 }
 
-// genius
 func TestErrValidation_Fields(t *testing.T) {
 	tests := []struct {
 		name   string

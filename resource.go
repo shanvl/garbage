@@ -1,6 +1,6 @@
 package garbage
 
-// Resource is a concrete type of recyclable brought by pupils to events
+// Resource is a concrete type of recyclables brought by pupils to events
 type Resource string
 
 const (
@@ -9,12 +9,11 @@ const (
 	Plastic Resource = "plastic"
 )
 
-// IsKnown indicates whether a given resource is one of the known. Used, for example, in json decoding
+// IsKnown indicates whether a given resource is one of the known
 func (r Resource) IsKnown() bool {
-	for _, resource := range []Resource{Gadgets, Paper, Plastic} {
-		if r == resource {
-			return true
-		}
+	switch r {
+	case Gadgets, Paper, Plastic:
+		return true
 	}
 	return false
 }
