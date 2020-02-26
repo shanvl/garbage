@@ -1,11 +1,11 @@
-package validation
+package valid
 
 import (
 	"fmt"
 	"strings"
 )
 
-// ErrValidation is a validation error with some handy methods
+// ErrValidation is a valid error with some handy methods
 type ErrValidation struct {
 	fields map[string]string
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_idGen_GenerateEventID(t *testing.T) {
+func Test_CreateEventID(t *testing.T) {
 	tests := []struct {
 		name    string
 		wantLen int
@@ -12,14 +12,13 @@ func Test_idGen_GenerateEventID(t *testing.T) {
 	}{
 		{
 			name:    "the output is of desirable length",
-			wantLen: 14,
+			wantLen: EventIDLen,
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			i := NewIDGenerator()
-			got, err := i.GenerateEventID()
+			got, err := CreateEventID()
 			length := len(got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateEventID() error = %v, wantErr %v", err, tt.wantErr)

@@ -1,4 +1,4 @@
-package validation
+package valid
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 type validateFunction = func() (isValid bool, errorKey string, errorDescription string)
 
-func Test_validator_Validate(t *testing.T) {
+func Test_Check(t *testing.T) {
 	tests := []struct {
 		name              string
 		validateFunctions []validateFunction
@@ -47,9 +47,8 @@ func Test_validator_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := NewValidator()
-			if err := v.Validate(tt.validateFunctions...); (err != nil) != tt.wantErr {
-				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Check(tt.validateFunctions...); (err != nil) != tt.wantErr {
+				t.Errorf("Check() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
