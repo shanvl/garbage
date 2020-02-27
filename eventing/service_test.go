@@ -27,10 +27,11 @@ func Test_service_CreateEvent(t *testing.T) {
 		resourcesAllowed []garbage.Resource
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    garbage.EventID
-		wantErr bool
+		name string
+		args args
+		// we check if the length of eventID returned is greater than 0. On error it will be 0
+		idLenGT0 bool
+		wantErr  bool
 	}{
 		{
 			name: "date is in the past",
@@ -40,8 +41,8 @@ func Test_service_CreateEvent(t *testing.T) {
 				name:             "some name",
 				resourcesAllowed: []garbage.Resource{"plastic", "gadgets"},
 			},
-			want:    "",
-			wantErr: true,
+			idLenGT0: false,
+			wantErr:  true,
 		},
 		{
 			name: "wrong resources",
@@ -51,8 +52,8 @@ func Test_service_CreateEvent(t *testing.T) {
 				name:             "some name",
 				resourcesAllowed: []garbage.Resource{"plastI", "gadgets"},
 			},
-			want:    "",
-			wantErr: true,
+			idLenGT0: false,
+			wantErr:  true,
 		},
 		{
 			name: "no resources",
@@ -62,8 +63,8 @@ func Test_service_CreateEvent(t *testing.T) {
 				name:             "",
 				resourcesAllowed: nil,
 			},
-			want:    "",
-			wantErr: true,
+			idLenGT0: false,
+			wantErr:  true,
 		},
 		{
 			name: "no name but that's ok",
@@ -73,8 +74,8 @@ func Test_service_CreateEvent(t *testing.T) {
 				name:             "",
 				resourcesAllowed: []garbage.Resource{"plastic", "gadgets"},
 			},
-			want:    "123",
-			wantErr: false,
+			idLenGT0: true,
+			wantErr:  false,
 		},
 		{
 			name: "ok case",
@@ -84,19 +85,20 @@ func Test_service_CreateEvent(t *testing.T) {
 				name:             "some name",
 				resourcesAllowed: []garbage.Resource{"plastic", "gadgets"},
 			},
-			want:    "123",
-			wantErr: false,
+			idLenGT0: true,
+			wantErr:  false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := s.CreateEvent(tt.args.ctx, tt.args.date, tt.args.name, tt.args.resourcesAllowed)
+			gotLenGT0 := len(got) > 0
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateEvent() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("CreateEvent() got = %v, want %v", got, tt.want)
+			if gotLenGT0 != tt.idLenGT0 {
+				t.Errorf("CreateEvent() got = %v, want %v", got, tt.idLenGT0)
 			}
 		})
 	}
