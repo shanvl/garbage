@@ -1,4 +1,4 @@
-package eventing
+package eventing_test
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/shanvl/garbage-events-service"
+	"github.com/shanvl/garbage-events-service/eventing"
 	"github.com/shanvl/garbage-events-service/mock"
-	"github.com/shanvl/garbage-events-service/validation"
 )
 
 func Test_service_CreateEvent(t *testing.T) {
@@ -16,12 +16,7 @@ func Test_service_CreateEvent(t *testing.T) {
 	repository.StoreEventFn = func(ctx context.Context, e *garbage.Event) (id garbage.EventID, err error) {
 		return e.ID, nil
 	}
-	var idGenerator mock.IDGenerator
-	idGenerator.GenerateEventIDFn = func() (garbage.EventID, error) {
-		return "123", nil
-	}
-	validator := validation.NewValidator()
-	s := NewService(&repository, &idGenerator, validator)
+	s := eventing.NewService(&repository)
 
 	ctx := context.Background()
 
@@ -115,12 +110,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 		}
 		return eventID, nil
 	}
-	var idGenerator mock.IDGenerator
-	idGenerator.GenerateEventIDFn = func() (garbage.EventID, error) {
-		return "123", nil
-	}
-	validator := validation.NewValidator()
-	s := NewService(&repository, &idGenerator, validator)
+	s := eventing.NewService(&repository)
 
 	ctx := context.Background()
 
@@ -171,6 +161,166 @@ func Test_service_DeleteEvent(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("DeleteEvent() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_service_Events(t *testing.T) {
+	const (
+		totalEvents = 55
+		sortBy      = eventing.DateDesc
+		name        = "some name"
+		amount      = 10
+		skip        = 50
+	)
+	date := time.Now().AddDate(0, -1, 0)
+	ctx := context.Background()
+
+	var repository mock.EventingRepository
+	repository.EventsFn = func(ctx context.Context, name string, date time.Time, sortBy eventing.SortBy, amount int,
+		skip int) (events []*eventing.Event, total int, err error) {
+		if name == "not_found" {
+			return nil, 0, nil
+		}
+		if name == "error" {
+			return nil, 0, errors.New("some error")
+		}
+		if amount < 0 {
+			return make([]*eventing.Event, 0), totalEvents, nil
+		}
+		events = make([]*eventing.Event, amount)
+		return events, totalEvents, nil
+	}
+	s := eventing.NewService(&repository)
+
+	type args struct {
+		ctx    context.Context
+		name   string
+		date   time.Time
+		sortBy eventing.SortBy
+		amount int
+		skip   int
+	}
+	tests := []struct {
+		name          string
+		args          args
+		wantEventsLen int
+		wantTotal     int
+		wantErr       bool
+	}{
+		{
+			name: "empty name",
+			args: args{
+				ctx:    ctx,
+				name:   "",
+				date:   date,
+				sortBy: sortBy,
+				amount: amount,
+				skip:   skip,
+			},
+			wantEventsLen: amount,
+			wantTotal:     totalEvents,
+			wantErr:       false,
+		},
+		{
+			name: "zero date",
+			args: args{
+				ctx:    ctx,
+				name:   name,
+				date:   time.Time{},
+				sortBy: sortBy,
+				amount: amount,
+				skip:   skip,
+			},
+			wantEventsLen: amount,
+			wantTotal:     totalEvents,
+			wantErr:       false,
+		},
+		{
+			name: "negative amount",
+			args: args{
+				ctx:    ctx,
+				name:   name,
+				date:   date,
+				sortBy: sortBy,
+				amount: -55,
+				skip:   skip,
+			},
+			wantEventsLen: 0,
+			wantTotal:     totalEvents,
+			wantErr:       false,
+		},
+		{
+			name: "negative skip",
+			args: args{
+				ctx:    ctx,
+				name:   name,
+				date:   time.Time{},
+				sortBy: sortBy,
+				amount: amount,
+				skip:   -55,
+			},
+			wantEventsLen: amount,
+			wantTotal:     totalEvents,
+			wantErr:       false,
+		},
+		{
+			name: "invalid sortBy",
+			args: args{
+				ctx:    ctx,
+				name:   name,
+				date:   date,
+				sortBy: "invalid",
+				amount: amount,
+				skip:   skip,
+			},
+			wantEventsLen: amount,
+			wantTotal:     totalEvents,
+			wantErr:       false,
+		},
+		{
+			name: "repo's internal error",
+			args: args{
+				ctx:    ctx,
+				name:   "error",
+				date:   date,
+				sortBy: sortBy,
+				amount: amount,
+				skip:   skip,
+			},
+			wantEventsLen: 0,
+			wantTotal:     0,
+			wantErr:       true,
+		},
+		{
+			name: "not found",
+			args: args{
+				ctx:    ctx,
+				name:   "not_found",
+				date:   date,
+				sortBy: sortBy,
+				amount: amount,
+				skip:   skip,
+			},
+			wantEventsLen: 0,
+			wantTotal:     0,
+			wantErr:       false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotEvents, gotTotal, err := s.Events(tt.args.ctx, tt.args.name, tt.args.date, tt.args.sortBy,
+				tt.args.amount, tt.args.skip)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Events() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(gotEvents) != tt.wantEventsLen {
+				t.Errorf("Events() gotEventsLen = %v, want %v", gotEvents, tt.wantEventsLen)
+			}
+			if gotTotal != tt.wantTotal {
+				t.Errorf("Events() gotTotal = %v, want %v", gotTotal, tt.wantTotal)
 			}
 		})
 	}

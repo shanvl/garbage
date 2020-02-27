@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/shanvl/garbage-events-service"
+	"github.com/shanvl/garbage-events-service/idgen"
+	"github.com/shanvl/garbage-events-service/valid"
 )
 
 // Service is an interface providing methods to manage events
@@ -14,32 +16,26 @@ type Service interface {
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
+	// Events returns an array of sorted events
+	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
+		skip int) (events []*Event, total int, err error)
 }
 
 // Repository provides methods to work with event's persistence
 type Repository interface {
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
-}
-
-// IDGenerator is used to to generate unique IDs
-type IDGenerator interface {
-	GenerateEventID() (garbage.EventID, error)
-}
-
-// Validator provides functions helping with params validation and returning a convenient error
-type Validator interface {
-	Validate(validateFunctions ...func() (isValid bool, errKey string, errDesc string)) error
+	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int, skip int) (events []*Event,
+		total int, err error)
 }
 
 type service struct {
-	repo  Repository
-	idGen IDGenerator
-	valid Validator
+	repo Repository
 }
 
 // CreateEvent creates and stores an event
-func (s *service) CreateEvent(ctx context.Context, date time.Time, name string, resourcesAllowed []garbage.Resource) (garbage.EventID, error) {
+func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
+	resourcesAllowed []garbage.Resource) (garbage.EventID, error) {
 	// new event mustn't occur in the past
 	validateDate := func() (isValid bool, errKey string, errDesc string) {
 		if time.Now().After(date) {
@@ -60,10 +56,10 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string, 
 		return true, "", ""
 	}
 	// use previous functions to validate the arguments
-	if err := s.valid.Validate(validateDate, validateResources); err != nil {
+	if err := valid.Check(validateDate, validateResources); err != nil {
 		return "", err
 	}
-	id, err := s.idGen.GenerateEventID()
+	id, err := idgen.CreateEventID()
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +74,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string, 
 // DeleteEvent deletes an event
 func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
 	// check if there's eventID
-	if err := s.valid.Validate(func() (isValid bool, errKey string, errDesc string) {
+	if err := valid.Check(func() (isValid bool, errKey string, errDesc string) {
 		if len(eventID) <= 0 {
 			return false, "eventID", "eventID must be provided"
 		}
@@ -93,9 +89,28 @@ func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (gar
 	return deletedID, nil
 }
 
-// NewService returns an instance of Service w/ all its dependencies
-func NewService(repo Repository, idGen IDGenerator, valid Validator) Service {
-	return &service{repo, idGen, valid}
+// Events returns an array of sorted events
+func (s *service) Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
+	skip int) (events []*Event, total int, err error) {
+	if amount < 0 {
+		amount = 0
+	}
+	if skip < 0 {
+		skip = 0
+	}
+	if !sortBy.IsValid() {
+		sortBy = DateDesc
+	}
+	e, t, err := s.repo.Events(ctx, name, date, sortBy, amount, skip)
+	if err != nil {
+		return nil, 0, err
+	}
+	return e, t, nil
+}
+
+// NewService returns an instance of Service with all its dependencies
+func NewService(repo Repository) Service {
+	return &service{repo}
 }
 
 type Class struct {

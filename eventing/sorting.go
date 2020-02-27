@@ -4,11 +4,11 @@ package eventing
 type SortBy string
 
 const (
-	DateAsc  = "dateAsc"
-	DateDesc = "dateDesc"
-	Gadgets  = "gadgets"
-	Paper    = "paper"
-	Plastic  = "plastic"
+	DateAsc  SortBy = "dateAsc"
+	DateDesc SortBy = "dateDesc"
+	Gadgets  SortBy = "gadgets"
+	Paper    SortBy = "paper"
+	Plastic  SortBy = "plastic"
 )
 
 // IsValid checks if a provided sorting type is valid
