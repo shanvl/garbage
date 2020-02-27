@@ -13,11 +13,13 @@ type Event struct {
 	ID   EventID
 	Date time.Time
 	Name string
-	// Recyclables permitted to be brought on this event
+	// Recyclables permitted to be brought to this event
 	ResourcesAllowed []Resource
+	// Recyclables brought to the event
+	ResourcesBrought map[Resource]int
 }
 
-// NewEvent creates a new event. If no name is provided, its date used as the name
+// NewEvent returns an instance of a new event. If no name is provided, its date used as the name
 func NewEvent(id EventID, date time.Time, name string, resourcesAllowed []Resource) *Event {
 	if name == "" {
 		year, month, day := date.Date()
@@ -28,5 +30,6 @@ func NewEvent(id EventID, date time.Time, name string, resourcesAllowed []Resour
 		Date:             date,
 		Name:             name,
 		ResourcesAllowed: resourcesAllowed,
+		ResourcesBrought: make(map[Resource]int),
 	}
 }

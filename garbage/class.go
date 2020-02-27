@@ -1,4 +1,4 @@
-// Package garbage contains core concepts used by the project's services
+// Package garbage contains core domain concepts used in the project
 package garbage
 
 import (
@@ -18,6 +18,8 @@ type Class struct {
 	// Date on which the class was formed
 	Formed time.Time
 	Letter string
+	// Recyclables brought by a class to selected events
+	ResourcesBrought map[Resource]int
 }
 
 // NameFromDate constructs a class name for a specified date. For example, if a class, which has
@@ -30,4 +32,14 @@ func (c *Class) NameFromDate(date time.Time) (string, error) {
 		return "", errors.New("invalid date range")
 	}
 	return fmt.Sprintf("%d%s", classNumber, c.Letter), nil
+}
+
+// NewClass returns an instance of a new class
+func NewClass(id ClassID, formed time.Time, letter string) *Class {
+	return &Class{
+		ID:               id,
+		Formed:           formed,
+		Letter:           letter,
+		ResourcesBrought: make(map[Resource]int),
+	}
 }

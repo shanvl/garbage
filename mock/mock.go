@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/shanvl/garbage-events-service"
 	"github.com/shanvl/garbage-events-service/eventing"
+	"github.com/shanvl/garbage-events-service/garbage"
 )
 
 // EventingRepository is a mock eventing usecase repository
@@ -13,11 +13,11 @@ type EventingRepository struct {
 	DeleteEventFn      func(ctx context.Context, id garbage.EventID) (garbage.EventID, error)
 	DeleteEventInvoked bool
 
-	EventFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
+	EventFn      func(ctx context.Context, id garbage.EventID) (*garbage.Event, error)
 	EventInvoked bool
 
 	EventsFn func(ctx context.Context, name string, date time.Time, sortBy eventing.SortBy, amount int,
-		skip int) (events []*eventing.Event, total int, err error)
+		skip int) (events []*garbage.Event, total int, err error)
 	EventsInvoked bool
 
 	StoreEventFn      func(ctx context.Context, e *garbage.Event) (garbage.EventID, error)
@@ -38,12 +38,12 @@ func (r *EventingRepository) StoreEvent(ctx context.Context, e *garbage.Event) (
 
 // Events returns an array of sorted events
 func (r *EventingRepository) Events(ctx context.Context, name string, date time.Time, sortBy eventing.SortBy,
-	amount int, skip int) (events []*eventing.Event, total int, err error) {
+	amount int, skip int) (events []*garbage.Event, total int, err error) {
 	r.EventsInvoked = true
 	return r.EventsFn(ctx, name, date, sortBy, amount, skip)
 }
 
-func (r *EventingRepository) Event(ctx context.Context, id garbage.EventID) (*eventing.Event, error) {
+func (r *EventingRepository) Event(ctx context.Context, id garbage.EventID) (*garbage.Event, error) {
 	r.EventInvoked = true
 	return r.EventFn(ctx, id)
 }

@@ -3,7 +3,7 @@ package idgen
 
 import (
 	gonanoid "github.com/matoous/go-nanoid"
-	"github.com/shanvl/garbage-events-service"
+	"github.com/shanvl/garbage-events-service/garbage"
 )
 
 const EventIDLen = 14

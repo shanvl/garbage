@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shanvl/garbage-events-service"
 	"github.com/shanvl/garbage-events-service/eventing"
+	"github.com/shanvl/garbage-events-service/garbage"
 	"github.com/shanvl/garbage-events-service/mock"
 )
 
@@ -182,7 +182,7 @@ func Test_service_Events(t *testing.T) {
 
 	var repository mock.EventingRepository
 	repository.EventsFn = func(ctx context.Context, name string, date time.Time, sortBy eventing.SortBy, amount int,
-		skip int) (events []*eventing.Event, total int, err error) {
+		skip int) (events []*garbage.Event, total int, err error) {
 		if name == "not_found" {
 			return nil, 0, nil
 		}
@@ -190,9 +190,9 @@ func Test_service_Events(t *testing.T) {
 			return nil, 0, errors.New("some error")
 		}
 		if amount < 0 {
-			return make([]*eventing.Event, 0), totalEvents, nil
+			return make([]*garbage.Event, 0), totalEvents, nil
 		}
-		events = make([]*eventing.Event, amount)
+		events = make([]*garbage.Event, amount)
 		return events, totalEvents, nil
 	}
 	s := eventing.NewService(&repository)
@@ -331,14 +331,14 @@ func Test_service_Events(t *testing.T) {
 
 func Test_service_Event(t *testing.T) {
 	var repository mock.EventingRepository
-	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
+	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *garbage.Event, err error) {
 		if id == "not_found" {
 			return nil, errors.New("not found")
 		}
 		if id == "error" {
 			return nil, errors.New("some error")
 		}
-		return &eventing.Event{Event: garbage.Event{ID: id}}, nil
+		return &garbage.Event{ID: id}, nil
 	}
 	ctx := context.Background()
 
@@ -349,7 +349,7 @@ func Test_service_Event(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *eventing.Event
+		want    *garbage.Event
 		wantErr bool
 	}{
 		{
@@ -385,7 +385,7 @@ func Test_service_Event(t *testing.T) {
 				ctx:     ctx,
 				eventID: "123",
 			},
-			want:    &eventing.Event{Event: garbage.Event{ID: "123"}},
+			want:    &garbage.Event{ID: "123"},
 			wantErr: false,
 		},
 	}

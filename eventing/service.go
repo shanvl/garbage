@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/shanvl/garbage-events-service"
+	"github.com/shanvl/garbage-events-service/garbage"
 	"github.com/shanvl/garbage-events-service/idgen"
 	"github.com/shanvl/garbage-events-service/valid"
 )
@@ -17,18 +17,19 @@ type Service interface {
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	// Event returns an event by its ID
-	Event(ctx context.Context, eventID garbage.EventID) (*Event, error)
+	Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
 	// Events returns an array of sorted events
 	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
-		skip int) (events []*Event, total int, err error)
+		skip int) (events []*garbage.Event, total int, err error)
 }
 
 // Repository provides methods to work with event's persistence
 type Repository interface {
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
-	Event(ctx context.Context, eventID garbage.EventID) (*Event, error)
-	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int, skip int) (events []*Event,
+	Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
+	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
+		skip int) (events []*garbage.Event,
 		total int, err error)
 }
 
@@ -94,7 +95,7 @@ func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (gar
 
 // Events returns an array of sorted events
 func (s *service) Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
-	skip int) (events []*Event, total int, err error) {
+	skip int) (events []*garbage.Event, total int, err error) {
 	if amount < 0 {
 		amount = 0
 	}
@@ -112,7 +113,7 @@ func (s *service) Events(ctx context.Context, name string, date time.Time, sortB
 }
 
 // Event returns an event by its ID
-func (s *service) Event(ctx context.Context, eventID garbage.EventID) (*Event, error) {
+func (s *service) Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error) {
 	validateEventID := func() (isValid bool, errorKey string, errorDescription string) {
 		if len(eventID) <= 0 {
 			return false, "eventID", "eventID is needed"
@@ -132,19 +133,4 @@ func (s *service) Event(ctx context.Context, eventID garbage.EventID) (*Event, e
 // NewService returns an instance of Service with all its dependencies
 func NewService(repo Repository) Service {
 	return &service{repo}
-}
-
-type Class struct {
-	garbage.Class
-	ResourcesBrought map[garbage.Resource]int
-}
-
-type Event struct {
-	garbage.Event
-	ResourcesCollected map[garbage.Resource]int
-}
-
-type Pupil struct {
-	garbage.Pupil
-	ResourcesBrought map[garbage.Resource]int
 }

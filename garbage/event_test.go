@@ -9,11 +9,13 @@ import (
 func TestNewEvent(t *testing.T) {
 	eventDate := time.Date(2020, 10, 10, 0, 0, 0, 0, time.UTC)
 	resourcesAllowed := []Resource{"plastic", "gadgets"}
+	resourcesBrought := make(map[Resource]int)
 	type args struct {
 		id               EventID
 		date             time.Time
 		name             string
 		resourcesAllowed []Resource
+		resourcesBrought map[Resource]int
 	}
 	tests := []struct {
 		name string
@@ -27,12 +29,14 @@ func TestNewEvent(t *testing.T) {
 				date:             eventDate,
 				name:             "",
 				resourcesAllowed: resourcesAllowed,
+				resourcesBrought: resourcesBrought,
 			},
 			want: &Event{
 				ID:               "123",
 				Date:             eventDate,
 				Name:             "10-10-2020",
 				ResourcesAllowed: resourcesAllowed,
+				ResourcesBrought: resourcesBrought,
 			},
 		},
 		{
@@ -42,12 +46,14 @@ func TestNewEvent(t *testing.T) {
 				date:             eventDate,
 				name:             "some name",
 				resourcesAllowed: resourcesAllowed,
+				resourcesBrought: resourcesBrought,
 			},
 			want: &Event{
 				ID:               "123",
 				Date:             eventDate,
 				Name:             "some name",
 				ResourcesAllowed: resourcesAllowed,
+				ResourcesBrought: resourcesBrought,
 			},
 		},
 	}
