@@ -6,7 +6,7 @@ import (
 
 type validateFunction = func() (isValid bool, errorKey string, errorDescription string)
 
-func Test_Check(t *testing.T) {
+func Test_CheckErrors(t *testing.T) {
 	tests := []struct {
 		name              string
 		validateFunctions []validateFunction
@@ -47,8 +47,8 @@ func Test_Check(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Check(tt.validateFunctions...); (err != nil) != tt.wantErr {
-				t.Errorf("Check() error = %v, wantErr %v", err, tt.wantErr)
+			if err := CheckErrors(tt.validateFunctions...); (err != nil) != tt.wantErr {
+				t.Errorf("CheckErrors() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -16,6 +16,8 @@ type Service interface {
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
+	// Event returns an event by its ID
+	Event(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	// Events returns an array of sorted events
 	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
 		skip int) (events []*Event, total int, err error)
@@ -25,6 +27,7 @@ type Service interface {
 type Repository interface {
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
+	Event(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int, skip int) (events []*Event,
 		total int, err error)
 }
@@ -56,7 +59,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 		return true, "", ""
 	}
 	// use previous functions to validate the arguments
-	if err := valid.Check(validateDate, validateResources); err != nil {
+	if err := valid.CheckErrors(validateDate, validateResources); err != nil {
 		return "", err
 	}
 	id, err := idgen.CreateEventID()
@@ -74,7 +77,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 // DeleteEvent deletes an event
 func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
 	// check if there's eventID
-	if err := valid.Check(func() (isValid bool, errKey string, errDesc string) {
+	if err := valid.CheckErrors(func() (isValid bool, errKey string, errDesc string) {
 		if len(eventID) <= 0 {
 			return false, "eventID", "eventID must be provided"
 		}
@@ -106,6 +109,24 @@ func (s *service) Events(ctx context.Context, name string, date time.Time, sortB
 		return nil, 0, err
 	}
 	return e, t, nil
+}
+
+// Event returns an event by its ID
+func (s *service) Event(ctx context.Context, eventID garbage.EventID) (*Event, error) {
+	validateEventID := func() (isValid bool, errorKey string, errorDescription string) {
+		if len(eventID) <= 0 {
+			return false, "eventID", "eventID is needed"
+		}
+		return true, "", ""
+	}
+	if err := valid.CheckErrors(validateEventID); err != nil {
+		return nil, err
+	}
+	event, err := s.repo.Event(ctx, eventID)
+	if err != nil {
+		return nil, err
+	}
+	return event, nil
 }
 
 // NewService returns an instance of Service with all its dependencies

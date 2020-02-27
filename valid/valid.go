@@ -1,8 +1,8 @@
 // Package valid provides tools to validate some input and return a convenient error
 package valid
 
-// Check receives validation functions and returns a convenient error if one of them returned "false"
-func Check(validationFuncs ...func() (isValid bool, errorKey string, errorDescription string)) error {
+// CheckErrors receives validation functions and returns a convenient error if one of them returned "false"
+func CheckErrors(validationFuncs ...func() (isValid bool, errorKey string, errorDescription string)) error {
 	err := &ErrValidation{}
 	for _, f := range validationFuncs {
 		if isValid, errorKey, errorDescription := f(); !isValid {

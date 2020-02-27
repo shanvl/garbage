@@ -13,6 +13,9 @@ type EventingRepository struct {
 	DeleteEventFn      func(ctx context.Context, id garbage.EventID) (garbage.EventID, error)
 	DeleteEventInvoked bool
 
+	EventFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
+	EventInvoked bool
+
 	EventsFn func(ctx context.Context, name string, date time.Time, sortBy eventing.SortBy, amount int,
 		skip int) (events []*eventing.Event, total int, err error)
 	EventsInvoked bool
@@ -38,4 +41,9 @@ func (r *EventingRepository) Events(ctx context.Context, name string, date time.
 	amount int, skip int) (events []*eventing.Event, total int, err error) {
 	r.EventsInvoked = true
 	return r.EventsFn(ctx, name, date, sortBy, amount, skip)
+}
+
+func (r *EventingRepository) Event(ctx context.Context, id garbage.EventID) (*eventing.Event, error) {
+	r.EventInvoked = true
+	return r.EventFn(ctx, id)
 }

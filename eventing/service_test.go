@@ -3,6 +3,7 @@ package eventing_test
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -323,6 +324,81 @@ func Test_service_Events(t *testing.T) {
 			}
 			if gotTotal != tt.wantTotal {
 				t.Errorf("Events() gotTotal = %v, want %v", gotTotal, tt.wantTotal)
+			}
+		})
+	}
+}
+
+func Test_service_Event(t *testing.T) {
+	var repository mock.EventingRepository
+	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
+		if id == "not_found" {
+			return nil, errors.New("not found")
+		}
+		if id == "error" {
+			return nil, errors.New("some error")
+		}
+		return &eventing.Event{Event: garbage.Event{ID: id}}, nil
+	}
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		eventID garbage.EventID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *eventing.Event
+		wantErr bool
+	}{
+		{
+			name: "empty eventID",
+			args: args{
+				ctx:     ctx,
+				eventID: "",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "not found",
+			args: args{
+				ctx:     ctx,
+				eventID: "not_found",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "error",
+			args: args{
+				ctx:     ctx,
+				eventID: "error",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "event is found",
+			args: args{
+				ctx:     ctx,
+				eventID: "123",
+			},
+			want:    &eventing.Event{Event: garbage.Event{ID: "123"}},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := eventing.NewService(&repository)
+			got, err := s.Event(tt.args.ctx, tt.args.eventID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Event() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Event() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
