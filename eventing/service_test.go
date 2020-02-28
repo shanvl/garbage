@@ -340,6 +340,8 @@ func Test_service_Event(t *testing.T) {
 		}
 		return &garbage.Event{ID: id}, nil
 	}
+	s := eventing.NewService(&repository)
+
 	ctx := context.Background()
 
 	type args struct {
@@ -391,7 +393,6 @@ func Test_service_Event(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := eventing.NewService(&repository)
 			got, err := s.Event(tt.args.ctx, tt.args.eventID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Event() error = %v, wantErr %v", err, tt.wantErr)
@@ -399,6 +400,143 @@ func Test_service_Event(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Event() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_service_ChangeEventResources(t *testing.T) {
+	const (
+		eventID = "123"
+		pupilID = "123"
+	)
+	resourcesBrought := map[garbage.Resource]int{"plastic": 22}
+	resourcesAllowed := []garbage.Resource{"plastic", "gadgets"}
+	ctx := context.Background()
+
+	var repository mock.EventingRepository
+	repository.ChangeEventResourcesFn = func(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+		resources map[garbage.Resource]int) (event *garbage.Event, pupil *garbage.Pupil, err error) {
+		if eventID == "error" {
+			return nil, nil, errors.New("some error")
+		}
+		return &garbage.Event{ID: eventID}, &garbage.Pupil{ID: pupilID}, nil
+	}
+	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *garbage.Event, err error) {
+		return &garbage.Event{ID: id, ResourcesAllowed: resourcesAllowed}, nil
+	}
+	s := eventing.NewService(&repository)
+
+	type args struct {
+		ctx       context.Context
+		eventID   garbage.EventID
+		pupilID   garbage.PupilID
+		resources map[garbage.Resource]int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    garbage.EventID
+		want1   garbage.PupilID
+		wantErr bool
+	}{
+		{
+			name: "no eventID",
+			args: args{
+				ctx:       ctx,
+				eventID:   "",
+				pupilID:   pupilID,
+				resources: resourcesBrought,
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "no pupilID",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventID,
+				pupilID:   "",
+				resources: resourcesBrought,
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "no resources",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventID,
+				pupilID:   pupilID,
+				resources: nil,
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "resource is not allowed",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventID,
+				pupilID:   pupilID,
+				resources: map[garbage.Resource]int{"paper": 1},
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "one resource is allowed, another not",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventID,
+				pupilID:   pupilID,
+				resources: map[garbage.Resource]int{"paper": 11, "plastic": 33},
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "add 2 resources",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventID,
+				pupilID:   pupilID,
+				resources: map[garbage.Resource]int{"plastic": 11, "gadgets": 33},
+			},
+			want:    eventID,
+			want1:   pupilID,
+			wantErr: false,
+		},
+		{
+			name: "subtract one resource, add another",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventID,
+				pupilID:   pupilID,
+				resources: map[garbage.Resource]int{"plastic": -55, "gadgets": 33},
+			},
+			want:    eventID,
+			want1:   pupilID,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, err := s.ChangeEventResources(tt.args.ctx, tt.args.eventID, tt.args.pupilID, tt.args.resources)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChangeEventResources() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != nil && got.ID != tt.want {
+				t.Errorf("ChangeEventResources() got = %v, want %v", got.ID, tt.want)
+			}
+			if got1 != nil && got1.ID != tt.want1 {
+				t.Errorf("ChangeEventResources() got1 = %v, want %v", got1.ID, tt.want1)
 			}
 		})
 	}

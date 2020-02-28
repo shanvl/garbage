@@ -19,6 +19,16 @@ type Event struct {
 	ResourcesBrought map[Resource]int
 }
 
+// IsResourcesAllowed checks if a given resource is allowed on this event
+func (e *Event) IsResourceAllowed(r Resource) bool {
+	for _, rAllowed := range e.ResourcesAllowed {
+		if r == rAllowed {
+			return true
+		}
+	}
+	return false
+}
+
 // NewEvent returns an instance of a new event. If no name is provided, its date used as the name
 func NewEvent(id EventID, date time.Time, name string, resourcesAllowed []Resource) *Event {
 	if name == "" {

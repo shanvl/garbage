@@ -3,6 +3,7 @@ package eventing
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/shanvl/garbage-events-service/garbage"
@@ -14,6 +15,9 @@ import (
 type Service interface {
 	// CreateEvent creates and stores an event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
+	// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
+	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+		resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error)
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	// Event returns an event by its ID
@@ -25,16 +29,60 @@ type Service interface {
 
 // Repository provides methods to work with event's persistence
 type Repository interface {
-	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
+	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+		resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
 	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
 		skip int) (events []*garbage.Event,
 		total int, err error)
+	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 }
 
 type service struct {
 	repo Repository
+}
+
+// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
+func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+	resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error) {
+	validatePupilID := func() (isValid bool, errorKey string, errorDescription string) {
+		if len(pupilID) <= 0 {
+			return false, "pupilID", "pupilID must be provided"
+		}
+		return true, "", ""
+	}
+	validateEventID := func() (isValid bool, errorKey string, errorDescription string) {
+		if len(eventID) <= 0 {
+			return false, "eventID", "eventID must be provided"
+		}
+		return true, "", ""
+	}
+	// find an event by its id
+	event, err := s.repo.Event(ctx, eventID)
+	if err != nil {
+		return nil, nil, err
+	}
+	// check if all the resources brought are allowed at this event
+	validateResources := func() (isValid bool, errorKey string, errorDescription string) {
+		if len(resources) <= 0 {
+			return false, "resources", "no resources were provided"
+		}
+		for res := range resources {
+			if !event.IsResourceAllowed(res) {
+				return false, "resources", fmt.Sprintf("%s not allowed", res)
+			}
+		}
+		return true, "", ""
+	}
+	if err := valid.CheckErrors(validatePupilID, validateEventID, validateResources); err != nil {
+		return nil, nil, err
+	}
+	event, pupil, err := s.repo.ChangeEventResources(ctx, eventID, pupilID, resources)
+	if err != nil {
+		return nil, nil, err
+	}
+	return event, pupil, nil
 }
 
 // CreateEvent creates and stores an event
