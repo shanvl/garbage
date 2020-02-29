@@ -5,6 +5,39 @@ import (
 	"testing"
 )
 
+func TestErrValidation_Add(t *testing.T) {
+	tests := []struct {
+		name string
+		args [][]string
+		want map[string]string
+	}{
+		{
+			name: "no args",
+			args: [][]string{},
+			want: map[string]string{},
+		},
+		{
+			name: "2 args",
+			args: [][]string{
+				{"name", "wrong name"},
+				{"age", "wrong age"},
+			},
+			want: map[string]string{"name": "wrong name", "age": "wrong age"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := EmptyError()
+			for _, arg := range tt.args {
+				e.Add(arg[0], arg[1])
+			}
+			if got := e.fields; !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("e.fields = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestErrValidation_Error(t *testing.T) {
 	// We should consider in the tests that a map's values order is always random,
 	// that's why there are 2 cases of "want" — they cover every possible combination of map's values.
@@ -76,34 +109,30 @@ func TestErrValidation_Fields(t *testing.T) {
 	}
 }
 
-func TestErrValidation_add(t *testing.T) {
+func TestErrValidation_IsEmpty(t *testing.T) {
 	tests := []struct {
-		name string
-		args [][]string
-		want map[string]string
+		name   string
+		fields map[string]string
+		want   bool
 	}{
 		{
-			name: "no args",
-			args: [][]string{},
-			want: nil,
+			name:   "empty error with no fields",
+			fields: map[string]string{},
+			want:   true,
 		},
 		{
-			name: "2 args",
-			args: [][]string{
-				{"name", "wrong name"},
-				{"age", "wrong age"},
-			},
-			want: map[string]string{"name": "wrong name", "age": "wrong age"},
+			name:   "2 fields",
+			fields: map[string]string{"error": "error desc", "error2": "error desc"},
+			want:   false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &ErrValidation{}
-			for _, arg := range tt.args {
-				e.add(arg[0], arg[1])
+			e := &ErrValidation{
+				fields: tt.fields,
 			}
-			if got := e.fields; !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("e.fields = %v, want %v", got, tt.want)
+			if got := e.IsEmpty(); got != tt.want {
+				t.Errorf("IsEmpty() = %v, want %v", got, tt.want)
 			}
 		})
 	}

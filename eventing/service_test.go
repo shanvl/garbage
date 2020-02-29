@@ -250,7 +250,7 @@ func Test_service_Events(t *testing.T) {
 				amount: -55,
 				skip:   skip,
 			},
-			wantEventsLen: 0,
+			wantEventsLen: eventing.DefaultAmount,
 			wantTotal:     totalEvents,
 			wantErr:       false,
 		},

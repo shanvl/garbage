@@ -1,3 +1,4 @@
+// Package valid provides tools to validate some input and return a convenient error
 package valid
 
 import (
@@ -5,9 +6,15 @@ import (
 	"strings"
 )
 
-// ErrValidation is a valid error with some handy methods
+// ErrValidation is a validation error which can store several errors as its fields
 type ErrValidation struct {
 	fields map[string]string
+}
+
+// Add simply adds an error as a field and description to the internal map
+// which then can used by other methods to obtain a nice human-readable error
+func (e *ErrValidation) Add(field, errDesc string) {
+	e.fields[field] = errDesc
 }
 
 // Error pretty prints all collected errors
@@ -24,11 +31,17 @@ func (e *ErrValidation) Fields() map[string]string {
 	return e.fields
 }
 
-// add simply adds an error field and its description to the internal map
-// which then is used by some methods to create a nice human-readable error
-func (e *ErrValidation) add(field, err string) {
-	if e.fields == nil {
-		e.fields = make(map[string]string, 10)
+// IsEmpty shows whether the error is empty, i.e. has no errors added to it
+func (e *ErrValidation) IsEmpty() bool {
+	if len(e.fields) <= 0 {
+		return true
 	}
-	e.fields[field] = err
+	return false
+}
+
+// EmptyError returns a new empty ErrValidation, so that it can be populated with errors later
+func EmptyError() *ErrValidation {
+	return &ErrValidation{
+		fields: make(map[string]string),
+	}
 }

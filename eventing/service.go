@@ -39,6 +39,12 @@ type Repository interface {
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 }
 
+const (
+	DefaultAmount = 5
+	DefaultSkip   = 0
+	DefaultSort   = DateDesc
+)
+
 type service struct {
 	repo Repository
 }
@@ -46,38 +52,36 @@ type service struct {
 // ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 	resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error) {
-	validatePupilID := func() (isValid bool, errorKey string, errorDescription string) {
-		if len(pupilID) <= 0 {
-			return false, "pupilID", "pupilID must be provided"
-		}
-		return true, "", ""
+
+	errVld := valid.EmptyError()
+	if len(pupilID) <= 0 {
+		errVld.Add("pupilID", "pupilID must be provided")
 	}
-	validateEventID := func() (isValid bool, errorKey string, errorDescription string) {
-		if len(eventID) <= 0 {
-			return false, "eventID", "eventID must be provided"
-		}
-		return true, "", ""
+	if len(eventID) <= 0 {
+		errVld.Add("eventID", "eventID must be provided")
+	}
+	if len(resources) <= 0 {
+		errVld.Add("resources", "no resources were provided")
+	}
+	if !errVld.IsEmpty() {
+		return nil, nil, errVld
 	}
 	// find an event by its id
 	event, err := s.repo.Event(ctx, eventID)
 	if err != nil {
 		return nil, nil, err
 	}
-	// check if all the resources brought are allowed at this event
-	validateResources := func() (isValid bool, errorKey string, errorDescription string) {
-		if len(resources) <= 0 {
-			return false, "resources", "no resources were provided"
+	// check that provided resources are allowed at this event
+	for res := range resources {
+		if !event.IsResourceAllowed(res) {
+			errVld.Add("resources", fmt.Sprintf("%s not allowed", res))
+			break
 		}
-		for res := range resources {
-			if !event.IsResourceAllowed(res) {
-				return false, "resources", fmt.Sprintf("%s not allowed", res)
-			}
-		}
-		return true, "", ""
 	}
-	if err := valid.CheckErrors(validatePupilID, validateEventID, validateResources); err != nil {
-		return nil, nil, err
+	if !errVld.IsEmpty() {
+		return nil, nil, errVld
 	}
+	// make changes
 	event, pupil, err := s.repo.ChangeEventResources(ctx, eventID, pupilID, resources)
 	if err != nil {
 		return nil, nil, err
@@ -88,33 +92,34 @@ func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.Even
 // CreateEvent creates and stores an event
 func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 	resourcesAllowed []garbage.Resource) (garbage.EventID, error) {
+
+	errVld := valid.EmptyError()
 	// new event mustn't occur in the past
-	validateDate := func() (isValid bool, errKey string, errDesc string) {
-		if time.Now().After(date) {
-			return false, "date", "event's date must be in the future"
-		}
-		return true, "", ""
+	if time.Now().After(date) {
+		errVld.Add("date", "event's date must be in the future")
 	}
 	// check that provided resourcesAllowed exist and are known
-	validateResources := func() (isValid bool, errKey string, errDesc string) {
-		if len(resourcesAllowed) == 0 {
-			return false, "resourcesAllowed", "at least one resource must be specified"
+	if len(resourcesAllowed) == 0 {
+		errVld.Add("resourcesAllowed", "at least one resource must be specified")
+	}
+	if !errVld.IsEmpty() {
+		return "", errVld
+	}
+	for _, resource := range resourcesAllowed {
+		if !resource.IsKnown() {
+			errVld.Add("resourcesAllowed", "unknown resource")
+			break
 		}
-		for _, resource := range resourcesAllowed {
-			if !resource.IsKnown() {
-				return false, "resourcesAllowed", "unknown resource"
-			}
-		}
-		return true, "", ""
+	}
+	if !errVld.IsEmpty() {
+		return "", errVld
 	}
 	// use previous functions to validate the arguments
-	if err := valid.CheckErrors(validateDate, validateResources); err != nil {
-		return "", err
-	}
 	id, err := idgen.CreateEventID()
 	if err != nil {
 		return "", err
 	}
+	// create event
 	event := garbage.NewEvent(id, date, name, resourcesAllowed)
 	eventID, err := s.repo.StoreEvent(ctx, event)
 	if err != nil {
@@ -125,15 +130,15 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 
 // DeleteEvent deletes an event
 func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
+	errVld := valid.EmptyError()
 	// check if there's eventID
-	if err := valid.CheckErrors(func() (isValid bool, errKey string, errDesc string) {
-		if len(eventID) <= 0 {
-			return false, "eventID", "eventID must be provided"
-		}
-		return true, "", ""
-	}); err != nil {
-		return "", err
+	if len(eventID) <= 0 {
+		errVld.Add("eventID", "eventID must be provided")
 	}
+	if !errVld.IsEmpty() {
+		return "", errVld
+	}
+	// delete event
 	deletedID, err := s.repo.DeleteEvent(ctx, eventID)
 	if err != nil {
 		return "", err
@@ -144,32 +149,33 @@ func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (gar
 // Events returns an array of sorted events
 func (s *service) Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
 	skip int) (events []*garbage.Event, total int, err error) {
-	if amount < 0 {
-		amount = 0
+
+	// if provided values are incorrect, use default values instead
+	if amount <= 0 {
+		amount = DefaultAmount
 	}
 	if skip < 0 {
-		skip = 0
+		skip = DefaultSkip
 	}
 	if !sortBy.IsValid() {
-		sortBy = DateDesc
+		sortBy = DefaultSort
 	}
-	e, t, err := s.repo.Events(ctx, name, date, sortBy, amount, skip)
+	// get the events
+	events, total, err = s.repo.Events(ctx, name, date, sortBy, amount, skip)
 	if err != nil {
 		return nil, 0, err
 	}
-	return e, t, nil
+	return events, total, nil
 }
 
 // Event returns an event by its ID
 func (s *service) Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error) {
-	validateEventID := func() (isValid bool, errorKey string, errorDescription string) {
-		if len(eventID) <= 0 {
-			return false, "eventID", "eventID is needed"
-		}
-		return true, "", ""
+	errVld := valid.EmptyError()
+	if len(eventID) <= 0 {
+		errVld.Add("eventID", "eventID is needed")
 	}
-	if err := valid.CheckErrors(validateEventID); err != nil {
-		return nil, err
+	if !errVld.IsEmpty() {
+		return nil, errVld
 	}
 	event, err := s.repo.Event(ctx, eventID)
 	if err != nil {
