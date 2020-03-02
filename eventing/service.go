@@ -75,11 +75,8 @@ func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.Even
 	for res := range resources {
 		if !event.IsResourceAllowed(res) {
 			errVld.Add("resources", fmt.Sprintf("%s not allowed", res))
-			break
+			return nil, nil, errVld
 		}
-	}
-	if !errVld.IsEmpty() {
-		return nil, nil, errVld
 	}
 	// make changes
 	event, pupil, err := s.repo.ChangeEventResources(ctx, eventID, pupilID, resources)
