@@ -47,8 +47,8 @@ func (r *EventingRepository) Events(ctx context.Context, name string, date time.
 	return r.EventsFn(ctx, name, date, sortBy, amount, skip)
 }
 
-// Event returns an event by eventID
-func (r *EventingRepository) Event(ctx context.Context, id garbage.EventID) (*garbage.Event, error) {
+// EventByID returns an event by eventID
+func (r *EventingRepository) EventByID(ctx context.Context, id garbage.EventID) (*garbage.Event, error) {
 	r.EventInvoked = true
 	return r.EventFn(ctx, id)
 }

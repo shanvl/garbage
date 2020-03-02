@@ -20,8 +20,8 @@ type Service interface {
 		resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error)
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
-	// Event returns an event by its ID
-	Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
+	// EventByID returns an event by its ID
+	EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
 	// Events returns an array of sorted events
 	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
 		skip int) (events []*garbage.Event, total int, err error)
@@ -32,7 +32,7 @@ type Repository interface {
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 		resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
-	Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
+	EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
 	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
 		skip int) (events []*garbage.Event,
 		total int, err error)
@@ -67,7 +67,7 @@ func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.Even
 		return nil, nil, errVld
 	}
 	// find an event by its id
-	event, err := s.repo.Event(ctx, eventID)
+	event, err := s.repo.EventByID(ctx, eventID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -165,8 +165,8 @@ func (s *service) Events(ctx context.Context, name string, date time.Time, sortB
 	return events, total, nil
 }
 
-// Event returns an event by its ID
-func (s *service) Event(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error) {
+// EventByID returns an event by its ID
+func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error) {
 	errVld := valid.EmptyError()
 	if len(eventID) <= 0 {
 		errVld.Add("eventID", "eventID is needed")
@@ -174,7 +174,7 @@ func (s *service) Event(ctx context.Context, eventID garbage.EventID) (*garbage.
 	if !errVld.IsEmpty() {
 		return nil, errVld
 	}
-	event, err := s.repo.Event(ctx, eventID)
+	event, err := s.repo.EventByID(ctx, eventID)
 	if err != nil {
 		return nil, err
 	}

@@ -329,7 +329,7 @@ func Test_service_Events(t *testing.T) {
 	}
 }
 
-func Test_service_Event(t *testing.T) {
+func Test_service_EventByID(t *testing.T) {
 	var repository mock.EventingRepository
 	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *garbage.Event, err error) {
 		if id == "not_found" {
@@ -393,13 +393,13 @@ func Test_service_Event(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.Event(tt.args.ctx, tt.args.eventID)
+			got, err := s.EventByID(tt.args.ctx, tt.args.eventID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Event() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("EventByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Event() got = %v, want %v", got, tt.want)
+				t.Errorf("EventByID() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
