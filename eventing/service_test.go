@@ -172,7 +172,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 func Test_service_Events(t *testing.T) {
 	const (
 		totalEvents = 55
-		sortBy      = eventing.DateDesc
+		sortBy      = eventing.DateDes
 		name        = "some name"
 		amount      = 10
 		skip        = 50

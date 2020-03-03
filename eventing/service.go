@@ -42,7 +42,7 @@ type Repository interface {
 const (
 	DefaultAmount = 5
 	DefaultSkip   = 0
-	DefaultSort   = DateDesc
+	DefaultSort   = DateDes
 )
 
 type service struct {

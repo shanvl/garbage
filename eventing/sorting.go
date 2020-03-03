@@ -4,17 +4,19 @@ package eventing
 type SortBy string
 
 const (
-	DateAsc  SortBy = "dateAsc"
-	DateDesc SortBy = "dateDesc"
-	Gadgets  SortBy = "gadgets"
-	Paper    SortBy = "paper"
-	Plastic  SortBy = "plastic"
+	DateAsc SortBy = "dateAsc"
+	DateDes SortBy = "dateDes"
+	Gadgets SortBy = "gadgets"
+	NameAsc SortBy = "nameAsc"
+	NameDes SortBy = "nameDes"
+	Paper   SortBy = "paper"
+	Plastic SortBy = "plastic"
 )
 
 // IsValid checks if a provided sorting type is valid
 func (s SortBy) IsValid() bool {
 	switch s {
-	case DateAsc, DateDesc, Gadgets, Paper, Plastic:
+	case DateAsc, DateDes, Gadgets, Paper, Plastic, NameAsc, NameDes:
 		return true
 	}
 	return false
