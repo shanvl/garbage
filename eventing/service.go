@@ -23,7 +23,7 @@ type Service interface {
 	// EventByID returns an event by its ID
 	EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
 	// Events returns an array of sorted events
-	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
+	Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
 		skip int) (events []*garbage.Event, total int, err error)
 }
 
@@ -33,7 +33,7 @@ type Repository interface {
 		resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
-	Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
+	Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
 		skip int) (events []*garbage.Event,
 		total int, err error)
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
@@ -144,7 +144,7 @@ func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (gar
 }
 
 // Events returns an array of sorted events
-func (s *service) Events(ctx context.Context, name string, date time.Time, sortBy SortBy, amount int,
+func (s *service) Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
 	skip int) (events []*garbage.Event, total int, err error) {
 
 	// if provided values are incorrect, use default values instead
@@ -158,7 +158,7 @@ func (s *service) Events(ctx context.Context, name string, date time.Time, sortB
 		sortBy = DefaultSort
 	}
 	// get the events
-	events, total, err = s.repo.Events(ctx, name, date, sortBy, amount, skip)
+	events, total, err = s.repo.Events(ctx, filters, sortBy, amount, skip)
 	if err != nil {
 		return nil, 0, err
 	}

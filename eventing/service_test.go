@@ -177,16 +177,17 @@ func Test_service_Events(t *testing.T) {
 		amount      = 10
 		skip        = 50
 	)
-	date := time.Now().AddDate(0, -1, 0)
+	from := time.Now().AddDate(0, -1, 0)
+	to := time.Now().AddDate(0, 1, 0)
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.EventsFn = func(ctx context.Context, name string, date time.Time, sortBy eventing.SortBy, amount int,
+	repository.EventsFn = func(ctx context.Context, filters eventing.Filters, sortBy eventing.SortBy, amount int,
 		skip int) (events []*garbage.Event, total int, err error) {
-		if name == "not_found" {
+		if filters.Name == "not_found" {
 			return nil, 0, nil
 		}
-		if name == "error" {
+		if filters.Name == "error" {
 			return nil, 0, errors.New("some error")
 		}
 		if amount < 0 {
@@ -198,12 +199,11 @@ func Test_service_Events(t *testing.T) {
 	s := eventing.NewService(&repository)
 
 	type args struct {
-		ctx    context.Context
-		name   string
-		date   time.Time
-		sortBy eventing.SortBy
-		amount int
-		skip   int
+		ctx     context.Context
+		filters eventing.Filters
+		sortBy  eventing.SortBy
+		amount  int
+		skip    int
 	}
 	tests := []struct {
 		name          string
@@ -213,11 +213,14 @@ func Test_service_Events(t *testing.T) {
 		wantErr       bool
 	}{
 		{
-			name: "empty name",
+			name: "no filters",
 			args: args{
-				ctx:    ctx,
-				name:   "",
-				date:   date,
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: "",
+					From: time.Time{},
+					To:   time.Time{},
+				},
 				sortBy: sortBy,
 				amount: amount,
 				skip:   skip,
@@ -227,11 +230,31 @@ func Test_service_Events(t *testing.T) {
 			wantErr:       false,
 		},
 		{
-			name: "zero date",
+			name: "no name",
 			args: args{
-				ctx:    ctx,
-				name:   name,
-				date:   time.Time{},
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: "",
+					From: from,
+					To:   to,
+				},
+				sortBy: sortBy,
+				amount: amount,
+				skip:   skip,
+			},
+			wantEventsLen: amount,
+			wantTotal:     totalEvents,
+			wantErr:       false,
+		},
+		{
+			name: "no from and no to",
+			args: args{
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: "some name",
+					From: time.Time{},
+					To:   time.Time{},
+				},
 				sortBy: sortBy,
 				amount: amount,
 				skip:   skip,
@@ -243,9 +266,12 @@ func Test_service_Events(t *testing.T) {
 		{
 			name: "negative amount",
 			args: args{
-				ctx:    ctx,
-				name:   name,
-				date:   date,
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: name,
+					From: from,
+					To:   to,
+				},
 				sortBy: sortBy,
 				amount: -55,
 				skip:   skip,
@@ -257,9 +283,12 @@ func Test_service_Events(t *testing.T) {
 		{
 			name: "negative skip",
 			args: args{
-				ctx:    ctx,
-				name:   name,
-				date:   time.Time{},
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: name,
+					From: from,
+					To:   to,
+				},
 				sortBy: sortBy,
 				amount: amount,
 				skip:   -55,
@@ -271,9 +300,12 @@ func Test_service_Events(t *testing.T) {
 		{
 			name: "invalid sortBy",
 			args: args{
-				ctx:    ctx,
-				name:   name,
-				date:   date,
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: name,
+					From: from,
+					To:   to,
+				},
 				sortBy: "invalid",
 				amount: amount,
 				skip:   skip,
@@ -285,9 +317,12 @@ func Test_service_Events(t *testing.T) {
 		{
 			name: "repo's internal error",
 			args: args{
-				ctx:    ctx,
-				name:   "error",
-				date:   date,
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: "error",
+					From: from,
+					To:   to,
+				},
 				sortBy: sortBy,
 				amount: amount,
 				skip:   skip,
@@ -299,9 +334,12 @@ func Test_service_Events(t *testing.T) {
 		{
 			name: "not found",
 			args: args{
-				ctx:    ctx,
-				name:   "not_found",
-				date:   date,
+				ctx: ctx,
+				filters: eventing.Filters{
+					Name: "not_found",
+					From: from,
+					To:   to,
+				},
 				sortBy: sortBy,
 				amount: amount,
 				skip:   skip,
@@ -313,7 +351,7 @@ func Test_service_Events(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotEvents, gotTotal, err := s.Events(tt.args.ctx, tt.args.name, tt.args.date, tt.args.sortBy,
+			gotEvents, gotTotal, err := s.Events(tt.args.ctx, tt.args.filters, tt.args.sortBy,
 				tt.args.amount, tt.args.skip)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Events() error = %v, wantErr %v", err, tt.wantErr)
