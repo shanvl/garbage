@@ -369,14 +369,14 @@ func Test_service_Events(t *testing.T) {
 
 func Test_service_EventByID(t *testing.T) {
 	var repository mock.EventingRepository
-	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *garbage.Event, err error) {
+	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
 		if id == "not_found" {
 			return nil, errors.New("not found")
 		}
 		if id == "error" {
 			return nil, errors.New("some error")
 		}
-		return &garbage.Event{ID: id}, nil
+		return &eventing.Event{Event: garbage.Event{ID: id}}, nil
 	}
 	s := eventing.NewService(&repository)
 
@@ -389,7 +389,7 @@ func Test_service_EventByID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *garbage.Event
+		want    *eventing.Event
 		wantErr bool
 	}{
 		{
@@ -425,7 +425,7 @@ func Test_service_EventByID(t *testing.T) {
 				ctx:     ctx,
 				eventID: "123",
 			},
-			want:    &garbage.Event{ID: "123"},
+			want:    &eventing.Event{Event: garbage.Event{ID: "123"}},
 			wantErr: false,
 		},
 	}
@@ -454,14 +454,22 @@ func Test_service_ChangeEventResources(t *testing.T) {
 
 	var repository mock.EventingRepository
 	repository.ChangeEventResourcesFn = func(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (event *garbage.Event, pupil *garbage.Pupil, err error) {
+		resources map[garbage.Resource]int) (event *eventing.Event, pupil *garbage.Pupil, err error) {
 		if eventID == "error" {
 			return nil, nil, errors.New("some error")
 		}
-		return &garbage.Event{ID: eventID}, &garbage.Pupil{ID: pupilID}, nil
+		return &eventing.Event{
+				Event:            garbage.Event{ID: eventID},
+				ResourcesBrought: resources,
+			},
+			&garbage.Pupil{ID: pupilID}, nil
 	}
-	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *garbage.Event, err error) {
-		return &garbage.Event{ID: id, ResourcesAllowed: resourcesAllowed}, nil
+	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
+		return &eventing.Event{
+				Event:            garbage.Event{ID: id, ResourcesAllowed: resourcesAllowed},
+				ResourcesBrought: resourcesBrought,
+			},
+			nil
 	}
 	s := eventing.NewService(&repository)
 

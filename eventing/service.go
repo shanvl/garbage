@@ -17,11 +17,11 @@ type Service interface {
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error)
+		resources map[garbage.Resource]int) (*Event, *garbage.Pupil, error)
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	// EventByID returns an event by its ID
-	EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
+	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	// Events returns an array of sorted events
 	Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
 		skip int) (events []*garbage.Event, total int, err error)
@@ -30,12 +30,11 @@ type Service interface {
 // Repository provides methods to work with event's persistence
 type Repository interface {
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error)
+		resources map[garbage.Resource]int) (*Event, *garbage.Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
-	EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error)
+	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
-		skip int) (events []*garbage.Event,
-		total int, err error)
+		skip int) (events []*garbage.Event, total int, err error)
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 }
 
@@ -51,7 +50,7 @@ type service struct {
 
 // ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources map[garbage.Resource]int) (*garbage.Event, *garbage.Pupil, error) {
+	resources map[garbage.Resource]int) (*Event, *garbage.Pupil, error) {
 
 	errVld := valid.EmptyError()
 	if len(pupilID) <= 0 {
@@ -108,10 +107,16 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 			break
 		}
 	}
+	// if there are validation errors, return them
 	if !errVld.IsEmpty() {
 		return "", errVld
 	}
-	// use previous functions to validate the arguments
+	// If no name was provided, create it from the event's date
+	if len(name) <= 0 {
+		year, month, day := date.Date()
+		name = fmt.Sprintf("%02d-%02d-%d", day, month, year)
+	}
+	// generate eventID
 	id, err := idgen.CreateEventID()
 	if err != nil {
 		return "", err
@@ -166,7 +171,7 @@ func (s *service) Events(ctx context.Context, filters Filters, sortBy SortBy, am
 }
 
 // EventByID returns an event by its ID
-func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*garbage.Event, error) {
+func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error) {
 	errVld := valid.EmptyError()
 	if len(eventID) <= 0 {
 		errVld.Add("eventID", "eventID is needed")
