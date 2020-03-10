@@ -9,6 +9,7 @@ type EventID string
 
 // Event is a meeting of pupils who bring in recyclables.
 // The goal of the event is to gather as many recyclable materials (resources) as possible
+// This type is often used by various use cases as a carcass for their own Event type
 type Event struct {
 	ID   EventID
 	Date time.Time

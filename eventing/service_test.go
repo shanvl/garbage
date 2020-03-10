@@ -448,13 +448,13 @@ func Test_service_ChangeEventResources(t *testing.T) {
 		eventID = "123"
 		pupilID = "123"
 	)
-	resourcesBrought := map[garbage.Resource]int{"plastic": 22}
-	resourcesAllowed := []garbage.Resource{"plastic", "gadgets"}
+	resourcesBrought := map[garbage.Resource]int{garbage.Plastic: 22}
+	resourcesAllowed := []garbage.Resource{garbage.Plastic, garbage.Gadgets}
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
 	repository.ChangeEventResourcesFn = func(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (event *eventing.Event, pupil *garbage.Pupil, err error) {
+		resources map[garbage.Resource]int) (event *eventing.Event, pupil *eventing.Pupil, err error) {
 		if eventID == "error" {
 			return nil, nil, errors.New("some error")
 		}
@@ -462,7 +462,7 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				Event:            garbage.Event{ID: eventID},
 				ResourcesBrought: resources,
 			},
-			&garbage.Pupil{ID: pupilID}, nil
+			&eventing.Pupil{Pupil: garbage.Pupil{ID: pupilID}, ResourcesBrought: resources}, nil
 	}
 	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
 		return &eventing.Event{
@@ -528,7 +528,7 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{"paper": 1},
+				resources: map[garbage.Resource]int{garbage.Paper: 1},
 			},
 			want:    "",
 			want1:   "",
@@ -540,7 +540,7 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{"paper": 11, "plastic": 33},
+				resources: map[garbage.Resource]int{garbage.Paper: 11, garbage.Plastic: 33},
 			},
 			want:    "",
 			want1:   "",
@@ -552,7 +552,7 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{"plastic": 11, "gadgets": 33},
+				resources: map[garbage.Resource]int{garbage.Plastic: 11, garbage.Gadgets: 33},
 			},
 			want:    eventID,
 			want1:   pupilID,
@@ -564,7 +564,7 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{"plastic": -55, "gadgets": 33},
+				resources: map[garbage.Resource]int{garbage.Plastic: -55, garbage.Gadgets: 33},
 			},
 			want:    eventID,
 			want1:   pupilID,

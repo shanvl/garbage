@@ -7,10 +7,10 @@ import (
 	"github.com/shanvl/garbage-events-service/garbage"
 )
 
-// EventingRepository is a mock eventing usecase repository
+// EventingRepository is a mock repository for eventing usecase
 type EventingRepository struct {
 	ChangeEventResourcesFn func(ctx context.Context, eventID garbage.EventID,
-		pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *garbage.Pupil, error)
+		pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error)
 	ChangeEventResourcesInvoked bool
 
 	DeleteEventFn      func(ctx context.Context, id garbage.EventID) (garbage.EventID, error)
@@ -54,7 +54,7 @@ func (r *EventingRepository) EventByID(ctx context.Context, id garbage.EventID) 
 
 // ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 func (r *EventingRepository) ChangeEventResources(ctx context.Context, eventID garbage.EventID,
-	pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *garbage.Pupil, error) {
+	pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error) {
 	r.ChangeEventResourcesInvoked = true
 	return r.ChangeEventResourcesFn(ctx, eventID, pupilID, resources)
 }

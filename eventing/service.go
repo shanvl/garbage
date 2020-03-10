@@ -17,7 +17,7 @@ type Service interface {
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (*Event, *garbage.Pupil, error)
+		resources map[garbage.Resource]int) (*Event, *Pupil, error)
 	// DeleteEvent deletes an event
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	// EventByID returns an event by its ID
@@ -30,7 +30,7 @@ type Service interface {
 // Repository provides methods to work with event's persistence
 type Repository interface {
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (*Event, *garbage.Pupil, error)
+		resources map[garbage.Resource]int) (*Event, *Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
@@ -50,7 +50,7 @@ type service struct {
 
 // ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources map[garbage.Resource]int) (*Event, *garbage.Pupil, error) {
+	resources map[garbage.Resource]int) (*Event, *Pupil, error) {
 
 	errVld := valid.EmptyError()
 	if len(pupilID) <= 0 {
