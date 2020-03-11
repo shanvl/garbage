@@ -8,6 +8,7 @@ import (
 
 	"github.com/shanvl/garbage-events-service/garbage"
 	"github.com/shanvl/garbage-events-service/idgen"
+	"github.com/shanvl/garbage-events-service/sorting"
 	"github.com/shanvl/garbage-events-service/valid"
 )
 
@@ -22,9 +23,11 @@ type Service interface {
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	// EventByID returns an event by its ID
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
-	// Events returns an array of sorted events
-	Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
-		skip int) (events []*garbage.Event, total int, err error)
+	// EventPupils returns an array of sorted pupils for the specified event
+	EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int, skip int) ([]*Pupil, int,
+		error)
+	// EventClasses returns an array of sorted classes for the specified event
+	EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount, skip int) ([]*Class, int, error)
 }
 
 // Repository provides methods to work with event's persistence
@@ -33,7 +36,11 @@ type Repository interface {
 		resources map[garbage.Resource]int) (*Event, *Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
-	Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
+	EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int, skip int) (classes []*Class,
+		total int, err error)
+	EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int, skip int) (pupils []*Pupil,
+		total int, err error)
+	Events(ctx context.Context, filters Filters, sortBy sorting.By, amount int,
 		skip int) (events []*garbage.Event, total int, err error)
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 }
@@ -41,7 +48,6 @@ type Repository interface {
 const (
 	DefaultAmount = 5
 	DefaultSkip   = 0
-	DefaultSort   = DateDes
 )
 
 type service struct {
@@ -148,28 +154,6 @@ func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (gar
 	return deletedID, nil
 }
 
-// Events returns an array of sorted events
-func (s *service) Events(ctx context.Context, filters Filters, sortBy SortBy, amount int,
-	skip int) (events []*garbage.Event, total int, err error) {
-
-	// if provided values are incorrect, use default values instead
-	if amount <= 0 {
-		amount = DefaultAmount
-	}
-	if skip < 0 {
-		skip = DefaultSkip
-	}
-	if !sortBy.IsValid() {
-		sortBy = DefaultSort
-	}
-	// get the events
-	events, total, err = s.repo.Events(ctx, filters, sortBy, amount, skip)
-	if err != nil {
-		return nil, 0, err
-	}
-	return events, total, nil
-}
-
 // EventByID returns an event by its ID
 func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error) {
 	errVld := valid.EmptyError()
@@ -184,6 +168,50 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 		return nil, err
 	}
 	return event, nil
+}
+
+// EventPupils returns an array of sorted pupils for the specified event
+func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+	skip int) (pupils []*Pupil, total int, err error) {
+
+	// if provided values are incorrect, use default values instead
+	if amount <= 0 {
+		amount = DefaultAmount
+	}
+	if skip < 0 {
+		skip = DefaultSkip
+	}
+	if !sortBy.IsForEventPupils() {
+		sortBy = sorting.NameAsc
+	}
+
+	pupils, total, err = s.repo.EventPupils(ctx, eventID, sortBy, amount, skip)
+	if err != nil {
+		return nil, 0, err
+	}
+	return pupils, total, nil
+}
+
+// EventClasses returns an array of sorted classes for the specified event
+func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount,
+	skip int) (classes []*Class, total int, err error) {
+
+	// if provided values are incorrect, use default values instead
+	if amount <= 0 {
+		amount = DefaultAmount
+	}
+	if skip < 0 {
+		skip = DefaultSkip
+	}
+	if !sortBy.IsForEventClasses() {
+		sortBy = sorting.NameAsc
+	}
+
+	classes, total, err = s.repo.EventClasses(ctx, eventID, sortBy, amount, skip)
+	if err != nil {
+		return nil, 0, err
+	}
+	return classes, total, nil
 }
 
 // NewService returns an instance of Service with all its dependencies

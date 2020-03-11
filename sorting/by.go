@@ -1,5 +1,5 @@
-// Package sort specifies how various entities can be sorted
-package sort
+// Package sorting specifies how various entities can be sorted
+package sorting
 
 // By is a type indicating how things can be sorted
 type By string
@@ -23,7 +23,7 @@ func (s By) IsValid() bool {
 	return false
 }
 
-// IsForEventPupils checks if a provided string can be used to sort an event's pupils
+// IsForEventPupils checks if a provided string can be used to sorting an event's pupils
 func (s By) IsForEventPupils() bool {
 	switch s {
 	case NameAsc, NameDes, Gadgets, Paper, Plastic:
@@ -32,7 +32,7 @@ func (s By) IsForEventPupils() bool {
 	return false
 }
 
-// IsForEventPupils checks if a provided string can be used to sort an event's classes
+// IsForEventPupils checks if a provided string can be used to sorting an event's classes
 func (s By) IsForEventClasses() bool {
 	switch s {
 	case NameAsc, NameDes, Gadgets, Paper, Plastic:

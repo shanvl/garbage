@@ -5,6 +5,7 @@ import (
 
 	"github.com/shanvl/garbage-events-service/eventing"
 	"github.com/shanvl/garbage-events-service/garbage"
+	"github.com/shanvl/garbage-events-service/sorting"
 )
 
 // EventingRepository is a mock repository for eventing usecase
@@ -19,12 +20,20 @@ type EventingRepository struct {
 	EventFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
 	EventInvoked bool
 
-	EventsFn func(ctx context.Context, filters eventing.Filters, sortBy eventing.SortBy, amount int,
+	EventsFn func(ctx context.Context, filters eventing.Filters, sortBy sorting.By, amount int,
 		skip int) (events []*garbage.Event, total int, err error)
 	EventsInvoked bool
 
 	StoreEventFn      func(ctx context.Context, e *garbage.Event) (garbage.EventID, error)
 	StoreEventInvoked bool
+
+	EventPupilsFn func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+		skip int) ([]*eventing.Pupil, int, error)
+	EventPupilsInvoked bool
+
+	EventClassesFn func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+		skip int) ([]*eventing.Class, int, error)
+	EventClassesInvoked bool
 }
 
 // DeleteEvent calls DeleteEvent
@@ -40,7 +49,7 @@ func (r *EventingRepository) StoreEvent(ctx context.Context, e *garbage.Event) (
 }
 
 // Events returns an array of sorted events
-func (r *EventingRepository) Events(ctx context.Context, filters eventing.Filters, sortBy eventing.SortBy,
+func (r *EventingRepository) Events(ctx context.Context, filters eventing.Filters, sortBy sorting.By,
 	amount int, skip int) (events []*garbage.Event, total int, err error) {
 	r.EventsInvoked = true
 	return r.EventsFn(ctx, filters, sortBy, amount, skip)
@@ -57,4 +66,18 @@ func (r *EventingRepository) ChangeEventResources(ctx context.Context, eventID g
 	pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error) {
 	r.ChangeEventResourcesInvoked = true
 	return r.ChangeEventResourcesFn(ctx, eventID, pupilID, resources)
+}
+
+// EventPupils returns an array of sorted pupils for the specified event
+func (r *EventingRepository) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+	skip int) ([]*eventing.Pupil, int, error) {
+	r.EventPupilsInvoked = true
+	return r.EventPupilsFn(ctx, eventID, sortBy, amount, skip)
+}
+
+// EventClasses returns an array of sorted classes for the specified event
+func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+	skip int) ([]*eventing.Class, int, error) {
+	r.EventClassesInvoked = true
+	return r.EventClassesFn(ctx, eventID, sortBy, amount, skip)
 }

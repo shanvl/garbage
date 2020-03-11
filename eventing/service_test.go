@@ -10,6 +10,7 @@ import (
 	"github.com/shanvl/garbage-events-service/eventing"
 	"github.com/shanvl/garbage-events-service/garbage"
 	"github.com/shanvl/garbage-events-service/mock"
+	"github.com/shanvl/garbage-events-service/sorting"
 )
 
 func Test_service_CreateEvent(t *testing.T) {
@@ -164,204 +165,6 @@ func Test_service_DeleteEvent(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("DeleteEvent() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_service_Events(t *testing.T) {
-	const (
-		totalEvents = 55
-		sortBy      = eventing.DateDes
-		name        = "some name"
-		amount      = 10
-		skip        = 50
-	)
-	from := time.Now().AddDate(0, -1, 0)
-	to := time.Now().AddDate(0, 1, 0)
-	ctx := context.Background()
-
-	var repository mock.EventingRepository
-	repository.EventsFn = func(ctx context.Context, filters eventing.Filters, sortBy eventing.SortBy, amount int,
-		skip int) (events []*garbage.Event, total int, err error) {
-		if filters.Name == "not_found" {
-			return nil, 0, nil
-		}
-		if filters.Name == "error" {
-			return nil, 0, errors.New("some error")
-		}
-		if amount < 0 {
-			return make([]*garbage.Event, 0), totalEvents, nil
-		}
-		events = make([]*garbage.Event, amount)
-		return events, totalEvents, nil
-	}
-	s := eventing.NewService(&repository)
-
-	type args struct {
-		ctx     context.Context
-		filters eventing.Filters
-		sortBy  eventing.SortBy
-		amount  int
-		skip    int
-	}
-	tests := []struct {
-		name          string
-		args          args
-		wantEventsLen int
-		wantTotal     int
-		wantErr       bool
-	}{
-		{
-			name: "no filters",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: "",
-					From: time.Time{},
-					To:   time.Time{},
-				},
-				sortBy: sortBy,
-				amount: amount,
-				skip:   skip,
-			},
-			wantEventsLen: amount,
-			wantTotal:     totalEvents,
-			wantErr:       false,
-		},
-		{
-			name: "no name",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: "",
-					From: from,
-					To:   to,
-				},
-				sortBy: sortBy,
-				amount: amount,
-				skip:   skip,
-			},
-			wantEventsLen: amount,
-			wantTotal:     totalEvents,
-			wantErr:       false,
-		},
-		{
-			name: "no from and no to",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: "some name",
-					From: time.Time{},
-					To:   time.Time{},
-				},
-				sortBy: sortBy,
-				amount: amount,
-				skip:   skip,
-			},
-			wantEventsLen: amount,
-			wantTotal:     totalEvents,
-			wantErr:       false,
-		},
-		{
-			name: "negative amount",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: name,
-					From: from,
-					To:   to,
-				},
-				sortBy: sortBy,
-				amount: -55,
-				skip:   skip,
-			},
-			wantEventsLen: eventing.DefaultAmount,
-			wantTotal:     totalEvents,
-			wantErr:       false,
-		},
-		{
-			name: "negative skip",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: name,
-					From: from,
-					To:   to,
-				},
-				sortBy: sortBy,
-				amount: amount,
-				skip:   -55,
-			},
-			wantEventsLen: amount,
-			wantTotal:     totalEvents,
-			wantErr:       false,
-		},
-		{
-			name: "invalid sortBy",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: name,
-					From: from,
-					To:   to,
-				},
-				sortBy: "invalid",
-				amount: amount,
-				skip:   skip,
-			},
-			wantEventsLen: amount,
-			wantTotal:     totalEvents,
-			wantErr:       false,
-		},
-		{
-			name: "repo's internal error",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: "error",
-					From: from,
-					To:   to,
-				},
-				sortBy: sortBy,
-				amount: amount,
-				skip:   skip,
-			},
-			wantEventsLen: 0,
-			wantTotal:     0,
-			wantErr:       true,
-		},
-		{
-			name: "not found",
-			args: args{
-				ctx: ctx,
-				filters: eventing.Filters{
-					Name: "not_found",
-					From: from,
-					To:   to,
-				},
-				sortBy: sortBy,
-				amount: amount,
-				skip:   skip,
-			},
-			wantEventsLen: 0,
-			wantTotal:     0,
-			wantErr:       false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotEvents, gotTotal, err := s.Events(tt.args.ctx, tt.args.filters, tt.args.sortBy,
-				tt.args.amount, tt.args.skip)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Events() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if len(gotEvents) != tt.wantEventsLen {
-				t.Errorf("Events() gotEventsLen = %v, want %v", gotEvents, tt.wantEventsLen)
-			}
-			if gotTotal != tt.wantTotal {
-				t.Errorf("Events() gotTotal = %v, want %v", gotTotal, tt.wantTotal)
 			}
 		})
 	}
@@ -583,6 +386,286 @@ func Test_service_ChangeEventResources(t *testing.T) {
 			}
 			if got1 != nil && got1.ID != tt.want1 {
 				t.Errorf("ChangeEventResources() got1 = %v, want %v", got1.ID, tt.want1)
+			}
+		})
+	}
+}
+
+func Test_service_EventPupils(t *testing.T) {
+	const (
+		totalPupils = 75
+		sortBy      = sorting.NameAsc
+		eventID     = "123"
+		amount      = 10
+		skip        = 50
+	)
+	ctx := context.Background()
+
+	var repository mock.EventingRepository
+	repository.EventPupilsFn = func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+		skip int) (pupils []*eventing.Pupil, total int, err error) {
+		if eventID == "not_found" {
+			return nil, 0, nil
+		}
+		if eventID == "error" {
+			return nil, 0, errors.New("some error")
+		}
+		if amount < 0 {
+			return make([]*eventing.Pupil, 0), totalPupils, nil
+		}
+		pupils = make([]*eventing.Pupil, amount)
+		return pupils, totalPupils, nil
+	}
+	s := eventing.NewService(&repository)
+
+	type args struct {
+		ctx     context.Context
+		eventID garbage.EventID
+		sortBy  sorting.By
+		amount  int
+		skip    int
+	}
+	tests := []struct {
+		name          string
+		args          args
+		wantPupilsLen int
+		wantTotal     int
+		wantErr       bool
+	}{
+		{
+			name: "negative amount",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  sortBy,
+				amount:  -55,
+				skip:    skip,
+			},
+			wantPupilsLen: eventing.DefaultAmount,
+			wantTotal:     totalPupils,
+			wantErr:       false,
+		},
+		{
+			name: "negative skip",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    -120,
+			},
+			wantPupilsLen: amount,
+			wantTotal:     totalPupils,
+			wantErr:       false,
+		},
+		{
+			name: "invalid sortBy",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  "invalid",
+				amount:  amount,
+				skip:    skip,
+			},
+			wantPupilsLen: amount,
+			wantTotal:     totalPupils,
+			wantErr:       false,
+		},
+		{
+			name: "repo's internal error",
+			args: args{
+				ctx:     ctx,
+				eventID: "error",
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantPupilsLen: 0,
+			wantTotal:     0,
+			wantErr:       true,
+		},
+		{
+			name: "no pupils found",
+			args: args{
+				ctx:     ctx,
+				eventID: "not_found",
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantPupilsLen: 0,
+			wantTotal:     0,
+			wantErr:       false,
+		},
+		{
+			name: "get 10, skip 50",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  sortBy,
+				amount:  10,
+				skip:    50,
+			},
+			wantPupilsLen: 10,
+			wantTotal:     totalPupils,
+			wantErr:       false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPupils, gotTotal, err := s.EventPupils(tt.args.ctx, tt.args.eventID, tt.args.sortBy, tt.args.amount,
+				tt.args.skip)
+			gotPupilsLen := len(gotPupils)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EventPupils() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotPupilsLen != tt.wantPupilsLen {
+				t.Errorf("EventPupils() gotPupilsLen = %v, want %v", gotPupilsLen, tt.wantPupilsLen)
+			}
+			if gotTotal != tt.wantTotal {
+				t.Errorf("EventPupils() gotTotal = %v, want %v", gotTotal, tt.wantTotal)
+			}
+		})
+	}
+}
+
+func Test_service_EventClasses(t *testing.T) {
+	const (
+		totalClasses = 75
+		sortBy       = sorting.NameAsc
+		eventID      = "123"
+		amount       = 10
+		skip         = 50
+	)
+	ctx := context.Background()
+
+	var repository mock.EventingRepository
+	repository.EventClassesFn = func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+		skip int) (classes []*eventing.Class, total int, err error) {
+		if eventID == "not_found" {
+			return nil, 0, nil
+		}
+		if eventID == "error" {
+			return nil, 0, errors.New("some error")
+		}
+		if amount < 0 {
+			return make([]*eventing.Class, 0), totalClasses, nil
+		}
+		classes = make([]*eventing.Class, amount)
+		return classes, totalClasses, nil
+	}
+	s := eventing.NewService(&repository)
+
+	type args struct {
+		ctx     context.Context
+		eventID garbage.EventID
+		sortBy  sorting.By
+		amount  int
+		skip    int
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantClassesLen int
+		wantTotal      int
+		wantErr        bool
+	}{
+		{
+			name: "negative amount",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  sortBy,
+				amount:  -55,
+				skip:    skip,
+			},
+			wantClassesLen: eventing.DefaultAmount,
+			wantTotal:      totalClasses,
+			wantErr:        false,
+		},
+		{
+			name: "negative skip",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    -120,
+			},
+			wantClassesLen: amount,
+			wantTotal:      totalClasses,
+			wantErr:        false,
+		},
+		{
+			name: "invalid sortBy",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  "invalid",
+				amount:  amount,
+				skip:    skip,
+			},
+			wantClassesLen: amount,
+			wantTotal:      totalClasses,
+			wantErr:        false,
+		},
+		{
+			name: "repo's internal error",
+			args: args{
+				ctx:     ctx,
+				eventID: "error",
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantClassesLen: 0,
+			wantTotal:      0,
+			wantErr:        true,
+		},
+		{
+			name: "no pupils found",
+			args: args{
+				ctx:     ctx,
+				eventID: "not_found",
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantClassesLen: 0,
+			wantTotal:      0,
+			wantErr:        false,
+		},
+		{
+			name: "get 10, skip 50",
+			args: args{
+				ctx:     ctx,
+				eventID: eventID,
+				sortBy:  sortBy,
+				amount:  10,
+				skip:    50,
+			},
+			wantClassesLen: 10,
+			wantTotal:      totalClasses,
+			wantErr:        false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotClasses, gotTotal, err := s.EventClasses(tt.args.ctx, tt.args.eventID, tt.args.sortBy, tt.args.amount,
+				tt.args.skip)
+			gotClassesLen := len(gotClasses)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EventClasses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotClassesLen != tt.wantClassesLen {
+				t.Errorf("EventClasses() gotClassesLen = %v, want %v", gotClassesLen, tt.wantClassesLen)
+			}
+			if gotTotal != tt.wantTotal {
+				t.Errorf("EventClasses() gotTotal = %v, want %v", gotTotal, tt.wantTotal)
 			}
 		})
 	}

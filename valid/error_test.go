@@ -41,7 +41,7 @@ func TestErrValidation_Add(t *testing.T) {
 func TestErrValidation_Error(t *testing.T) {
 	// We should consider in the tests that a map's values order is always random,
 	// that's why there are 2 cases of "want" — they cover every possible combination of map's values.
-	// Another way to solve this would be to sort map's keys in the Error function itself,
+	// Another way to solve this would be to sorting map's keys in the Error function itself,
 	// before returning them as a string, but I don't see any practical value in it for a client
 	tests := []struct {
 		name   string
