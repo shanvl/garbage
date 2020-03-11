@@ -2,7 +2,7 @@ package eventing
 
 import "github.com/shanvl/garbage-events-service/garbage"
 
-// Event is a model of the event, adapted for this usecase.
+// Event is a model of the event, adapted for this use case.
 // It indicates how many resources have been collected at this event
 type Event struct {
 	garbage.Event

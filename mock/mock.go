@@ -20,10 +20,6 @@ type EventingRepository struct {
 	EventFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
 	EventInvoked bool
 
-	EventsFn func(ctx context.Context, filters eventing.Filters, sortBy sorting.By, amount int,
-		skip int) (events []*garbage.Event, total int, err error)
-	EventsInvoked bool
-
 	StoreEventFn      func(ctx context.Context, e *garbage.Event) (garbage.EventID, error)
 	StoreEventInvoked bool
 
@@ -46,13 +42,6 @@ func (r *EventingRepository) DeleteEvent(ctx context.Context, id garbage.EventID
 func (r *EventingRepository) StoreEvent(ctx context.Context, e *garbage.Event) (garbage.EventID, error) {
 	r.StoreEventInvoked = true
 	return r.StoreEventFn(ctx, e)
-}
-
-// Events returns an array of sorted events
-func (r *EventingRepository) Events(ctx context.Context, filters eventing.Filters, sortBy sorting.By,
-	amount int, skip int) (events []*garbage.Event, total int, err error) {
-	r.EventsInvoked = true
-	return r.EventsFn(ctx, filters, sortBy, amount, skip)
 }
 
 // EventByID returns an event by eventID

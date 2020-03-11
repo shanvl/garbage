@@ -2,7 +2,7 @@ package eventing
 
 import "github.com/shanvl/garbage-events-service/garbage"
 
-// Pupil is a model of the pupil, adapted for this usecase.
+// Pupil is a model of the pupil, adapted for this use case.
 type Pupil struct {
 	garbage.Pupil
 	// Note that Class here is a string, not a garbage.Class instance.

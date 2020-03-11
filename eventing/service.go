@@ -1,4 +1,3 @@
-// Package eventing is responsible for event management
 package eventing
 
 import (
@@ -12,7 +11,7 @@ import (
 	"github.com/shanvl/garbage-events-service/valid"
 )
 
-// Service is an interface providing methods to manage events
+// Service is an interface providing methods to manage an event
 type Service interface {
 	// CreateEvent creates and stores an event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
@@ -30,7 +29,7 @@ type Service interface {
 	EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount, skip int) ([]*Class, int, error)
 }
 
-// Repository provides methods to work with event's persistence
+// Repository provides methods to work with an event's persistence
 type Repository interface {
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 		resources map[garbage.Resource]int) (*Event, *Pupil, error)
@@ -40,8 +39,6 @@ type Repository interface {
 		total int, err error)
 	EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int, skip int) (pupils []*Pupil,
 		total int, err error)
-	Events(ctx context.Context, filters Filters, sortBy sorting.By, amount int,
-		skip int) (events []*garbage.Event, total int, err error)
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 }
 
@@ -170,28 +167,6 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 	return event, nil
 }
 
-// EventPupils returns an array of sorted pupils for the specified event
-func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-	skip int) (pupils []*Pupil, total int, err error) {
-
-	// if provided values are incorrect, use default values instead
-	if amount <= 0 {
-		amount = DefaultAmount
-	}
-	if skip < 0 {
-		skip = DefaultSkip
-	}
-	if !sortBy.IsForEventPupils() {
-		sortBy = sorting.NameAsc
-	}
-
-	pupils, total, err = s.repo.EventPupils(ctx, eventID, sortBy, amount, skip)
-	if err != nil {
-		return nil, 0, err
-	}
-	return pupils, total, nil
-}
-
 // EventClasses returns an array of sorted classes for the specified event
 func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount,
 	skip int) (classes []*Class, total int, err error) {
@@ -212,6 +187,28 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sor
 		return nil, 0, err
 	}
 	return classes, total, nil
+}
+
+// EventPupils returns an array of sorted pupils for the specified event
+func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+	skip int) (pupils []*Pupil, total int, err error) {
+
+	// if provided values are incorrect, use default values instead
+	if amount <= 0 {
+		amount = DefaultAmount
+	}
+	if skip < 0 {
+		skip = DefaultSkip
+	}
+	if !sortBy.IsForEventPupils() {
+		sortBy = sorting.NameAsc
+	}
+
+	pupils, total, err = s.repo.EventPupils(ctx, eventID, sortBy, amount, skip)
+	if err != nil {
+		return nil, 0, err
+	}
+	return pupils, total, nil
 }
 
 // NewService returns an instance of Service with all its dependencies
