@@ -405,7 +405,7 @@ func Test_service_EventPupils(t *testing.T) {
 	repository.EventPupilsFn = func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
 		skip int) (pupils []*eventing.Pupil, total int, err error) {
 		if eventID == "not_found" {
-			return nil, 0, nil
+			return nil, 0, errors.New("not found error")
 		}
 		if eventID == "error" {
 			return nil, 0, errors.New("some error")
@@ -508,7 +508,7 @@ func Test_service_EventPupils(t *testing.T) {
 			},
 			wantPupilsLen: 0,
 			wantTotal:     0,
-			wantErr:       false,
+			wantErr:       true,
 		},
 		{
 			name: "get 10, skip 50",
@@ -558,7 +558,7 @@ func Test_service_EventClasses(t *testing.T) {
 	repository.EventClassesFn = func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
 		skip int) (classes []*eventing.Class, total int, err error) {
 		if eventID == "not_found" {
-			return nil, 0, nil
+			return nil, 0, errors.New("not found error")
 		}
 		if eventID == "error" {
 			return nil, 0, errors.New("some error")
@@ -661,7 +661,7 @@ func Test_service_EventClasses(t *testing.T) {
 			},
 			wantClassesLen: 0,
 			wantTotal:      0,
-			wantErr:        false,
+			wantErr:        true,
 		},
 		{
 			name: "get 10, skip 50",

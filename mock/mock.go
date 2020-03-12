@@ -5,10 +5,11 @@ import (
 
 	"github.com/shanvl/garbage-events-service/eventing"
 	"github.com/shanvl/garbage-events-service/garbage"
+	"github.com/shanvl/garbage-events-service/schooling"
 	"github.com/shanvl/garbage-events-service/sorting"
 )
 
-// EventingRepository is a mock repository for eventing usecase
+// EventingRepository is a mock repository for eventing use case
 type EventingRepository struct {
 	ChangeEventResourcesFn func(ctx context.Context, eventID garbage.EventID,
 		pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error)
@@ -69,4 +70,35 @@ func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.E
 	skip int) ([]*eventing.Class, int, error) {
 	r.EventClassesInvoked = true
 	return r.EventClassesFn(ctx, eventID, sortBy, amount, skip)
+}
+
+// SchoolingRepository is mock repository for schooling use case
+type SchoolingRepository struct {
+	AddPupilsFn      func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error)
+	AddPupilsInvoked bool
+
+	ChangePupilClassFn func(ctx context.Context, pupilID garbage.PupilID, className string) (garbage.PupilID,
+		garbage.ClassID, error)
+	ChangePupilClassInvoked bool
+
+	RemovePupilsFn      func(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error)
+	RemovePupilsInvoked bool
+}
+
+// RemovePupils removes pupils and returns their IDs
+func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
+	r.RemovePupilsInvoked = true
+	return r.RemovePupilsFn(ctx, pupilIDs)
+}
+
+func (r *SchoolingRepository) AddPupils(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
+	r.AddPupilsInvoked = true
+	return r.AddPupilsFn(ctx, pupils)
+}
+
+func (r *SchoolingRepository) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
+	className string) (garbage.PupilID, garbage.ClassID, error) {
+
+	r.ChangePupilClassInvoked = true
+	return r.ChangePupilClassFn(ctx, pupilID, className)
 }
