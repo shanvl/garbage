@@ -51,6 +51,11 @@ type service struct {
 	repo Repository
 }
 
+// NewService returns an instance of Service with all its dependencies
+func NewService(repo Repository) Service {
+	return &service{repo}
+}
+
 // ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 	resources map[garbage.Resource]int) (*Event, *Pupil, error) {
@@ -171,6 +176,15 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount,
 	skip int) (classes []*Class, total int, err error) {
 
+	// check if eventID was provided
+	errVld := valid.EmptyError()
+	if len(eventID) <= 0 {
+		errVld.Add("eventID", "eventID must be provided")
+	}
+	if !errVld.IsEmpty() {
+		return nil, 0, errVld
+	}
+
 	// if provided values are incorrect, use default values instead
 	if amount <= 0 {
 		amount = DefaultAmount
@@ -193,6 +207,15 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sor
 func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
 	skip int) (pupils []*Pupil, total int, err error) {
 
+	// check if eventID was provided
+	errVld := valid.EmptyError()
+	if len(eventID) <= 0 {
+		errVld.Add("eventID", "eventID must be provided")
+	}
+	if !errVld.IsEmpty() {
+		return nil, 0, errVld
+	}
+
 	// if provided values are incorrect, use default values instead
 	if amount <= 0 {
 		amount = DefaultAmount
@@ -209,9 +232,4 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sort
 		return nil, 0, err
 	}
 	return pupils, total, nil
-}
-
-// NewService returns an instance of Service with all its dependencies
-func NewService(repo Repository) Service {
-	return &service{repo}
 }

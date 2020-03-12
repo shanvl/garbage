@@ -13,7 +13,7 @@ type ClassID string
 
 // Class is a school class consisting of pupils, which changes its name depending on a given date
 // relative to the time when it was formed.
-// This type is often used by various use cases as a carcass for they own Class type
+// This type is often used by various use cases as a carcass for their own Class type
 type Class struct {
 	ID ClassID
 	// Date on which the class was formed

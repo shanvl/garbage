@@ -433,6 +433,19 @@ func Test_service_EventPupils(t *testing.T) {
 		wantErr       bool
 	}{
 		{
+			name: "no eventID",
+			args: args{
+				ctx:     ctx,
+				eventID: "",
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantPupilsLen: 0,
+			wantTotal:     0,
+			wantErr:       true,
+		},
+		{
 			name: "negative amount",
 			args: args{
 				ctx:     ctx,
@@ -572,6 +585,19 @@ func Test_service_EventClasses(t *testing.T) {
 		wantTotal      int
 		wantErr        bool
 	}{
+		{
+			name: "no eventID",
+			args: args{
+				ctx:     ctx,
+				eventID: "",
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantClassesLen: 0,
+			wantTotal:      0,
+			wantErr:        true,
+		},
 		{
 			name: "negative amount",
 			args: args{
