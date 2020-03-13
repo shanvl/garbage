@@ -6,14 +6,40 @@ import (
 	"github.com/shanvl/garbage-events-service/garbage"
 )
 
-const EventIDLen = 14
+const (
+	classIDLen = 8
+	eventIDLen = 10
+	pupilIDLen = 14
+
+	defLen = 10
+)
+
+// CreateClassID generates an ID for a class entity
+func CreateClassID() (garbage.ClassID, error) {
+	id, err := gen(classIDLen)
+	return garbage.ClassID(id), err
+}
 
 // CreateEventID generates an ID for an event entity
 func CreateEventID() (garbage.EventID, error) {
-	id, err := gonanoid.Nanoid(EventIDLen)
+	id, err := gen(eventIDLen)
+	return garbage.EventID(id), err
+}
+
+// CreatePupilID generates an ID for a pupil entity
+func CreatePupilID() (garbage.PupilID, error) {
+	id, err := gen(pupilIDLen)
+	return garbage.PupilID(id), err
+}
+
+func gen(l int) (string, error) {
+	if l <= 0 {
+		l = defLen
+	}
+	id, err := gonanoid.Nanoid(l)
 	// an error that rand.Read() might return on very rare occasions
 	if err != nil {
 		return "", err
 	}
-	return garbage.EventID(id), nil
+	return id, nil
 }
