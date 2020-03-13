@@ -41,7 +41,7 @@ func (c *Class) NameOnDate(date time.Time) (string, error) {
 
 // ParseClassName derives a class' letter and the year the class was formed from its name and a given date.
 // Let the className be "3B" and the date is 10.10.2010. Then the letter is "B" and the class was formed in 2008
-func ParseClassName(className string, date time.Time) (letter string, formed int, err error) {
+func ParseClassName(className string, date time.Time) (letter string, yearFormed int, err error) {
 	// string to be Atoi'ed to the class number
 	numberBuf := strings.Builder{}
 	// parse the className, ignoring non-alphanumeric chars;
@@ -66,10 +66,10 @@ func ParseClassName(className string, date time.Time) (letter string, formed int
 	if number > 11 || number < 1 {
 		return "", 0, fmt.Errorf("invalid class number: %d", number)
 	}
-	formed = date.Year() - number
-	// classes are formed in September
+	yearFormed = date.Year() - number
+	// classes are yearFormed in September
 	if date.Month() >= 9 {
-		formed += 1
+		yearFormed += 1
 	}
-	return letter, formed, nil
+	return letter, yearFormed, nil
 }

@@ -74,7 +74,7 @@ func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.E
 
 // SchoolingRepository is mock repository for schooling use case
 type SchoolingRepository struct {
-	AddPupilsFn      func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error)
+	AddPupilsFn      func(ctx context.Context, pupils []schooling.Pupil) ([]garbage.PupilID, error)
 	AddPupilsInvoked bool
 
 	ChangePupilClassFn func(ctx context.Context, pupilID garbage.PupilID, className string) (garbage.PupilID,
@@ -91,7 +91,7 @@ func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []garba
 	return r.RemovePupilsFn(ctx, pupilIDs)
 }
 
-func (r *SchoolingRepository) AddPupils(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
+func (r *SchoolingRepository) AddPupils(ctx context.Context, pupils []schooling.Pupil) ([]garbage.PupilID, error) {
 	r.AddPupilsInvoked = true
 	return r.AddPupilsFn(ctx, pupils)
 }
