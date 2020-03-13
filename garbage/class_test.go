@@ -8,7 +8,7 @@ import (
 func TestClass_NameFromDate(t *testing.T) {
 	type fields struct {
 		ID     ClassID
-		Formed time.Time
+		Formed int
 		Letter string
 	}
 	type args struct {
@@ -25,7 +25,7 @@ func TestClass_NameFromDate(t *testing.T) {
 			name: "class wasn't formed yet",
 			fields: fields{
 				ID:     "id",
-				Formed: newDate(2020, 9, 1, 0),
+				Formed: 2020,
 				Letter: "Б",
 			},
 			args:    args{date: newDate(2020, 8, 31, 23)},
@@ -36,7 +36,7 @@ func TestClass_NameFromDate(t *testing.T) {
 			name: "first day of the first class",
 			fields: fields{
 				ID:     "id",
-				Formed: newDate(2020, 9, 1, 0),
+				Formed: 2020,
 				Letter: "Б",
 			},
 			args:    args{date: newDate(2020, 9, 1, 1)},
@@ -47,7 +47,7 @@ func TestClass_NameFromDate(t *testing.T) {
 			name: "date is in the next calender year, but in the same school year",
 			fields: fields{
 				ID:     "id",
-				Formed: newDate(2021, 9, 1, 0),
+				Formed: 2021,
 				Letter: "Б",
 			},
 			args: args{
@@ -60,7 +60,7 @@ func TestClass_NameFromDate(t *testing.T) {
 			name: "5,5 years after the class was formed",
 			fields: fields{
 				ID:     "id",
-				Formed: newDate(2021, 9, 1, 0),
+				Formed: 2021,
 				Letter: "Б",
 			},
 			args: args{
@@ -73,7 +73,7 @@ func TestClass_NameFromDate(t *testing.T) {
 			name: "10 years after the class was formed",
 			fields: fields{
 				ID:     "id",
-				Formed: newDate(2020, 9, 1, 0),
+				Formed: 2020,
 				Letter: "Б",
 			},
 			args: args{
@@ -86,7 +86,7 @@ func TestClass_NameFromDate(t *testing.T) {
 			name: "class is already graduated",
 			fields: fields{
 				ID:     "id",
-				Formed: newDate(2020, 9, 1, 0),
+				Formed: 2020,
 				Letter: "Б",
 			},
 			args:    args{date: newDate(2032, 9, 1, 0)},
@@ -97,17 +97,17 @@ func TestClass_NameFromDate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Class{
-				ID:     tt.fields.ID,
-				Formed: tt.fields.Formed,
-				Letter: tt.fields.Letter,
+				ID:         tt.fields.ID,
+				YearFormed: tt.fields.Formed,
+				Letter:     tt.fields.Letter,
 			}
-			got, err := c.NameFromDate(tt.args.date)
+			got, err := c.NameOnDate(tt.args.date)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NameFromDate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NameOnDate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("NameFromDate() got = %v, want %v", got, tt.want)
+				t.Errorf("NameOnDate() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -115,4 +115,107 @@ func TestClass_NameFromDate(t *testing.T) {
 
 func newDate(year int, month int, day int, hour int) time.Time {
 	return time.Date(year, time.Month(month), day, hour, 0, 0, 0, time.UTC)
+}
+
+func TestParseClassName(t *testing.T) {
+	const className = "3Б"
+	date := newDate(2010, 10, 10, 1)
+
+	type args struct {
+		className string
+		date      time.Time
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantLetter string
+		wantFormed int
+		wantErr    bool
+	}{
+		{
+			name: "valid class",
+			args: args{
+				className: className,
+				date:      date,
+			},
+			wantLetter: "Б",
+			wantFormed: 2008,
+			wantErr:    false,
+		},
+		{
+			name: "class with non-alphanumeric chars",
+			args: args{
+				className: "  3- -* Б  ",
+				date:      date,
+			},
+			wantLetter: "Б",
+			wantFormed: 2008,
+			wantErr:    false,
+		},
+		{
+			name: "digit after letter in class",
+			args: args{
+				className: "3Б1",
+				date:      date,
+			},
+			wantLetter: "",
+			wantFormed: 0,
+			wantErr:    true,
+		},
+		{
+			name: "2 letters in class",
+			args: args{
+				className: "10ББ",
+				date:      date,
+			},
+			wantLetter: "",
+			wantFormed: 0,
+			wantErr:    true,
+		},
+		{
+			name: "0 in class",
+			args: args{
+				className: "0Б",
+				date:      date,
+			},
+			wantLetter: "",
+			wantFormed: 0,
+			wantErr:    true,
+		},
+		{
+			name: "letter before digit in class",
+			args: args{
+				className: "Б10",
+				date:      date,
+			},
+			wantLetter: "",
+			wantFormed: 0,
+			wantErr:    true,
+		},
+		{
+			name: "class number > 11",
+			args: args{
+				className: "12Б",
+				date:      date,
+			},
+			wantLetter: "",
+			wantFormed: 0,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLetter, gotFormed, err := ParseClassName(tt.args.className, tt.args.date)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseClassName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotLetter != tt.wantLetter {
+				t.Errorf("ParseClassName() gotLetter = %v, want %v", gotLetter, tt.wantLetter)
+			}
+			if gotFormed != tt.wantFormed {
+				t.Errorf("ParseClassName() gotFormed = %v, want %v", gotFormed, tt.wantFormed)
+			}
+		})
+	}
 }
