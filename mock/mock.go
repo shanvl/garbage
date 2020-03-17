@@ -74,8 +74,8 @@ func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.E
 
 // SchoolingRepository is mock repository for schooling use case
 type SchoolingRepository struct {
-	AddPupilsFn      func(ctx context.Context, pupils []schooling.Pupil) ([]garbage.PupilID, error)
-	AddPupilsInvoked bool
+	ClassFn      func(ctx context.Context, letter string, yearFormed int) (*garbage.Class, error)
+	ClassInvoked bool
 
 	ChangePupilClassFn func(ctx context.Context, pupilID garbage.PupilID, className string) (garbage.PupilID,
 		garbage.ClassID, error)
@@ -83,6 +83,14 @@ type SchoolingRepository struct {
 
 	RemovePupilsFn      func(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error)
 	RemovePupilsInvoked bool
+
+	StorePupilsFn      func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error)
+	StorePupilsInvoked bool
+}
+
+func (r *SchoolingRepository) Class(ctx context.Context, letter string, yearFormed int) (*garbage.Class, error) {
+	r.ClassInvoked = true
+	return r.ClassFn(ctx, letter, yearFormed)
 }
 
 // RemovePupils removes pupils and returns their IDs
@@ -91,9 +99,10 @@ func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []garba
 	return r.RemovePupilsFn(ctx, pupilIDs)
 }
 
-func (r *SchoolingRepository) AddPupils(ctx context.Context, pupils []schooling.Pupil) ([]garbage.PupilID, error) {
-	r.AddPupilsInvoked = true
-	return r.AddPupilsFn(ctx, pupils)
+// StorePupils saves pupils to the repo and returns their IDs
+func (r *SchoolingRepository) StorePupils(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
+	r.StorePupilsInvoked = true
+	return r.StorePupilsFn(ctx, pupils)
 }
 
 func (r *SchoolingRepository) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,

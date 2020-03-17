@@ -19,11 +19,16 @@ type ClassID string
 // This type is often used by various use cases as a carcass for their own Class type
 type Class struct {
 	ID ClassID
-	// Year in which the class was formed; better than an instance of time.Time because has no pointers,
-	// so won't be allocated on the heap
+	// Year in which the class was formed
+	// better than an instance of time.Time because that way it has no pointers, so won't be allocated on the heap
+	// TODO: no sense in such droching because class is usually passed as a pointer so it will usually be located on the
+	//  heap
 	YearFormed int
 	Letter     string
 }
+
+// ErrNoClass is used when a class couldn't be found
+var ErrNoClass = errors.New("class doesn't exists")
 
 // NameOnDate constructs a class name on a specific date. For example, if a class, which has
 // a letter Б, was formed on 09.2001, on 09.2002 it was 2Б, on 02.2002 it still was 2Б, on 09.2003

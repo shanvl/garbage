@@ -82,49 +82,65 @@ func Test_service_RemovePupils(t *testing.T) {
 
 func Test_service_AddPupils(t *testing.T) {
 	ctx := context.Background()
+	const notFoundLetter = "Z"
 
 	var repo mock.SchoolingRepository
-	repo.AddPupilsFn = func(ctx context.Context, pupilsInfo []schooling.Pupil) ([]garbage.PupilID, error) {
-		if len(pupilsInfo) > 0 && pupilsInfo[0].FirstName == "error" {
+	repo.ClassFn = func(ctx context.Context, letter string, yearFormed int) (class *garbage.Class, err error) {
+		if letter == notFoundLetter {
+			return nil, garbage.ErrNoClass
+		}
+		return &garbage.Class{ID: "123", Letter: letter, YearFormed: yearFormed}, nil
+	}
+	repo.StorePupilsFn = func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
+		if len(pupils) > 0 && pupils[0].FirstName == "error" {
 			return nil, errors.New("repo's error")
 		}
-		return make([]garbage.PupilID, len(pupilsInfo)), nil
+		return make([]garbage.PupilID, len(pupils)), nil
 	}
 	s := schooling.NewService(&repo)
 
 	tests := []struct {
 		name    string
-		pupils  []schooling.PupilInfo
+		pupils  []schooling.PupilBio
 		wantLen int
 		wantErr bool
 	}{
 		{
-			name:    "repo's error",
-			pupils:  []schooling.PupilInfo{{"error", "ln", "8B"}},
+			name: "repo.Class not found",
+			pupils: []schooling.PupilBio{
+				{"fn", "ln", "3" + notFoundLetter},
+				{"fn2", "ln2", "3B"},
+			},
+			wantLen: 2,
+			wantErr: false,
+		},
+		{
+			name:    "repo.StorePupils error",
+			pupils:  []schooling.PupilBio{{"error", "ln", "8B"}},
 			wantLen: 0,
 			wantErr: true,
 		},
 		{
 			name:    "empty name",
-			pupils:  []schooling.PupilInfo{{"", "ln", "8B"}},
+			pupils:  []schooling.PupilBio{{"", "ln", "8B"}},
 			wantLen: 0,
 			wantErr: true,
 		},
 		{
 			name:    "empty last name",
-			pupils:  []schooling.PupilInfo{{"fn", "", "8B"}},
+			pupils:  []schooling.PupilBio{{"fn", "", "8B"}},
 			wantLen: 0,
 			wantErr: true,
 		},
 		{
 			name:    "invalid className",
-			pupils:  []schooling.PupilInfo{{"fn", "ln", "B8B"}},
+			pupils:  []schooling.PupilBio{{"fn", "ln", "B8B"}},
 			wantLen: 0,
 			wantErr: true,
 		},
 		{
 			name: "3 valid pupils",
-			pupils: []schooling.PupilInfo{
+			pupils: []schooling.PupilBio{
 				{
 					FirstName: "fn",
 					LastName:  "ln",
@@ -143,7 +159,7 @@ func Test_service_AddPupils(t *testing.T) {
 		},
 		{
 			name: "no error on duplicates",
-			pupils: []schooling.PupilInfo{
+			pupils: []schooling.PupilBio{
 				{
 					FirstName: "fn",
 					LastName:  "ln",
@@ -169,11 +185,11 @@ func Test_service_AddPupils(t *testing.T) {
 			got, err := s.AddPupils(ctx, tt.pupils)
 			gotLen := len(got)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AddPupils() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("StorePupils() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if gotLen != tt.wantLen {
-				t.Errorf("AddPupils() gotLen = %v, wantLen %v", got, tt.wantLen)
+				t.Errorf("StorePupils() gotLen = %v, wantLen %v", got, tt.wantLen)
 			}
 		})
 	}
