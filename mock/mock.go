@@ -21,8 +21,8 @@ type EventingRepository struct {
 	DeleteEventFn      func(ctx context.Context, id garbage.EventID) (garbage.EventID, error)
 	DeleteEventInvoked bool
 
-	EventFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
-	EventInvoked bool
+	EventByIDFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
+	EventByIDInvoked bool
 
 	EventPupilsFn func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
 		skip int) ([]*eventing.Pupil, int, error)
@@ -62,8 +62,8 @@ func (r *EventingRepository) DeleteEvent(ctx context.Context, id garbage.EventID
 
 // EventByID calls EventByIDFn
 func (r *EventingRepository) EventByID(ctx context.Context, id garbage.EventID) (*eventing.Event, error) {
-	r.EventInvoked = true
-	return r.EventFn(ctx, id)
+	r.EventByIDInvoked = true
+	return r.EventByIDFn(ctx, id)
 }
 
 // EventClasses calls EventClassesFn

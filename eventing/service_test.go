@@ -172,7 +172,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 
 func Test_service_EventByID(t *testing.T) {
 	var repository mock.EventingRepository
-	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
+	repository.EventByIDFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
 		if id == "not_found" {
 			return nil, errors.New("not found")
 		}
@@ -267,7 +267,7 @@ func Test_service_ChangeEventResources(t *testing.T) {
 			},
 			&eventing.Pupil{Pupil: garbage.Pupil{ID: pupilID}, ResourcesBrought: resources}, nil
 	}
-	repository.EventFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
+	repository.EventByIDFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
 		return &eventing.Event{
 				Event:            garbage.Event{ID: id, ResourcesAllowed: resourcesAllowed},
 				ResourcesBrought: resourcesBrought,
