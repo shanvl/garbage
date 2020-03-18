@@ -696,3 +696,169 @@ func Test_service_EventClasses(t *testing.T) {
 		})
 	}
 }
+
+func Test_service_ClassByID(t *testing.T) {
+	const classIDClassNotFound = "not found"
+	foundClass := &eventing.Class{
+		ID:               "123",
+		Name:             "3B",
+		ResourcesBrought: nil,
+	}
+	ctx := context.Background()
+
+	var repository mock.EventingRepository
+	repository.ClassByIDFn = func(ctx context.Context, classID garbage.ClassID,
+		eventID garbage.EventID) (event *eventing.Class, err error) {
+
+		if classID == classIDClassNotFound {
+			return nil, errors.New("not found")
+		}
+		return foundClass, nil
+	}
+	s := eventing.NewService(&repository)
+
+	type args struct {
+		classID garbage.ClassID
+		eventID garbage.EventID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *eventing.Class
+		wantErr bool
+	}{
+		{
+			name: "no classID",
+			args: args{
+				classID: "",
+				eventID: "eventID",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "no eventID",
+			args: args{
+				classID: "classID",
+				eventID: "",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "no class was found",
+			args: args{
+				classID: classIDClassNotFound,
+				eventID: "eventID",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "class was found",
+			args: args{
+				classID: foundClass.ID,
+				eventID: "eventID",
+			},
+			want:    foundClass,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.ClassByID(ctx, tt.args.classID, tt.args.eventID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ClassByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ClassByID() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_service_PupilByID(t *testing.T) {
+	const pupilIDPupilNotFound = "not found"
+	foundPupil := &eventing.Pupil{
+		Pupil: garbage.Pupil{
+			ID:        "123",
+			FirstName: "FN",
+			LastName:  "LN",
+		},
+		Class:            "3B",
+		ResourcesBrought: nil,
+	}
+	ctx := context.Background()
+
+	var repository mock.EventingRepository
+	repository.PupilByIDFn = func(ctx context.Context, pupilID garbage.PupilID,
+		eventID garbage.EventID) (event *eventing.Pupil, err error) {
+
+		if pupilID == pupilIDPupilNotFound {
+			return nil, errors.New("not found")
+		}
+		return foundPupil, nil
+	}
+	s := eventing.NewService(&repository)
+
+	type args struct {
+		pupilID garbage.PupilID
+		eventID garbage.EventID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *eventing.Pupil
+		wantErr bool
+	}{
+		{
+			name: "no pupilID",
+			args: args{
+				pupilID: "",
+				eventID: "eventID",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "no eventID",
+			args: args{
+				pupilID: "pupilID",
+				eventID: "",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "no pupil was found",
+			args: args{
+				pupilID: pupilIDPupilNotFound,
+				eventID: "eventID",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "pupil was found",
+			args: args{
+				pupilID: foundPupil.ID,
+				eventID: "eventID",
+			},
+			want:    foundPupil,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.PupilByID(ctx, tt.args.pupilID, tt.args.eventID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PupilByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PupilByID() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

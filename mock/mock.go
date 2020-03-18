@@ -11,6 +11,9 @@ import (
 
 // EventingRepository is a mock repository for eventing use case
 type EventingRepository struct {
+	ClassByIDFn      func(ctx context.Context, classID garbage.ClassID, eventID garbage.EventID) (*eventing.Class, error)
+	ClassByIDInvoked bool
+
 	ChangeEventResourcesFn func(ctx context.Context, eventID garbage.EventID,
 		pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error)
 	ChangeEventResourcesInvoked bool
@@ -21,9 +24,6 @@ type EventingRepository struct {
 	EventFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
 	EventInvoked bool
 
-	StoreEventFn      func(ctx context.Context, e *garbage.Event) (garbage.EventID, error)
-	StoreEventInvoked bool
-
 	EventPupilsFn func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
 		skip int) ([]*eventing.Pupil, int, error)
 	EventPupilsInvoked bool
@@ -31,45 +31,67 @@ type EventingRepository struct {
 	EventClassesFn func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
 		skip int) ([]*eventing.Class, int, error)
 	EventClassesInvoked bool
+
+	PupilByIDFn      func(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*eventing.Pupil, error)
+	PupilByIDInvoked bool
+
+	StoreEventFn      func(ctx context.Context, e *garbage.Event) (garbage.EventID, error)
+	StoreEventInvoked bool
 }
 
-// DeleteEvent calls DeleteEvent
-func (r *EventingRepository) DeleteEvent(ctx context.Context, id garbage.EventID) (garbage.EventID, error) {
-	r.StoreEventInvoked = true
-	return r.DeleteEventFn(ctx, id)
-}
-
-// StoreEvent calls StoreEventFn
-func (r *EventingRepository) StoreEvent(ctx context.Context, e *garbage.Event) (garbage.EventID, error) {
-	r.StoreEventInvoked = true
-	return r.StoreEventFn(ctx, e)
-}
-
-// EventByID returns an event by eventID
-func (r *EventingRepository) EventByID(ctx context.Context, id garbage.EventID) (*eventing.Event, error) {
-	r.EventInvoked = true
-	return r.EventFn(ctx, id)
-}
-
-// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
+// ChangeEventResources calls ChangeEventResourcesFn
 func (r *EventingRepository) ChangeEventResources(ctx context.Context, eventID garbage.EventID,
 	pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error) {
 	r.ChangeEventResourcesInvoked = true
 	return r.ChangeEventResourcesFn(ctx, eventID, pupilID, resources)
 }
 
-// EventPupils returns an array of sorted pupils for the specified event
+// ClassByID calls ClassByIDFn
+func (r *EventingRepository) ClassByID(ctx context.Context, classID garbage.ClassID,
+	eventID garbage.EventID) (*eventing.Class, error) {
+
+	r.ClassByIDInvoked = true
+	return r.ClassByIDFn(ctx, classID, eventID)
+}
+
+// DeleteEvent calls DeleteEventFn
+func (r *EventingRepository) DeleteEvent(ctx context.Context, id garbage.EventID) (garbage.EventID, error) {
+	r.StoreEventInvoked = true
+	return r.DeleteEventFn(ctx, id)
+}
+
+// EventByID calls EventByIDFn
+func (r *EventingRepository) EventByID(ctx context.Context, id garbage.EventID) (*eventing.Event, error) {
+	r.EventInvoked = true
+	return r.EventFn(ctx, id)
+}
+
+// EventClasses calls EventClassesFn
+func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
+	skip int) ([]*eventing.Class, int, error) {
+	r.EventClassesInvoked = true
+	return r.EventClassesFn(ctx, eventID, sortBy, amount, skip)
+}
+
+// EventPupils calls EventPupilsFn
 func (r *EventingRepository) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
 	skip int) ([]*eventing.Pupil, int, error) {
 	r.EventPupilsInvoked = true
 	return r.EventPupilsFn(ctx, eventID, sortBy, amount, skip)
 }
 
-// EventClasses returns an array of sorted classes for the specified event
-func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-	skip int) ([]*eventing.Class, int, error) {
-	r.EventClassesInvoked = true
-	return r.EventClassesFn(ctx, eventID, sortBy, amount, skip)
+// PupilByID calls PupilByIDFn
+func (r *EventingRepository) PupilByID(ctx context.Context, pupilID garbage.PupilID,
+	eventID garbage.EventID) (*eventing.Pupil, error) {
+
+	r.PupilByIDInvoked = true
+	return r.PupilByIDFn(ctx, pupilID, eventID)
+}
+
+// StoreEvent calls StoreEventFn
+func (r *EventingRepository) StoreEvent(ctx context.Context, e *garbage.Event) (garbage.EventID, error) {
+	r.StoreEventInvoked = true
+	return r.StoreEventFn(ctx, e)
 }
 
 // SchoolingRepository is mock repository for schooling use case
