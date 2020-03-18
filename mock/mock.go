@@ -77,20 +77,29 @@ type SchoolingRepository struct {
 	ClassFn      func(ctx context.Context, letter string, yearFormed int) (*garbage.Class, error)
 	ClassInvoked bool
 
-	ChangePupilClassFn func(ctx context.Context, pupilID garbage.PupilID, className string) (garbage.PupilID,
-		garbage.ClassID, error)
-	ChangePupilClassInvoked bool
+	PupilByIDFn      func(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error)
+	PupilByIDInvoked bool
 
 	RemovePupilsFn      func(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error)
 	RemovePupilsInvoked bool
+
+	StorePupilFn      func(ctx context.Context, pupils *schooling.Pupil) (garbage.PupilID, error)
+	StorePupilInvoked bool
 
 	StorePupilsFn      func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error)
 	StorePupilsInvoked bool
 }
 
+// Gets a class from the repo by its letter and yearFormed
 func (r *SchoolingRepository) Class(ctx context.Context, letter string, yearFormed int) (*garbage.Class, error) {
 	r.ClassInvoked = true
 	return r.ClassFn(ctx, letter, yearFormed)
+}
+
+// PupilByID retrieves a pupil with a given id from the repo
+func (r *SchoolingRepository) PupilByID(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error) {
+	r.PupilByIDInvoked = true
+	return r.PupilByIDFn(ctx, pupilID)
 }
 
 // RemovePupils removes pupils and returns their IDs
@@ -99,15 +108,14 @@ func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []garba
 	return r.RemovePupilsFn(ctx, pupilIDs)
 }
 
-// StorePupils saves pupils to the repo and returns their IDs
+// StorePupil saves a pupil into the repo and returns their ID
+func (r *SchoolingRepository) StorePupil(ctx context.Context, pupil *schooling.Pupil) (garbage.PupilID, error) {
+	r.StorePupilInvoked = true
+	return r.StorePupilFn(ctx, pupil)
+}
+
+// StorePupils saves pupils into the repo and returns their IDs
 func (r *SchoolingRepository) StorePupils(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
 	r.StorePupilsInvoked = true
 	return r.StorePupilsFn(ctx, pupils)
-}
-
-func (r *SchoolingRepository) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
-	className string) (garbage.PupilID, garbage.ClassID, error) {
-
-	r.ChangePupilClassInvoked = true
-	return r.ChangePupilClassFn(ctx, pupilID, className)
 }

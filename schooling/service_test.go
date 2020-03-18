@@ -194,3 +194,161 @@ func Test_service_AddPupils(t *testing.T) {
 		})
 	}
 }
+
+func Test_service_ChangePupilClass(t *testing.T) {
+	const (
+		letterClassNotFound            = "Z"
+		pupilIDPupilNotFound           = "pupil not found"
+		pupilIDStoreError              = "store error"
+		pupilIDPupilWithRequestedClass = "111"
+		requestedClassName             = "10B"
+	)
+	requestedClass := garbage.Class{
+		ID:         "111111",
+		YearFormed: 2010,
+		Letter:     "B",
+	}
+	someClass := garbage.Class{
+		ID:         "some class id",
+		Letter:     "Y",
+		YearFormed: 2010,
+	}
+	pupilWithRequestedClass := &schooling.Pupil{
+		Pupil: garbage.Pupil{
+			ID:        pupilIDPupilWithRequestedClass,
+			FirstName: "FN",
+			LastName:  "LN",
+		},
+		Class: requestedClass,
+	}
+	ctx := context.Background()
+
+	var repo mock.SchoolingRepository
+	repo.ClassFn = func(ctx context.Context, letter string, yearFormed int) (class *garbage.Class, err error) {
+		if letter == letterClassNotFound {
+			return nil, garbage.ErrNoClass
+		}
+		return &someClass, nil
+	}
+	repo.StorePupilFn = func(ctx context.Context, pupil *schooling.Pupil) (garbage.PupilID, error) {
+		if pupil.ID == pupilIDStoreError {
+			return "", errors.New("repo's error")
+		}
+		return pupil.ID, nil
+	}
+	repo.PupilByIDFn = func(ctx context.Context, pupilID garbage.PupilID) (pupil *schooling.Pupil, err error) {
+		if pupilID == pupilIDPupilNotFound {
+			return nil, errors.New("pupil not found error")
+		}
+		if pupilID == pupilIDPupilWithRequestedClass {
+			return pupilWithRequestedClass, nil
+		}
+		return &schooling.Pupil{
+			Pupil: garbage.Pupil{
+				ID:        pupilID,
+				FirstName: "FN",
+				LastName:  "LN",
+			},
+			Class: someClass,
+		}, nil
+	}
+	s := schooling.NewService(&repo)
+
+	type args struct {
+		pupilID   garbage.PupilID
+		className string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    garbage.PupilID
+		want1   garbage.ClassID
+		wantErr bool
+	}{
+		{
+			name: "no pupilID",
+			args: args{
+				pupilID:   "",
+				className: "className",
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "no className",
+			args: args{
+				pupilID:   "pupilID",
+				className: "",
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "no pupil with the given id",
+			args: args{
+				pupilID:   pupilIDPupilNotFound,
+				className: "class name",
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "class not found",
+			args: args{
+				pupilID:   "pupilID",
+				className: "10" + letterClassNotFound,
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "error on storing a pupil",
+			args: args{
+				pupilID:   pupilIDStoreError,
+				className: "10B",
+			},
+			want:    "",
+			want1:   "",
+			wantErr: true,
+		},
+		{
+			name: "pupil is already in the given class",
+			args: args{
+				pupilID:   pupilIDPupilWithRequestedClass,
+				className: requestedClassName,
+			},
+			want:    pupilIDPupilWithRequestedClass,
+			want1:   requestedClass.ID,
+			wantErr: false,
+		},
+		{
+			name: "swap a pupil's class for a found one",
+			args: args{
+				pupilID:   "pupilID",
+				className: "10Y",
+			},
+			want:    "pupilID",
+			want1:   someClass.ID,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, err := s.ChangePupilClass(ctx, tt.args.pupilID, tt.args.className)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChangePupilClass() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ChangePupilClass() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("ChangePupilClass() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
