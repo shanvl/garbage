@@ -11,7 +11,8 @@ import (
 	"github.com/shanvl/garbage-events-service/valid"
 )
 
-// Service is an interface providing methods to manage an event
+// Service is an interface providing methods to manage an event.
+// Note that all methods and entities are used in the context of one event.
 type Service interface {
 	// CreateEvent creates and stores an event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)

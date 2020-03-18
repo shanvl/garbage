@@ -1,3 +1,5 @@
+// Package schooling is responsible for school management.
+// There are no concepts like events or resources, only pupils and classes
 package schooling
 
 import (
@@ -10,6 +12,7 @@ import (
 	"github.com/shanvl/garbage-events-service/valid"
 )
 
+// Service is an interface providing methods to manage pupils and classes w/o concepts like events or resources
 type Service interface {
 	// AddPupils adds pupils returning ids of added
 	AddPupils(ctx context.Context, pupilInfo []PupilBio) ([]garbage.PupilID, error)
