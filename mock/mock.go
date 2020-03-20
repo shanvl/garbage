@@ -24,12 +24,12 @@ type EventingRepository struct {
 	EventByIDFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
 	EventByIDInvoked bool
 
-	EventPupilsFn func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-		skip int) ([]*eventing.Pupil, int, error)
+	EventPupilsFn func(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilsFilters,
+		sortBy sorting.By, amount int, skip int) ([]*eventing.Pupil, int, error)
 	EventPupilsInvoked bool
 
-	EventClassesFn func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-		skip int) ([]*eventing.Class, int, error)
+	EventClassesFn func(ctx context.Context, eventID garbage.EventID, filters eventing.EventClassesFilters,
+		sortBy sorting.By, amount int, skip int) ([]*eventing.Class, int, error)
 	EventClassesInvoked bool
 
 	PupilByIDFn      func(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*eventing.Pupil, error)
@@ -67,17 +67,17 @@ func (r *EventingRepository) EventByID(ctx context.Context, id garbage.EventID) 
 }
 
 // EventClasses calls EventClassesFn
-func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-	skip int) ([]*eventing.Class, int, error) {
+func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.EventID,
+	filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Class, int, error) {
 	r.EventClassesInvoked = true
-	return r.EventClassesFn(ctx, eventID, sortBy, amount, skip)
+	return r.EventClassesFn(ctx, eventID, filters, sortBy, amount, skip)
 }
 
 // EventPupils calls EventPupilsFn
-func (r *EventingRepository) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-	skip int) ([]*eventing.Pupil, int, error) {
+func (r *EventingRepository) EventPupils(ctx context.Context, eventID garbage.EventID,
+	filters eventing.EventPupilsFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Pupil, int, error) {
 	r.EventPupilsInvoked = true
-	return r.EventPupilsFn(ctx, eventID, sortBy, amount, skip)
+	return r.EventPupilsFn(ctx, eventID, filters, sortBy, amount, skip)
 }
 
 // PupilByID calls PupilByIDFn

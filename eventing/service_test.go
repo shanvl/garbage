@@ -402,8 +402,10 @@ func Test_service_EventPupils(t *testing.T) {
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.EventPupilsFn = func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-		skip int) (pupils []*eventing.Pupil, total int, err error) {
+	repository.EventPupilsFn = func(ctx context.Context, eventID garbage.EventID,
+		filters eventing.EventPupilsFilters, sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil,
+		total int, err error) {
+
 		if eventID == "not_found" {
 			return nil, 0, errors.New("not found error")
 		}
@@ -421,6 +423,7 @@ func Test_service_EventPupils(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		eventID garbage.EventID
+		filters eventing.EventPupilsFilters
 		sortBy  sorting.By
 		amount  int
 		skip    int
@@ -526,8 +529,8 @@ func Test_service_EventPupils(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotPupils, gotTotal, err := s.EventPupils(tt.args.ctx, tt.args.eventID, tt.args.sortBy, tt.args.amount,
-				tt.args.skip)
+			gotPupils, gotTotal, err := s.EventPupils(tt.args.ctx, tt.args.eventID, tt.args.filters, tt.args.sortBy,
+				tt.args.amount, tt.args.skip)
 			gotPupilsLen := len(gotPupils)
 
 			if (err != nil) != tt.wantErr {
@@ -555,8 +558,10 @@ func Test_service_EventClasses(t *testing.T) {
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.EventClassesFn = func(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-		skip int) (classes []*eventing.Class, total int, err error) {
+	repository.EventClassesFn = func(ctx context.Context, eventID garbage.EventID,
+		filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
+		total int, err error) {
+
 		if eventID == "not_found" {
 			return nil, 0, errors.New("not found error")
 		}
@@ -574,6 +579,7 @@ func Test_service_EventClasses(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		eventID garbage.EventID
+		filters eventing.EventClassesFilters
 		sortBy  sorting.By
 		amount  int
 		skip    int
@@ -679,8 +685,8 @@ func Test_service_EventClasses(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotClasses, gotTotal, err := s.EventClasses(tt.args.ctx, tt.args.eventID, tt.args.sortBy, tt.args.amount,
-				tt.args.skip)
+			gotClasses, gotTotal, err := s.EventClasses(tt.args.ctx, tt.args.eventID, tt.args.filters,
+				tt.args.sortBy, tt.args.amount, tt.args.skip)
 			gotClassesLen := len(gotClasses)
 
 			if (err != nil) != tt.wantErr {

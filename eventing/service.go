@@ -25,11 +25,12 @@ type Service interface {
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	// EventByID returns an event by its ID
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
-	// EventPupils returns an array of sorted pupils for the specified event
-	EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int, skip int) ([]*Pupil, int,
-		error)
 	// EventClasses returns an array of sorted classes for the specified event
-	EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount, skip int) ([]*Class, int, error)
+	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
+		amount, skip int) ([]*Class, int, error)
+	// EventPupils returns an array of sorted pupils for the specified event
+	EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters, sortBy sorting.By,
+		amount int, skip int) ([]*Pupil, int, error)
 	// PupilByID returns a pupil with a given id w/ resources for the specified event
 	PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error)
 }
@@ -41,10 +42,10 @@ type Repository interface {
 		resources map[garbage.Resource]int) (*Event, *Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
-	EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int, skip int) (classes []*Class,
-		total int, err error)
-	EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int, skip int) (pupils []*Pupil,
-		total int, err error)
+	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
+		amount int, skip int) (classes []*Class, total int, err error)
+	EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters, sortBy sorting.By,
+		amount int, skip int) (pupils []*Pupil, total int, err error)
 	PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error)
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 }
@@ -202,8 +203,8 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 }
 
 // EventClasses returns an array of sorted classes for the specified event
-func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount,
-	skip int) (classes []*Class, total int, err error) {
+func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters,
+	sortBy sorting.By, amount, skip int) (classes []*Class, total int, err error) {
 
 	// check if eventID was provided
 	errVld := valid.EmptyError()
@@ -225,7 +226,7 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sor
 		sortBy = sorting.NameAsc
 	}
 
-	classes, total, err = s.repo.EventClasses(ctx, eventID, sortBy, amount, skip)
+	classes, total, err = s.repo.EventClasses(ctx, eventID, filters, sortBy, amount, skip)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -233,8 +234,8 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sor
 }
 
 // EventPupils returns an array of sorted pupils for the specified event
-func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sortBy sorting.By, amount int,
-	skip int) (pupils []*Pupil, total int, err error) {
+func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters,
+	sortBy sorting.By, amount int, skip int) (pupils []*Pupil, total int, err error) {
 
 	// check if eventID was provided
 	errVld := valid.EmptyError()
@@ -256,7 +257,7 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sort
 		sortBy = sorting.NameAsc
 	}
 
-	pupils, total, err = s.repo.EventPupils(ctx, eventID, sortBy, amount, skip)
+	pupils, total, err = s.repo.EventPupils(ctx, eventID, filters, sortBy, amount, skip)
 	if err != nil {
 		return nil, 0, err
 	}
