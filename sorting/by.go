@@ -15,28 +15,56 @@ const (
 )
 
 // IsValid checks if a provided string can be used for sorting
-func (s By) IsValid() bool {
-	switch s {
+func (b By) IsValid() bool {
+	switch b {
 	case DateAsc, DateDes, Gadgets, Paper, Plastic, NameAsc, NameDes:
 		return true
 	}
 	return false
 }
 
-// IsForEventPupils checks if a provided string can be used to sorting an event's pupils
-func (s By) IsForEventPupils() bool {
-	switch s {
-	case NameAsc, NameDes, Gadgets, Paper, Plastic:
+// IsDate checks if a provided string can be used as a sorting by date
+func (b By) IsDate() bool {
+	switch b {
+	case DateAsc, DateDes:
 		return true
 	}
 	return false
 }
 
-// IsForEventPupils checks if a provided string can be used to sorting an event's classes
-func (s By) IsForEventClasses() bool {
-	switch s {
-	case NameAsc, NameDes, Gadgets, Paper, Plastic:
+// IsName checks if a provided string can be used as a sorting by name
+func (b By) IsName() bool {
+	switch b {
+	case NameAsc, NameDes:
 		return true
 	}
 	return false
 }
+
+// IsResources check if a provided string can be used as a sorting by resources
+func (b By) IsResources() bool {
+	switch b {
+	case Gadgets, Paper, Plastic:
+		return true
+	}
+	return false
+}
+
+//
+// // IsForEventPupils checks if a provided string can be used to sorting an event's pupils
+// func (b By) IsForEventPupils() bool {
+// 	switch b {
+// 	case NameAsc, NameDes, Gadgets, Paper, Plastic:
+// 		return true
+// 	}
+// 	return false
+// }
+//
+// // IsForEventPupils checks if a provided string can be used to sorting an event's classes
+// func (b By) IsForEventClasses() bool {
+// 	switch b {
+// 	case NameAsc, NameDes, Gadgets, Paper, Plastic:
+// 		return true
+// 	}
+// 	return false
+// }

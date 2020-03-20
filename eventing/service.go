@@ -67,10 +67,10 @@ func NewService(repo Repository) Service {
 func (s *service) ClassByID(ctx context.Context, classID garbage.ClassID, eventID garbage.EventID) (*Class, error) {
 	// check if classID and eventID are provided
 	errVld := valid.EmptyError()
-	if len(classID) <= 0 {
+	if len(classID) == 0 {
 		errVld.Add("classID", "classID must be provided")
 	}
-	if len(eventID) <= 0 {
+	if len(eventID) == 0 {
 		errVld.Add("eventID", "eventID must be provided")
 	}
 	if !errVld.IsEmpty() {
@@ -90,13 +90,13 @@ func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.Even
 	resources map[garbage.Resource]int) (*Event, *Pupil, error) {
 
 	errVld := valid.EmptyError()
-	if len(pupilID) <= 0 {
+	if len(pupilID) == 0 {
 		errVld.Add("pupilID", "pupilID must be provided")
 	}
-	if len(eventID) <= 0 {
+	if len(eventID) == 0 {
 		errVld.Add("eventID", "eventID must be provided")
 	}
-	if len(resources) <= 0 {
+	if len(resources) == 0 {
 		errVld.Add("resources", "no resources were provided")
 	}
 	if !errVld.IsEmpty() {
@@ -149,7 +149,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 		return "", errVld
 	}
 	// If no name was provided, create it from the event's date
-	if len(name) <= 0 {
+	if len(name) == 0 {
 		year, month, day := date.Date()
 		name = fmt.Sprintf("%02d-%02d-%d", day, month, year)
 	}
@@ -171,7 +171,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
 	errVld := valid.EmptyError()
 	// check if there's eventID
-	if len(eventID) <= 0 {
+	if len(eventID) == 0 {
 		errVld.Add("eventID", "eventID must be provided")
 	}
 	if !errVld.IsEmpty() {
@@ -188,7 +188,7 @@ func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (gar
 // EventByID returns an event by its ID
 func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error) {
 	errVld := valid.EmptyError()
-	if len(eventID) <= 0 {
+	if len(eventID) == 0 {
 		errVld.Add("eventID", "eventID is needed")
 	}
 	if !errVld.IsEmpty() {
@@ -207,7 +207,7 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sor
 
 	// check if eventID was provided
 	errVld := valid.EmptyError()
-	if len(eventID) <= 0 {
+	if len(eventID) == 0 {
 		errVld.Add("eventID", "eventID must be provided")
 	}
 	if !errVld.IsEmpty() {
@@ -221,7 +221,7 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, sor
 	if skip < 0 {
 		skip = DefaultSkip
 	}
-	if !sortBy.IsForEventClasses() {
+	if !sortBy.IsName() && !sortBy.IsResources() {
 		sortBy = sorting.NameAsc
 	}
 
@@ -238,7 +238,7 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sort
 
 	// check if eventID was provided
 	errVld := valid.EmptyError()
-	if len(eventID) <= 0 {
+	if len(eventID) == 0 {
 		errVld.Add("eventID", "eventID must be provided")
 	}
 	if !errVld.IsEmpty() {
@@ -252,7 +252,7 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sort
 	if skip < 0 {
 		skip = DefaultSkip
 	}
-	if !sortBy.IsForEventPupils() {
+	if !sortBy.IsName() && !sortBy.IsResources() {
 		sortBy = sorting.NameAsc
 	}
 
@@ -267,10 +267,10 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, sort
 func (s *service) PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error) {
 	// check if eventID and pupilID are provided
 	errVld := valid.EmptyError()
-	if len(eventID) <= 0 {
+	if len(eventID) == 0 {
 		errVld.Add("eventID", "eventID must be provided")
 	}
-	if len(pupilID) <= 0 {
+	if len(pupilID) == 0 {
 		errVld.Add("pupilID", "pupilID must be provided")
 	}
 	if !errVld.IsEmpty() {

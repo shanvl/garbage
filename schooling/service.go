@@ -54,13 +54,13 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 	for i, bio := range pupilsBio {
 		// validate a pupil's name and class
 		f := fmt.Sprintf("pupils[%d]", i)
-		if len(bio.FirstName) <= 0 {
+		if len(bio.FirstName) == 0 {
 			errVld.Add(fmt.Sprintf("%s[firstName]", f), "first name must be provided")
 		}
-		if len(bio.LastName) <= 0 {
+		if len(bio.LastName) == 0 {
 			errVld.Add(fmt.Sprintf("%s[lastName]", f), "last name must be provided")
 		}
-		if len(bio.ClassName) <= 0 {
+		if len(bio.ClassName) == 0 {
 			errVld.Add(fmt.Sprintf("%s[class]", f), "class must be provided")
 		}
 		// get a pupil's class entity
@@ -128,10 +128,10 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
 
 	// validate args
 	errVld := valid.EmptyError()
-	if len(pupilID) <= 0 {
+	if len(pupilID) == 0 {
 		errVld.Add("pupilID", "pupilID must be provided")
 	}
-	if len(className) <= 0 {
+	if len(className) == 0 {
 		errVld.Add("className", "className must be provided")
 	}
 	if !errVld.IsEmpty() {
@@ -171,12 +171,12 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
 func (s *service) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
 	// validate pupils ids
 	errVld := valid.EmptyError()
-	if len(pupilIDs) <= 0 {
+	if len(pupilIDs) == 0 {
 		errVld.Add("pupils", "no pupils ids were provided")
 	}
 	for i, id := range pupilIDs {
 		errField := fmt.Sprintf("pupils[%d]", i)
-		if len(id) <= 0 {
+		if len(id) == 0 {
 			errVld.Add(errField, "pupil id can't be empty")
 		}
 	}

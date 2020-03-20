@@ -33,7 +33,7 @@ func (e *ErrValidation) Fields() map[string]string {
 
 // IsEmpty shows whether the error is empty, i.e. has no errors added to it
 func (e *ErrValidation) IsEmpty() bool {
-	if len(e.fields) <= 0 {
+	if len(e.fields) == 0 {
 		return true
 	}
 	return false
