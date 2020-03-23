@@ -225,6 +225,127 @@ func Test_service_ClassByID(t *testing.T) {
 	}
 }
 
+func Test_service_Events(t *testing.T) {
+	const (
+		totalEvents = 55
+		sortBy      = sorting.DateDes
+		amount      = 3
+		skip        = 50
+		repoError   = "e"
+	)
+	events := []*aggregating.Event{{}, {}, {}}
+	ctx := context.Background()
+
+	var repository mock.AggregatingRepository
+	repository.EventsFn = func(ctx context.Context, filters aggregating.EventsFilters, sortBy sorting.By, amount,
+		skip int) ([]*aggregating.Event, int, error) {
+
+		if filters.Name == repoError {
+			return nil, 0, errors.New("some error")
+		}
+
+		return events, totalEvents, nil
+	}
+	s := aggregating.NewService(&repository)
+
+	type args struct {
+		ctx     context.Context
+		filters aggregating.EventsFilters
+		sortBy  sorting.By
+		amount  int
+		skip    int
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantEvents []*aggregating.Event
+		wantTotal  int
+		wantErr    bool
+	}{
+		{
+			name: "negative amount",
+			args: args{
+				ctx:     ctx,
+				filters: aggregating.EventsFilters{},
+				sortBy:  sortBy,
+				amount:  -55,
+				skip:    skip,
+			},
+			wantEvents: events,
+			wantTotal:  totalEvents,
+			wantErr:    false,
+		},
+		{
+			name: "negative skip",
+			args: args{
+				ctx:     ctx,
+				filters: aggregating.EventsFilters{},
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    -55,
+			},
+			wantEvents: events,
+			wantTotal:  totalEvents,
+			wantErr:    false,
+		},
+		{
+			name: "invalid sortBy",
+			args: args{
+				ctx:     ctx,
+				filters: aggregating.EventsFilters{},
+				sortBy:  "invalid",
+				amount:  amount,
+				skip:    skip,
+			},
+			wantEvents: events,
+			wantTotal:  totalEvents,
+			wantErr:    false,
+		},
+		{
+			name: "ok args",
+			args: args{
+				ctx:     ctx,
+				filters: aggregating.EventsFilters{},
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantEvents: events,
+			wantTotal:  totalEvents,
+			wantErr:    false,
+		},
+		{
+			name: "repo's internal error",
+			args: args{
+				ctx:     ctx,
+				filters: aggregating.EventsFilters{Name: repoError},
+				sortBy:  sortBy,
+				amount:  amount,
+				skip:    skip,
+			},
+			wantEvents: nil,
+			wantTotal:  0,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotEvents, gotTotal, err := s.Events(tt.args.ctx, tt.args.filters, tt.args.sortBy, tt.args.amount,
+				tt.args.skip)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Events() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotEvents, tt.wantEvents) {
+				t.Errorf("Events() gotEvents = %v, want %v", gotEvents, tt.wantEvents)
+			}
+			if gotTotal != tt.wantTotal {
+				t.Errorf("Events() gotTotal = %v, want %v", gotTotal, tt.wantTotal)
+			}
+		})
+	}
+}
+
 func Test_service_Pupils(t *testing.T) {
 	const (
 		repoError   = "e"

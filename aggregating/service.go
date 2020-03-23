@@ -30,6 +30,9 @@ type Service interface {
 	// passed the provided filter
 	PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter, eventsSorting sorting.By) (*Pupil,
 		error)
+	// Events returns a list of sorted events that passed the provided filters
+	Events(ctx context.Context, filters EventsFilters, sortBy sorting.By, amount, skip int) (events []*Event,
+		total int, err error)
 }
 
 // Repository provides methods to work with entities persistence
@@ -42,6 +45,8 @@ type Repository interface {
 		skip int) (pupils []*Pupil, total int, err error)
 	PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter, eventsSorting sorting.By) (*Pupil,
 		error)
+	Events(ctx context.Context, filters EventsFilters, sortBy sorting.By, amount, skip int) (events []*Event,
+		total int, err error)
 }
 
 type service struct {
@@ -90,11 +95,27 @@ func (s *service) ClassByID(ctx context.Context, id garbage.ClassID, filters Eve
 		errVld.Add("eventID", "eventID must be provided")
 		return nil, errVld
 	}
-
 	// validate events sorting
 	eventsSorting = validateEventsSorting(eventsSorting)
 
 	return s.repo.ClassByID(ctx, id, filters, eventsSorting)
+}
+
+// Events returns a list of sorted events that passed the provided filters
+func (s *service) Events(ctx context.Context, filters EventsFilters, sortBy sorting.By, amount,
+	skip int) (events []*Event, total int, err error) {
+
+	// if provided values are incorrect, use default ones instead
+	if amount <= 0 {
+		amount = DefaultAmount
+	}
+	if skip < 0 {
+		skip = DefaultSkip
+	}
+	// validate sorting
+	sortBy = validateEventsSorting(sortBy)
+
+	return s.repo.Events(ctx, filters, sortBy, amount, skip)
 }
 
 // Pupils returns a list of sorted pupils with a list of resources they brought to events that passed the given
@@ -174,6 +195,15 @@ type ClassesFilters struct {
 	Letter string
 	// Year the class was formed in
 	YearFormed string
+}
+
+// EventsFilters are used to filter events
+type EventsFilters struct {
+	EventsByDateFilter
+	// Name of the event
+	Name string
+	// Recyclables permitted to be brought to this event
+	ResourcesAllowed []garbage.Resource
 }
 
 // PupilsFilters are used to filter pupils and events in which they participated

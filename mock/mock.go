@@ -20,6 +20,10 @@ type AggregatingRepository struct {
 		eventsSorting sorting.By) (*aggregating.Class, error)
 	ClassByIDInvoked bool
 
+	EventsFn func(ctx context.Context, filters aggregating.EventsFilters, sortBy sorting.By, amount,
+		skip int) (events []*aggregating.Event, total int, err error)
+	EventsInvoked bool
+
 	PupilsFn func(ctx context.Context, filters aggregating.PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*aggregating.Pupil, total int, err error)
 	PupilsInvoked bool
@@ -35,6 +39,14 @@ func (r *AggregatingRepository) Classes(ctx context.Context, filters aggregating
 
 	r.ClassesInvoked = true
 	return r.ClassesFn(ctx, filters, classesSorting, eventsSorting, amount, skip)
+}
+
+// Events calls EventsFn
+func (r *AggregatingRepository) Events(ctx context.Context, filters aggregating.EventsFilters, sortBy sorting.By,
+	amount, skip int) (events []*aggregating.Event, total int, err error) {
+
+	r.EventsInvoked = true
+	return r.EventsFn(ctx, filters, sortBy, amount, skip)
 }
 
 // ClassByID calls ClassByIDFn
