@@ -285,3 +285,40 @@ func (s *service) PupilByID(ctx context.Context, pupilID garbage.PupilID, eventI
 	}
 	return pupil, nil
 }
+
+// Class is a model of the class, adapted for this use case.
+type Class struct {
+	ID garbage.ClassID
+	// Name of the class as it was on the date of the event
+	Name string
+	// Resources brought by the class to the event
+	ResourcesBrought map[garbage.Resource]int
+}
+
+// Event is a model of the event, adapted for this use case.
+// It indicates how many resources have been collected at this event
+type Event struct {
+	garbage.Event
+	// resources brought by pupils to this event
+	ResourcesBrought map[garbage.Resource]int
+}
+
+// Pupil is a model of the pupil, adapted for this use case.
+type Pupil struct {
+	garbage.Pupil
+	// Note that Class here is a string, not a garbage.Class instance.
+	// It is the name of the class as it was on the date of the event
+	Class string
+	// Resources brought by the pupil to the event
+	ResourcesBrought map[garbage.Resource]int
+}
+
+// EventClassesFilters are used to filter classes participating in an event
+type EventClassesFilters struct {
+	Name string
+}
+
+// EventPupilsFilters are used to filter pupils participating in an event
+type EventPupilsFilters struct {
+	Name string
+}

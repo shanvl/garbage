@@ -49,6 +49,11 @@ type Repository interface {
 		total int, err error)
 }
 
+const (
+	DefaultAmount = 25
+	DefaultSkip   = 0
+)
+
 type service struct {
 	repo Repository
 }
@@ -57,11 +62,6 @@ type service struct {
 func NewService(repo Repository) Service {
 	return &service{repo}
 }
-
-const (
-	DefaultAmount = 25
-	DefaultSkip   = 0
-)
 
 // Classes returns a list of sorted classes with resources they brought to events that passed given filters
 func (s *service) Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By,
