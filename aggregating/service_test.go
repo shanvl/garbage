@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/shanvl/garbage-events-service/aggregating"
+	"github.com/shanvl/garbage-events-service/garbage"
 	"github.com/shanvl/garbage-events-service/mock"
 	"github.com/shanvl/garbage-events-service/sorting"
 )
 
 func Test_service_Classes(t *testing.T) {
 	const (
-		errorLetter  = "e"
+		repoError    = "e"
 		totalClasses = 25
 	)
 	classes := []*aggregating.Class{{}, {}, {}}
@@ -23,7 +24,7 @@ func Test_service_Classes(t *testing.T) {
 	repo.ClassesFn = func(ctx context.Context, filters aggregating.ClassesFilters,
 		classesSorting, eventsSorting sorting.By, amount, skip int) ([]*aggregating.Class, int, error) {
 
-		if filters.Letter == errorLetter {
+		if filters.Letter == repoError {
 			return nil, 0, errors.New("some error")
 		}
 		return classes, totalClasses, nil
@@ -46,7 +47,7 @@ func Test_service_Classes(t *testing.T) {
 		{
 			name: "repo's error",
 			args: args{
-				aggregating.ClassesFilters{Letter: errorLetter},
+				aggregating.ClassesFilters{Letter: repoError},
 				sorting.NameAsc,
 				sorting.DateDes,
 				25,
@@ -109,7 +110,7 @@ func Test_service_Classes(t *testing.T) {
 			wantErr:     false,
 		},
 		{
-			name: "no errors",
+			name: "ok args",
 			args: args{
 				aggregating.ClassesFilters{},
 				sorting.NameAsc,
@@ -135,6 +136,80 @@ func Test_service_Classes(t *testing.T) {
 			}
 			if gotTotal != tt.wantTotal {
 				t.Errorf("Classes() gotTotal = %v, want %v", gotTotal, tt.wantTotal)
+			}
+		})
+	}
+}
+
+func Test_service_ClassByID(t *testing.T) {
+	const (
+		repoError = "e"
+	)
+	class := &aggregating.Class{}
+	ctx := context.Background()
+
+	var repo mock.AggregatingRepository
+	repo.ClassByIDFn = func(ctx context.Context, id garbage.ClassID, filters aggregating.EventsByDateFilter,
+		eventsSorting sorting.By) (*aggregating.Class, error) {
+
+		if id == repoError {
+			return nil, errors.New("some error")
+		}
+		return class, nil
+	}
+	s := aggregating.NewService(&repo)
+
+	type args struct {
+		id            garbage.ClassID
+		filters       aggregating.EventsByDateFilter
+		eventsSorting sorting.By
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *aggregating.Class
+		wantErr bool
+	}{
+		{
+			name: "repo's error",
+			args: args{
+				repoError,
+				aggregating.EventsByDateFilter{},
+				repoError,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid events sorting",
+			args: args{
+				"id",
+				aggregating.EventsByDateFilter{},
+				"invalid sorting",
+			},
+			want:    class,
+			wantErr: false,
+		},
+		{
+			name: "ok args",
+			args: args{
+				"id",
+				aggregating.EventsByDateFilter{},
+				sorting.DateDes,
+			},
+			want:    class,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotClass, err := s.ClassByID(ctx, tt.args.id, tt.args.filters, tt.args.eventsSorting)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ClassByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotClass, tt.want) {
+				t.Errorf("ClassByID() gotClass = %v, want %v", gotClass, tt.want)
 			}
 		})
 	}

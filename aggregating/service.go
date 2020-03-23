@@ -13,17 +13,22 @@ import (
 // Service is an interface providing methods for obtaining aggregated info on how classes and pupils performed at
 // events scattered in time, with various filters applied
 type Service interface {
-	// Classes returns a list of sorted classes with resources they brought to events that passed given filters
-	Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By, amount, skip int) (classes []*Class,
-		total int, err error)
-	// ClassByID(ctx context.Context, filters ClassByIDFilters) (*Class, error)
+	// Classes returns a list of sorted classes with a list of resources they brought to events that passed the given
+	// filters
+	Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By, amount,
+		skip int) (classes []*Class, total int, err error)
+	// ClassByID returns a class with the given ID with a list of all the resources it has brought to every event that
+	// passed the provided filter
+	ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter, eventsSorting sorting.By) (*Class,
+		error)
 }
 
 // Repository provides methods to work with entities persistence
 type Repository interface {
 	Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
-	// ClassByID(ctx context.Context, filters ClassByIDFilters) (*Class, error)
+	ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter, eventsSorting sorting.By) (*Class,
+		error)
 }
 
 type service struct {
@@ -55,16 +60,29 @@ func (s *service) Classes(ctx context.Context, filters ClassesFilters, classesSo
 	if !classesSorting.IsResources() && !classesSorting.IsName() {
 		classesSorting = sorting.NameAsc
 	}
-	// events in every class found can be sorted by resources, name or date
-	if !eventsSorting.IsResources() && !eventsSorting.IsName() && !eventsSorting.IsDate() {
-		eventsSorting = sorting.DateDes
-	}
+	// validate events sorting
+	eventsSorting = validateEventsSorting(eventsSorting)
+
 	return s.repo.Classes(ctx, filters, classesSorting, eventsSorting, amount, skip)
 }
 
-// func (s *service) ClassByID(ctx context.Context, filters ClassByIDFilters) (*Class, error) {
-//
-// }
+// ClassByID returns a class with the given ID with a list of all the resources it has brought to every event that
+// passed the provided filter. Events are sorted
+func (s *service) ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter,
+	eventsSorting sorting.By) (*Class, error) {
+	// validate events sorting
+	eventsSorting = validateEventsSorting(eventsSorting)
+
+	return s.repo.ClassByID(ctx, id, filters, eventsSorting)
+}
+
+// if events sorting passed is not set to resources, name or date, sets it to DateDes
+func validateEventsSorting(s sorting.By) sorting.By {
+	if !s.IsResources() && !s.IsName() && !s.IsDate() {
+		s = sorting.DateDes
+	}
+	return s
+}
 
 // Class is a model of the class, adapted for this use case
 type Class struct {
@@ -89,11 +107,7 @@ type ClassesFilters struct {
 	YearFormed string
 }
 
-type ClassByIDFilters struct {
-	EventsByDateFilter
-}
-
-// EventsByDateFilters are used to filter events by date
+// EventsByDateFilter is used to filter events by date
 type EventsByDateFilter struct {
 	// include events occurred since this date
 	From time.Time
