@@ -8,6 +8,7 @@ import (
 
 	"github.com/shanvl/garbage-events-service/garbage"
 	"github.com/shanvl/garbage-events-service/sorting"
+	"github.com/shanvl/garbage-events-service/valid"
 )
 
 // Service is an interface providing methods for obtaining aggregated info on how classes and pupils performed at
@@ -21,6 +22,10 @@ type Service interface {
 	// passed the provided filter
 	ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter, eventsSorting sorting.By) (*Class,
 		error)
+	// Pupils returns a list of sorted pupils with a list of resources they brought to events that passed the given
+	// filters
+	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
+		skip int) (pupils []*Pupil, total int, err error)
 }
 
 // Repository provides methods to work with entities persistence
@@ -29,6 +34,8 @@ type Repository interface {
 		skip int) (classes []*Class, total int, err error)
 	ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter, eventsSorting sorting.By) (*Class,
 		error)
+	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
+		skip int) (pupils []*Pupil, total int, err error)
 }
 
 type service struct {
@@ -70,10 +77,41 @@ func (s *service) Classes(ctx context.Context, filters ClassesFilters, classesSo
 // passed the provided filter. Events are sorted
 func (s *service) ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter,
 	eventsSorting sorting.By) (*Class, error) {
+
+	// check if eventID is provided
+	errVld := valid.EmptyError()
+	if len(id) == 0 {
+		errVld.Add("eventID", "eventID must be provided")
+		return nil, errVld
+	}
+
 	// validate events sorting
 	eventsSorting = validateEventsSorting(eventsSorting)
 
 	return s.repo.ClassByID(ctx, id, filters, eventsSorting)
+}
+
+// Pupils returns a list of sorted pupils with a list of resources they brought to events that passed the given
+// filters
+func (s *service) Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
+	skip int) (pupils []*Pupil, total int, err error) {
+
+	// if provided values are incorrect, use default ones instead
+	if amount <= 0 {
+		amount = DefaultAmount
+	}
+	if skip < 0 {
+		skip = DefaultSkip
+	}
+
+	// pupils can be sorted by resources they brought or by name
+	if !pupilsSorting.IsName() && !pupilsSorting.IsResources() {
+		pupilsSorting = sorting.NameAsc
+	}
+	// validate events sorting
+	eventsSorting = validateEventsSorting(eventsSorting)
+
+	return s.repo.Pupils(ctx, filters, pupilsSorting, eventsSorting, amount, skip)
 }
 
 // if events sorting passed is not set to resources, name or date, sets it to DateDes
@@ -87,7 +125,7 @@ func validateEventsSorting(s sorting.By) sorting.By {
 // Class is a model of the class, adapted for this use case
 type Class struct {
 	garbage.Class
-	// list of events with resources brought by the class to them
+	// list of events with resources brought by the class to each of them
 	Events []Event
 }
 
@@ -98,6 +136,13 @@ type Event struct {
 	ResourcesBrought map[garbage.Resource]int
 }
 
+// Pupil is a model of the pupil, adapted for this use case
+type Pupil struct {
+	garbage.Pupil
+	// list of events with resources brought by the pupil to each of them
+	Events []Event
+}
+
 // ClassesFilters are used to filter classes and events in which they participated
 type ClassesFilters struct {
 	EventsByDateFilter
@@ -105,6 +150,13 @@ type ClassesFilters struct {
 	Letter string
 	// Year the class was formed in
 	YearFormed string
+}
+
+// PupilsFilters are used to filter pupils and events in which they participated
+type PupilsFilters struct {
+	EventsByDateFilter
+	// Name of the pupil
+	Name string
 }
 
 // EventsByDateFilter is used to filter events by date
