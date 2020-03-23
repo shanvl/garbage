@@ -3,11 +3,27 @@ package mock
 import (
 	"context"
 
+	"github.com/shanvl/garbage-events-service/aggregating"
 	"github.com/shanvl/garbage-events-service/eventing"
 	"github.com/shanvl/garbage-events-service/garbage"
 	"github.com/shanvl/garbage-events-service/schooling"
 	"github.com/shanvl/garbage-events-service/sorting"
 )
+
+// AggregatingRepository is a mock repository for aggregating use case
+type AggregatingRepository struct {
+	ClassesFn func(ctx context.Context, filters aggregating.ClassesFilters, classesSorting, eventsSorting sorting.By,
+		amount, skip int) (classes []*aggregating.Class, total int, err error)
+	ClassesInvoked bool
+}
+
+// Classes calls ClassesFn
+func (r *AggregatingRepository) Classes(ctx context.Context, filters aggregating.ClassesFilters, classesSorting,
+	eventsSorting sorting.By, amount, skip int) (classes []*aggregating.Class, total int, err error) {
+
+	r.ClassesInvoked = true
+	return r.ClassesFn(ctx, filters, classesSorting, eventsSorting, amount, skip)
+}
 
 // EventingRepository is a mock repository for eventing use case
 type EventingRepository struct {
@@ -112,31 +128,31 @@ type SchoolingRepository struct {
 	StorePupilsInvoked bool
 }
 
-// Gets a class from the repo by its letter and yearFormed
+// Class calls ClassFn
 func (r *SchoolingRepository) Class(ctx context.Context, letter string, yearFormed int) (*garbage.Class, error) {
 	r.ClassInvoked = true
 	return r.ClassFn(ctx, letter, yearFormed)
 }
 
-// PupilByID retrieves a pupil with a given id from the repo
+// PupilByID calls PupilByIDFn
 func (r *SchoolingRepository) PupilByID(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error) {
 	r.PupilByIDInvoked = true
 	return r.PupilByIDFn(ctx, pupilID)
 }
 
-// RemovePupils removes pupils and returns their IDs
+// RemovePupils calls RemovePupilsFn
 func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
 	r.RemovePupilsInvoked = true
 	return r.RemovePupilsFn(ctx, pupilIDs)
 }
 
-// StorePupil saves a pupil into the repo and returns their ID
+// StorePupil calls StorePupilFn
 func (r *SchoolingRepository) StorePupil(ctx context.Context, pupil *schooling.Pupil) (garbage.PupilID, error) {
 	r.StorePupilInvoked = true
 	return r.StorePupilFn(ctx, pupil)
 }
 
-// StorePupils saves pupils into the repo and returns their IDs
+// StorePupils calls StorePupilsFn
 func (r *SchoolingRepository) StorePupils(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
 	r.StorePupilsInvoked = true
 	return r.StorePupilsFn(ctx, pupils)

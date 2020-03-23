@@ -27,10 +27,10 @@ type Service interface {
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	// EventClasses returns an array of sorted classes for the specified event
 	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
-		amount, skip int) ([]*Class, int, error)
+		amount, skip int) (classes []*Class, total int, err error)
 	// EventPupils returns an array of sorted pupils for the specified event
 	EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters, sortBy sorting.By,
-		amount int, skip int) ([]*Pupil, int, error)
+		amount int, skip int) (pupils []*Pupil, total int, err error)
 	// PupilByID returns a pupil with a given id w/ resources for the specified event
 	PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error)
 }
@@ -51,7 +51,7 @@ type Repository interface {
 }
 
 const (
-	DefaultAmount = 5
+	DefaultAmount = 25
 	DefaultSkip   = 0
 )
 
