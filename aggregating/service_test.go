@@ -353,3 +353,87 @@ func Test_service_Pupils(t *testing.T) {
 		})
 	}
 }
+
+func Test_service_PupilByID(t *testing.T) {
+	const (
+		repoError = "e"
+	)
+	pupil := &aggregating.Pupil{}
+	ctx := context.Background()
+
+	var repo mock.AggregatingRepository
+	repo.PupilByIDFn = func(ctx context.Context, id garbage.PupilID, filters aggregating.EventsByDateFilter,
+		eventsSorting sorting.By) (*aggregating.Pupil, error) {
+
+		if id == repoError {
+			return nil, errors.New("some error")
+		}
+		return pupil, nil
+	}
+	s := aggregating.NewService(&repo)
+
+	type args struct {
+		id            garbage.PupilID
+		filters       aggregating.EventsByDateFilter
+		eventsSorting sorting.By
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *aggregating.Pupil
+		wantErr bool
+	}{
+		{
+			name: "repo's error",
+			args: args{
+				repoError,
+				aggregating.EventsByDateFilter{},
+				repoError,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "no pupilID",
+			args: args{
+				"",
+				aggregating.EventsByDateFilter{},
+				repoError,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid events sorting",
+			args: args{
+				"id",
+				aggregating.EventsByDateFilter{},
+				"invalid sorting",
+			},
+			want:    pupil,
+			wantErr: false,
+		},
+		{
+			name: "ok args",
+			args: args{
+				"id",
+				aggregating.EventsByDateFilter{},
+				sorting.DateDes,
+			},
+			want:    pupil,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPupil, err := s.PupilByID(ctx, tt.args.id, tt.args.filters, tt.args.eventsSorting)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PupilByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPupil, tt.want) {
+				t.Errorf("PupilByID() gotPupil = %v, want %v", gotPupil, tt.want)
+			}
+		})
+	}
+}

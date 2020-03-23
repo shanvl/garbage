@@ -26,6 +26,10 @@ type Service interface {
 	// filters
 	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
+	// PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
+	// passed the provided filter
+	PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter, eventsSorting sorting.By) (*Pupil,
+		error)
 }
 
 // Repository provides methods to work with entities persistence
@@ -36,6 +40,8 @@ type Repository interface {
 		error)
 	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
+	PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter, eventsSorting sorting.By) (*Pupil,
+		error)
 }
 
 type service struct {
@@ -112,6 +118,24 @@ func (s *service) Pupils(ctx context.Context, filters PupilsFilters, pupilsSorti
 	eventsSorting = validateEventsSorting(eventsSorting)
 
 	return s.repo.Pupils(ctx, filters, pupilsSorting, eventsSorting, amount, skip)
+}
+
+// PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
+// passed the provided filter. Events are sorted
+func (s *service) PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter,
+	eventsSorting sorting.By) (*Pupil, error) {
+
+	// check if pupilID is provided
+	errVld := valid.EmptyError()
+	if len(id) == 0 {
+		errVld.Add("pupilID", "pupilID must be provided")
+		return nil, errVld
+	}
+
+	// validate events sorting
+	eventsSorting = validateEventsSorting(eventsSorting)
+
+	return s.repo.PupilByID(ctx, id, filters, eventsSorting)
 }
 
 // if events sorting passed is not set to resources, name or date, sets it to DateDes

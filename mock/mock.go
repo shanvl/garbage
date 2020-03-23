@@ -23,6 +23,10 @@ type AggregatingRepository struct {
 	PupilsFn func(ctx context.Context, filters aggregating.PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*aggregating.Pupil, total int, err error)
 	PupilsInvoked bool
+
+	PupilByIDFn func(ctx context.Context, id garbage.PupilID, filters aggregating.EventsByDateFilter,
+		eventsSorting sorting.By) (*aggregating.Pupil, error)
+	PupilByIDInvoked bool
 }
 
 // Classes calls ClassesFn
@@ -41,12 +45,20 @@ func (r *AggregatingRepository) ClassByID(ctx context.Context, id garbage.ClassI
 	return r.ClassByIDFn(ctx, id, filters, eventsSorting)
 }
 
-// Pupils call PupilsFn
+// Pupils calls PupilsFn
 func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.PupilsFilters, pupilsSorting,
 	eventsSorting sorting.By, amount, skip int) (pupils []*aggregating.Pupil, total int, err error) {
 
 	r.PupilsInvoked = true
 	return r.PupilsFn(ctx, filters, pupilsSorting, eventsSorting, amount, skip)
+}
+
+// PupilByID calls PupilByIDFn
+func (r *AggregatingRepository) PupilByID(ctx context.Context, id garbage.PupilID,
+	filters aggregating.EventsByDateFilter, eventsSorting sorting.By) (*aggregating.Pupil, error) {
+
+	r.ClassByIDInvoked = true
+	return r.PupilByIDFn(ctx, id, filters, eventsSorting)
 }
 
 // EventingRepository is a mock repository for eventing use case
