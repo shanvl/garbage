@@ -68,17 +68,12 @@ func (s *service) Classes(ctx context.Context, filters ClassesFilters, classesSo
 	amount, skip int) (classes []*Class, total int, err error) {
 
 	// if provided values are incorrect, use default ones instead
-	if amount <= 0 {
-		amount = DefaultAmount
-	}
-	if skip < 0 {
-		skip = DefaultSkip
-	}
+	amount, skip = validateAmountSkip(amount, skip)
 	// classes can be sorted by resources they brought or by name
 	if !classesSorting.IsResources() && !classesSorting.IsName() {
 		classesSorting = sorting.NameAsc
 	}
-	// validate events sorting
+	// if eventsSorting is invalid, use default one instead
 	eventsSorting = validateEventsSorting(eventsSorting)
 
 	return s.repo.Classes(ctx, filters, classesSorting, eventsSorting, amount, skip)
@@ -106,13 +101,8 @@ func (s *service) Events(ctx context.Context, filters EventsFilters, sortBy sort
 	skip int) (events []*Event, total int, err error) {
 
 	// if provided values are incorrect, use default ones instead
-	if amount <= 0 {
-		amount = DefaultAmount
-	}
-	if skip < 0 {
-		skip = DefaultSkip
-	}
-	// validate sorting
+	amount, skip = validateAmountSkip(amount, skip)
+	// if eventsSorting is invalid, use default one instead
 	sortBy = validateEventsSorting(sortBy)
 
 	return s.repo.Events(ctx, filters, sortBy, amount, skip)
@@ -124,18 +114,13 @@ func (s *service) Pupils(ctx context.Context, filters PupilsFilters, pupilsSorti
 	skip int) (pupils []*Pupil, total int, err error) {
 
 	// if provided values are incorrect, use default ones instead
-	if amount <= 0 {
-		amount = DefaultAmount
-	}
-	if skip < 0 {
-		skip = DefaultSkip
-	}
+	amount, skip = validateAmountSkip(amount, skip)
 
 	// pupils can be sorted by resources they brought or by name
 	if !pupilsSorting.IsName() && !pupilsSorting.IsResources() {
 		pupilsSorting = sorting.NameAsc
 	}
-	// validate events sorting
+	// if eventsSorting is invalid, use default one instead
 	eventsSorting = validateEventsSorting(eventsSorting)
 
 	return s.repo.Pupils(ctx, filters, pupilsSorting, eventsSorting, amount, skip)
@@ -153,7 +138,7 @@ func (s *service) PupilByID(ctx context.Context, id garbage.PupilID, filters Eve
 		return nil, errVld
 	}
 
-	// validate events sorting
+	// if eventsSorting is invalid, use default one instead
 	eventsSorting = validateEventsSorting(eventsSorting)
 
 	return s.repo.PupilByID(ctx, id, filters, eventsSorting)
@@ -165,6 +150,17 @@ func validateEventsSorting(s sorting.By) sorting.By {
 		s = sorting.DateDes
 	}
 	return s
+}
+
+// ensures that amount and skip are valid
+func validateAmountSkip(a, s int) (int, int) {
+	if a <= 0 {
+		a = DefaultAmount
+	}
+	if s < 0 {
+		s = DefaultSkip
+	}
+	return a, s
 }
 
 // Class is a model of the class, adapted for this use case

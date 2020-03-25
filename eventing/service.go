@@ -79,11 +79,7 @@ func (s *service) ClassByID(ctx context.Context, classID garbage.ClassID, eventI
 	}
 
 	// get the class
-	class, err := s.repo.ClassByID(ctx, classID, eventID)
-	if err != nil {
-		return nil, err
-	}
-	return class, nil
+	return s.repo.ClassByID(ctx, classID, eventID)
 }
 
 // ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
@@ -116,11 +112,7 @@ func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.Even
 		}
 	}
 	// make changes
-	event, pupil, err := s.repo.ChangeEventResources(ctx, eventID, pupilID, resources)
-	if err != nil {
-		return nil, nil, err
-	}
-	return event, pupil, nil
+	return s.repo.ChangeEventResources(ctx, eventID, pupilID, resources)
 }
 
 // CreateEvent creates and stores an event
@@ -161,11 +153,8 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 	}
 	// create event
 	event := garbage.NewEvent(id, date, name, resourcesAllowed)
-	eventID, err := s.repo.StoreEvent(ctx, event)
-	if err != nil {
-		return "", err
-	}
-	return eventID, nil
+
+	return s.repo.StoreEvent(ctx, event)
 }
 
 // DeleteEvent deletes an event
@@ -178,12 +167,9 @@ func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (gar
 	if !errVld.IsEmpty() {
 		return "", errVld
 	}
-	// delete event
-	deletedID, err := s.repo.DeleteEvent(ctx, eventID)
-	if err != nil {
-		return "", err
-	}
-	return deletedID, nil
+
+	// delete the event
+	return s.repo.DeleteEvent(ctx, eventID)
 }
 
 // EventByID returns an event by its ID
@@ -195,11 +181,8 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 	if !errVld.IsEmpty() {
 		return nil, errVld
 	}
-	event, err := s.repo.EventByID(ctx, eventID)
-	if err != nil {
-		return nil, err
-	}
-	return event, nil
+
+	return s.repo.EventByID(ctx, eventID)
 }
 
 // EventClasses returns an array of sorted classes for the specified event
@@ -216,21 +199,13 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, fil
 	}
 
 	// if provided values are incorrect, use default values instead
-	if amount <= 0 {
-		amount = DefaultAmount
-	}
-	if skip < 0 {
-		skip = DefaultSkip
-	}
+	amount, skip = validateAmountSkip(amount, skip)
+
 	if !sortBy.IsName() && !sortBy.IsResources() {
 		sortBy = sorting.NameAsc
 	}
 
-	classes, total, err = s.repo.EventClasses(ctx, eventID, filters, sortBy, amount, skip)
-	if err != nil {
-		return nil, 0, err
-	}
-	return classes, total, nil
+	return s.repo.EventClasses(ctx, eventID, filters, sortBy, amount, skip)
 }
 
 // EventPupils returns an array of sorted pupils for the specified event
@@ -247,21 +222,13 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filt
 	}
 
 	// if provided values are incorrect, use default values instead
-	if amount <= 0 {
-		amount = DefaultAmount
-	}
-	if skip < 0 {
-		skip = DefaultSkip
-	}
+	amount, skip = validateAmountSkip(amount, skip)
+
 	if !sortBy.IsName() && !sortBy.IsResources() {
 		sortBy = sorting.NameAsc
 	}
 
-	pupils, total, err = s.repo.EventPupils(ctx, eventID, filters, sortBy, amount, skip)
-	if err != nil {
-		return nil, 0, err
-	}
-	return pupils, total, nil
+	return s.repo.EventPupils(ctx, eventID, filters, sortBy, amount, skip)
 }
 
 // PupilByID returns a pupil with a given id w/ resources for a specified event
@@ -279,11 +246,18 @@ func (s *service) PupilByID(ctx context.Context, pupilID garbage.PupilID, eventI
 	}
 
 	// get the pupil
-	pupil, err := s.repo.PupilByID(ctx, pupilID, eventID)
-	if err != nil {
-		return nil, err
+	return s.repo.PupilByID(ctx, pupilID, eventID)
+}
+
+// ensures that amount and skip are valid
+func validateAmountSkip(a, s int) (int, int) {
+	if a <= 0 {
+		a = DefaultAmount
 	}
-	return pupil, nil
+	if s < 0 {
+		s = DefaultSkip
+	}
+	return a, s
 }
 
 // Class is a model of the class, adapted for this use case.

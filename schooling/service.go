@@ -114,12 +114,9 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 	if !errVld.IsEmpty() {
 		return nil, errVld
 	}
+
 	// save pupils
-	pupilIDS, err := s.repo.StorePupils(ctx, pupils)
-	if err != nil {
-		return nil, err
-	}
-	return pupilIDS, nil
+	return s.repo.StorePupils(ctx, pupils)
 }
 
 // ChangePupilClass changes the class of the pupil if such a class exists
@@ -184,11 +181,7 @@ func (s *service) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) 
 		return nil, errVld
 	}
 
-	pupilIDs, err := s.repo.RemovePupils(ctx, pupilIDs)
-	if err != nil {
-		return nil, err
-	}
-	return pupilIDs, nil
+	return s.repo.RemovePupils(ctx, pupilIDs)
 }
 
 // PupilBio used in adding new pupils
