@@ -1,0 +1,33 @@
+version: '3'
+
+networks:
+  garbage-test:
+    driver: bridge
+
+services:
+  garbage_test:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile.test
+    depends_on:
+      - db
+    networks:
+      - garbage-test
+    ports:
+      - "3000:3000"
+    volumes:
+      - $PWD:/garbage
+
+  db:
+    image: postgres:12.2
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: testdb
+    networks:
+      - garbage-test
+    ports:
+      - "5433:5432"
+    restart: always
+    volumes:
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
