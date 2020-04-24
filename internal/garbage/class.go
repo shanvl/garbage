@@ -72,7 +72,7 @@ func ParseClassName(className string, date time.Time) (letter string, yearFormed
 		return "", 0, fmt.Errorf("invalid class number: %d", number)
 	}
 	yearFormed = date.Year() - number
-	// classes are yearFormed in September
+	// classes are formed in September
 	if date.Month() >= 9 {
 		yearFormed += 1
 	}

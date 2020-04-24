@@ -3,7 +3,5 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println("garbage-events-service")
+	fmt.Println("garbage-rest-svc")
 }
-
-

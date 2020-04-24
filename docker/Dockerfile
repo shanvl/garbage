@@ -1,6 +1,6 @@
 FROM golang:1.13 as builder
 RUN useradd -u 10001 notroot
-WORKDIR /eventsvc
+WORKDIR /garbage
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
@@ -10,5 +10,5 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 USER notroot
-COPY --from=builder /eventsvc/bin/eventsvc /eventsvc
-CMD ["/eventsvc"]
+COPY --from=builder /garbage/bin/restsvc /restsvc
+CMD ["/restsvc"]

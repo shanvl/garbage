@@ -1,18 +1,18 @@
-DOCKER_IMAGE_NAME=shanvl/garbage-events-service
+DOCKER_IMAGE_NAME=shanvl/garbage-rest-svc
 GOOS?=darwin
 GOARCH?=amd64
 
 .PHONY: build
 build:
 	GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build \
-		-o bin/eventsvc ./cmd/eventsvc
+		-o bin/restsvc ./cmd/restsvc
 
 .PHONY: check
 check: test vet
 
 .PHONY: docker-build
 docker-build:
-	docker build -t ${DOCKER_IMAGE_NAME} .
+	docker build -t ${DOCKER_IMAGE_NAME} -f ./docker/Dockerfile .
 
 .PHONY: docker-push
 docker-push:

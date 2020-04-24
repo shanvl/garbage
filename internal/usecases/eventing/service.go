@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shanvl/garbage-events-service/garbage"
-	"github.com/shanvl/garbage-events-service/idgen"
-	"github.com/shanvl/garbage-events-service/sorting"
-	"github.com/shanvl/garbage-events-service/valid"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
+	"github.com/shanvl/garbage-events-service/internal/idgen"
+	"github.com/shanvl/garbage-events-service/internal/sorting"
+	"github.com/shanvl/garbage-events-service/internal/valid"
 )
 
 // Service is an interface providing methods to manage an event.
@@ -186,6 +186,7 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 }
 
 // EventClasses returns an array of sorted classes for the specified event
+// TODO: classes names must be relative to the event's date
 func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters,
 	sortBy sorting.By, amount, skip int) (classes []*Class, total int, err error) {
 
@@ -209,6 +210,7 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, fil
 }
 
 // EventPupils returns an array of sorted pupils for the specified event
+// TODO: classes names must be relative to the event's date
 func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*Pupil, total int, err error) {
 
@@ -232,6 +234,7 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filt
 }
 
 // PupilByID returns a pupil with a given id w/ resources for a specified event
+// TODO: classes names must be relative to the event's date
 func (s *service) PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error) {
 	// check if eventID and pupilID are provided
 	errVld := valid.EmptyError()

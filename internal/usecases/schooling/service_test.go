@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shanvl/garbage-events-service/garbage"
-	"github.com/shanvl/garbage-events-service/mock"
-	"github.com/shanvl/garbage-events-service/schooling"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
+	"github.com/shanvl/garbage-events-service/internal/mock"
+	"github.com/shanvl/garbage-events-service/internal/usecases/schooling"
 )
 
 func Test_service_RemovePupils(t *testing.T) {

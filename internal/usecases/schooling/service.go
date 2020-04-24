@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shanvl/garbage-events-service/garbage"
-	"github.com/shanvl/garbage-events-service/idgen"
-	"github.com/shanvl/garbage-events-service/valid"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
+	"github.com/shanvl/garbage-events-service/internal/idgen"
+	"github.com/shanvl/garbage-events-service/internal/valid"
 )
 
 // Service is an interface providing methods to manage pupils and classes w/o concepts like events or resources

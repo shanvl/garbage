@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/shanvl/garbage-events-service/aggregating"
-	"github.com/shanvl/garbage-events-service/garbage"
-	"github.com/shanvl/garbage-events-service/mock"
-	"github.com/shanvl/garbage-events-service/sorting"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
+	"github.com/shanvl/garbage-events-service/internal/mock"
+	"github.com/shanvl/garbage-events-service/internal/sorting"
+	"github.com/shanvl/garbage-events-service/internal/usecases/aggregating"
 )
 
 func Test_service_Classes(t *testing.T) {

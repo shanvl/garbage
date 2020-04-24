@@ -3,11 +3,11 @@ package mock
 import (
 	"context"
 
-	"github.com/shanvl/garbage-events-service/aggregating"
-	"github.com/shanvl/garbage-events-service/eventing"
-	"github.com/shanvl/garbage-events-service/garbage"
-	"github.com/shanvl/garbage-events-service/schooling"
-	"github.com/shanvl/garbage-events-service/sorting"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
+	"github.com/shanvl/garbage-events-service/internal/sorting"
+	"github.com/shanvl/garbage-events-service/internal/usecases/aggregating"
+	"github.com/shanvl/garbage-events-service/internal/usecases/eventing"
+	"github.com/shanvl/garbage-events-service/internal/usecases/schooling"
 )
 
 // AggregatingRepository is a mock repository for aggregating use case

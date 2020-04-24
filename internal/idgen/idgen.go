@@ -3,7 +3,7 @@ package idgen
 
 import (
 	gonanoid "github.com/matoous/go-nanoid"
-	"github.com/shanvl/garbage-events-service/garbage"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
 )
 
 const (

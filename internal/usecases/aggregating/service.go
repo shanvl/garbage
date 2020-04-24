@@ -6,9 +6,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/shanvl/garbage-events-service/garbage"
-	"github.com/shanvl/garbage-events-service/sorting"
-	"github.com/shanvl/garbage-events-service/valid"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
+	"github.com/shanvl/garbage-events-service/internal/sorting"
+	"github.com/shanvl/garbage-events-service/internal/valid"
 )
 
 // Service is an interface providing methods for obtaining aggregated info on how classes and pupils performed at

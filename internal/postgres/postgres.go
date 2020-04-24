@@ -1,4 +1,4 @@
-// Package postgres is used to manage postgres db
+// Package postgres manages postgres db
 package postgres
 
 import (
@@ -21,6 +21,7 @@ type Config struct {
 	Logger pgx.Logger
 }
 
+// Connect establishes a connection to the db server using a provided config
 func Connect(c Config) (*sqlx.DB, error) {
 	// if we are using SimpleProtocol, the driver must escape params because statements won't be prepared
 	escapeParams := "off"
@@ -49,10 +50,10 @@ func Connect(c Config) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	pgxDB := stdlib.OpenDBFromPool(pool, stdlib.OptionPreferSimpleProtocol(c.PreferSimpleProtocol))
 
 	// set up sqlx
-	nativeDB := stdlib.OpenDBFromPool(pool, stdlib.OptionPreferSimpleProtocol(c.PreferSimpleProtocol))
-	db := sqlx.NewDb(nativeDB, "pgx")
+	db := sqlx.NewDb(pgxDB, "pgx")
 	db.SetMaxIdleConns(c.MaxOpenConns)
 	db.SetMaxIdleConns(c.MaxIdleConns)
 	db.SetConnMaxLifetime(c.ConnMaxLifetime)

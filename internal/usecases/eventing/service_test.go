@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shanvl/garbage-events-service/eventing"
-	"github.com/shanvl/garbage-events-service/garbage"
-	"github.com/shanvl/garbage-events-service/mock"
-	"github.com/shanvl/garbage-events-service/sorting"
+	"github.com/shanvl/garbage-events-service/internal/garbage"
+	"github.com/shanvl/garbage-events-service/internal/mock"
+	"github.com/shanvl/garbage-events-service/internal/sorting"
+	"github.com/shanvl/garbage-events-service/internal/usecases/eventing"
 )
 
 func Test_service_CreateEvent(t *testing.T) {
