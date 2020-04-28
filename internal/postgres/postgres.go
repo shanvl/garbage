@@ -11,10 +11,10 @@ import (
 
 // Config allows to configure the db
 type Config struct {
-	Host, Database, User, Password  string
-	Port                            int
-	MaxOpenConns, MaxIdleConns      int
-	AcquireTimeout, ConnMaxLifetime time.Duration
+	Host, Database, User, Password string
+	Port                           int
+	MaxOpenConns, MaxIdleConns     int
+	ConnMaxLifetime                time.Duration
 	// SimpleProtocol becomes needed when using PgBouncer
 	PreferSimpleProtocol bool
 	// Logger allows to log the driver's events
@@ -45,7 +45,6 @@ func Connect(c Config) (*sqlx.DB, error) {
 		},
 		MaxConnections: c.MaxOpenConns,
 		AfterConnect:   nil,
-		AcquireTimeout: c.AcquireTimeout,
 	})
 	if err != nil {
 		return nil, err

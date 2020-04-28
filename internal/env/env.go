@@ -2,7 +2,6 @@
 package env
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -16,7 +15,6 @@ func Int(name string, fallback int) int {
 	}
 	envInt, err := strconv.Atoi(env)
 	if err != nil {
-		fmt.Println(envInt)
 		return fallback
 	}
 	return envInt
