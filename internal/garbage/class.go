@@ -16,15 +16,14 @@ type ClassID string
 
 // Class is a school class consisting of pupils, which changes its name depending on a given date
 // relative to the time when it was formed.
-// This type is often used by various use cases as a carcass for their own Class type
+// This type is often used by various use cases as a carcass for their own Class types
 type Class struct {
-	ID ClassID
 	// Year in which the class was formed
 	// better than an instance of time.Time because that way it has no pointers, so won't be allocated on the heap
 	// TODO: no sense in such droching because class is usually passed as a pointer so it will usually be located on the
 	//  heap
-	YearFormed int
 	Letter     string
+	YearFormed int
 }
 
 // ErrNoClass is used when a class couldn't be found

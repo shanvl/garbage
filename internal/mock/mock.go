@@ -160,9 +160,6 @@ func (r *EventingRepository) StoreEvent(ctx context.Context, e *garbage.Event) (
 
 // SchoolingRepository is mock repository for schooling use case
 type SchoolingRepository struct {
-	ClassFn      func(ctx context.Context, letter string, yearFormed int) (*garbage.Class, error)
-	ClassInvoked bool
-
 	PupilByIDFn      func(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error)
 	PupilByIDInvoked bool
 
@@ -174,12 +171,6 @@ type SchoolingRepository struct {
 
 	StorePupilsFn      func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error)
 	StorePupilsInvoked bool
-}
-
-// Class calls ClassFn
-func (r *SchoolingRepository) Class(ctx context.Context, letter string, yearFormed int) (*garbage.Class, error) {
-	r.ClassInvoked = true
-	return r.ClassFn(ctx, letter, yearFormed)
 }
 
 // PupilByID calls PupilByIDFn
