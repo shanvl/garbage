@@ -1,5 +1,7 @@
 package garbage
 
+import "errors"
+
 // PupilID uniquely identifies a pupil
 type PupilID string
 
@@ -10,3 +12,6 @@ type Pupil struct {
 	FirstName string
 	LastName  string
 }
+
+// ErrNoClass is used when a class couldn't be found
+var ErrNoPupil = errors.New("pupil doesn't exists")

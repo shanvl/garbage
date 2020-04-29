@@ -24,6 +24,7 @@ type Service interface {
 
 type Repository interface {
 	PupilByID(ctx context.Context, pupilID garbage.PupilID) (*Pupil, error)
+	// transaction
 	RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error)
 	StorePupil(ctx context.Context, pupil *Pupil) (garbage.PupilID, error)
 	// transaction
