@@ -105,6 +105,12 @@ func Test_service_AddPupils(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "too much pupils",
+			pupils:  make([]schooling.PupilBio, schooling.MaxAddPupils+1),
+			wantLen: 0,
+			wantErr: true,
+		},
+		{
 			name:    "repo.StorePupils error",
 			pupils:  []schooling.PupilBio{{"error", "ln", "8B"}},
 			wantLen: 0,

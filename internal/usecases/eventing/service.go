@@ -50,14 +50,14 @@ type Repository interface {
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
 }
 
+type service struct {
+	repo Repository
+}
+
 const (
 	DefaultAmount = 25
 	DefaultSkip   = 0
 )
-
-type service struct {
-	repo Repository
-}
 
 // NewService returns an instance of Service with all its dependencies
 func NewService(repo Repository) Service {

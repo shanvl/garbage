@@ -33,6 +33,8 @@ type service struct {
 	repo Repository
 }
 
+const MaxAddPupils = 1000
+
 // NewService returns an instance of Service with all its dependencies
 func NewService(repo Repository) Service {
 	return &service{repo}
@@ -42,6 +44,9 @@ func NewService(repo Repository) Service {
 func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbage.PupilID, error) {
 	if len(pupilsBio) == 0 {
 		return nil, valid.NewError("pupils", "no pupils were provided")
+	}
+	if len(pupilsBio) > MaxAddPupils {
+		return nil, valid.NewError("pupils", fmt.Sprintf("no more than %d pupils are allowed to add", MaxAddPupils))
 	}
 	// pupils to pass to the repo
 	pupils := make([]*Pupil, 0, len(pupilsBio))
