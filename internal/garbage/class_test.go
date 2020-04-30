@@ -7,7 +7,6 @@ import (
 
 func TestClass_NameFromDate(t *testing.T) {
 	type fields struct {
-		ID     ClassID
 		Formed int
 		Letter string
 	}
@@ -24,7 +23,6 @@ func TestClass_NameFromDate(t *testing.T) {
 		{
 			name: "class wasn't formed yet",
 			fields: fields{
-				ID:     "id",
 				Formed: 2020,
 				Letter: "Б",
 			},
@@ -35,7 +33,6 @@ func TestClass_NameFromDate(t *testing.T) {
 		{
 			name: "first day of the first class",
 			fields: fields{
-				ID:     "id",
 				Formed: 2020,
 				Letter: "Б",
 			},
@@ -46,7 +43,6 @@ func TestClass_NameFromDate(t *testing.T) {
 		{
 			name: "date is in the next calender year, but in the same school year",
 			fields: fields{
-				ID:     "id",
 				Formed: 2021,
 				Letter: "Б",
 			},
@@ -59,7 +55,6 @@ func TestClass_NameFromDate(t *testing.T) {
 		{
 			name: "5,5 years after the class was formed",
 			fields: fields{
-				ID:     "id",
 				Formed: 2021,
 				Letter: "Б",
 			},
@@ -72,7 +67,6 @@ func TestClass_NameFromDate(t *testing.T) {
 		{
 			name: "10 years after the class was formed",
 			fields: fields{
-				ID:     "id",
 				Formed: 2020,
 				Letter: "Б",
 			},
@@ -85,7 +79,6 @@ func TestClass_NameFromDate(t *testing.T) {
 		{
 			name: "class is already graduated",
 			fields: fields{
-				ID:     "id",
 				Formed: 2020,
 				Letter: "Б",
 			},
@@ -97,7 +90,6 @@ func TestClass_NameFromDate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Class{
-				ID:         tt.fields.ID,
 				YearFormed: tt.fields.Formed,
 				Letter:     tt.fields.Letter,
 			}

@@ -42,6 +42,9 @@ func NewService(repo Repository) Service {
 
 // AddPupils adds pupils, returning ids of added
 func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbage.PupilID, error) {
+	if len(pupilsBio) == 0 {
+		return nil, valid.NewError("pupils", "no pupils were provided")
+	}
 	// pupils to pass to the repo
 	pupils := make([]*Pupil, 0, len(pupilsBio))
 	// date needed to derive a pupil's class entity out of its class name

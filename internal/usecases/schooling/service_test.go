@@ -82,7 +82,6 @@ func Test_service_RemovePupils(t *testing.T) {
 
 func Test_service_AddPupils(t *testing.T) {
 	ctx := context.Background()
-	const notFoundLetter = "Z"
 
 	var repo mock.SchoolingRepository
 	repo.StorePupilsFn = func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
@@ -100,13 +99,10 @@ func Test_service_AddPupils(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "repo.Class not found",
-			pupils: []schooling.PupilBio{
-				{"fn", "ln", "3" + notFoundLetter},
-				{"fn2", "ln2", "3B"},
-			},
-			wantLen: 2,
-			wantErr: false,
+			name:    "no pupils",
+			pupils:  nil,
+			wantLen: 0,
+			wantErr: true,
 		},
 		{
 			name:    "repo.StorePupils error",
