@@ -137,3 +137,31 @@ func TestErrValidation_IsEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestNewError(t *testing.T) {
+	type args struct {
+		field   string
+		errDesc string
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[string]string
+	}{
+		{
+			name: "ok",
+			args: args{
+				"fn",
+				"ed",
+			},
+			want: map[string]string{"fn": "ed"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewError(tt.args.field, tt.args.errDesc).Fields(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewError() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -45,3 +45,12 @@ func EmptyError() *ErrValidation {
 		fields: make(map[string]string),
 	}
 }
+
+// NewError builds and returns ErrValidation from the error's field and description
+func NewError(field, errDesc string) *ErrValidation {
+	e := &ErrValidation{
+		fields: make(map[string]string),
+	}
+	e.Add(field, errDesc)
+	return e
+}
