@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/shanvl/garbage-events-service/internal/garbage"
@@ -24,6 +25,7 @@ const pupilByIDQuery = `
 	where pupil.id = $1;
 `
 
+// returns pupils with the given id
 func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error) {
 	p := &schooling.Pupil{}
 	err := s.db.QueryRowContext(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
@@ -37,6 +39,7 @@ func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) 
 	return p, nil
 }
 
+// removes pupils with the given ids
 func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
 	panic("implement me")
 }
@@ -47,6 +50,7 @@ const storePupilQuery = `
 	returning id;
 `
 
+// saves the given pupil
 func (s *SchoolingRepo) StorePupil(ctx context.Context, pupil *schooling.Pupil) (garbage.PupilID, error) {
 	var id garbage.PupilID
 	err := s.db.QueryRowContext(ctx, storePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
@@ -57,6 +61,32 @@ func (s *SchoolingRepo) StorePupil(ctx context.Context, pupil *schooling.Pupil) 
 	return id, nil
 }
 
+const storePupilsQuery = `insert into pupil (id, first_name, last_name, class_letter, class_year_formed) values`
+
+// saves the given pupils
 func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
-	panic("implement me")
+	pupilsLen := len(pupils)
+	// params placeholders to pass to the query
+	queryParams := make([]string, pupilsLen)
+	// values to pass to the query
+	queryValues := make([]interface{}, 0, pupilsLen*5)
+	// ids of the saved pupils
+	ids := make([]garbage.PupilID, pupilsLen)
+	for i, p := range pupils {
+		n := i * 5
+		// create query params placeholders for the pupil
+		qp := fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", n+1, n+2, n+3, n+4, n+5)
+		queryParams[i] = qp
+		// push param values
+		queryValues = append(queryValues, p.ID, p.FirstName, p.LastName, p.Class.Letter, p.Class.YearFormed)
+		// push the pupil's id
+		ids[i] = p.ID
+	}
+	// create and execute the query
+	q := fmt.Sprintf("%s %s;", storePupilsQuery, strings.Join(queryParams, ","))
+	_, err := s.db.ExecContext(ctx, q, queryValues...)
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
 }

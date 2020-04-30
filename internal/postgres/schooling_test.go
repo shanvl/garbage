@@ -23,7 +23,7 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "ok case",
+			name: "ok",
 			args: args{
 				pupil: &schooling.Pupil{
 					Pupil: garbage.Pupil{
@@ -70,7 +70,7 @@ func TestSchoolingRepo_PupilByID(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "ok case",
+			name: "ok",
 			args: args{
 				pupilID: pp[0].ID,
 			},
@@ -87,6 +87,71 @@ func TestSchoolingRepo_PupilByID(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("PupilByID() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSchoolingRepo_StorePupils(t *testing.T) {
+	var r = postgres.NewSchoolingRepo(db)
+	var ctx = context.Background()
+	pp := []*schooling.Pupil{
+		{
+			Pupil: garbage.Pupil{
+				ID:        "111",
+				FirstName: "fn1",
+				LastName:  "ln1",
+			},
+			Class: garbage.Class{
+				Letter:     "a",
+				YearFormed: 2015,
+			},
+		},
+		{
+			Pupil: garbage.Pupil{
+				ID:        "222",
+				FirstName: "fn2",
+				LastName:  "ln2",
+			},
+			Class: garbage.Class{
+				Letter:     "b",
+				YearFormed: 2016,
+			},
+		},
+		{
+			Pupil: garbage.Pupil{
+				ID:        "333",
+				FirstName: "fn3",
+				LastName:  "ln3",
+			},
+			Class: garbage.Class{
+				Letter:     "c",
+				YearFormed: 2017,
+			},
+		},
+	}
+	tests := []struct {
+		name    string
+		pupils  []*schooling.Pupil
+		want    []garbage.PupilID
+		wantErr bool
+	}{
+		{
+			name:    "ok",
+			pupils:  pp,
+			want:    []garbage.PupilID{pp[0].ID, pp[1].ID, pp[2].ID},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := r.StorePupils(ctx, tt.pupils)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("StorePupils() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("StorePupils() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
