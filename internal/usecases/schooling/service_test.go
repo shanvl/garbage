@@ -41,6 +41,14 @@ func Test_service_RemovePupils(t *testing.T) {
 			wantErr:    true,
 		},
 		{
+			name: "too much pupil ids",
+			args: args{
+				pupilIDs: make([]garbage.PupilID, schooling.MaxRemovePupils+1),
+			},
+			wantIDsLen: 0,
+			wantErr:    true,
+		},
+		{
 			name: "one id is empty",
 			args: args{
 				pupilIDs: []garbage.PupilID{"123", ""},

@@ -33,7 +33,10 @@ type service struct {
 	repo Repository
 }
 
-const MaxAddPupils = 1000
+const (
+	MaxAddPupils    = 1000
+	MaxRemovePupils = 1000
+)
 
 // NewService returns an instance of Service with all its dependencies
 func NewService(repo Repository) Service {
@@ -141,11 +144,15 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
 
 // RemovePupils removes pupils using provided IDs and returns their IDs
 func (s *service) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
+	if len(pupilIDs) == 0 {
+		return nil, valid.NewError("pupils", "no pupils ids were provided")
+	}
+	if len(pupilIDs) > MaxRemovePupils {
+		return nil, valid.NewError("pupils", fmt.Sprintf("no more than %d pupils can be deleted in one run",
+			MaxRemovePupils))
+	}
 	// validate pupils ids
 	errVld := valid.EmptyError()
-	if len(pupilIDs) == 0 {
-		errVld.Add("pupils", "no pupils ids were provided")
-	}
 	for i, id := range pupilIDs {
 		errField := fmt.Sprintf("pupils[%d]", i)
 		if len(id) == 0 {
