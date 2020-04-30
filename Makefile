@@ -16,7 +16,7 @@ stop:
 
 .PHONY: test
 test:
-	docker-compose -f ./docker/docker-compose.test.yml up --build --abort-on-container-exit
+	docker-compose -f ./docker/docker-compose.test.yml up --build --abort-on-container-exit -V
 	docker-compose -f ./docker/docker-compose.test.yml down --volumes
 
 .PHONY: test-db-up

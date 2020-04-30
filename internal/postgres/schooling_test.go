@@ -27,7 +27,7 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 			args: args{
 				pupil: &schooling.Pupil{
 					Pupil: garbage.Pupil{
-						ID:        "aaa",
+						ID:        "111",
 						FirstName: "fname",
 						LastName:  "lname",
 					},
@@ -37,7 +37,7 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 					},
 				},
 			},
-			want:    "aaa",
+			want:    "111",
 			wantErr: false,
 		},
 	}
@@ -50,6 +50,9 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("StorePupil() got = %v, want %v", got, tt.want)
+			}
+			if _, err := r.RemovePupils(ctx, []garbage.PupilID{tt.args.pupil.ID}); err != nil {
+				t.Fatalf("wasn't able to clean the db after StorePupil(): %v", err)
 			}
 		})
 	}
@@ -152,6 +155,46 @@ func TestSchoolingRepo_StorePupils(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("StorePupils() got = %v, want %v", got, tt.want)
+			}
+			if _, err := r.RemovePupils(ctx, []garbage.PupilID{tt.pupils[0].ID, tt.pupils[1].ID,
+				tt.pupils[2].ID}); err != nil {
+				t.Fatalf("wasn't able to clean db after StorePupils(): %v", err)
+			}
+		})
+	}
+}
+
+func TestSchoolingRepo_RemovePupils(t *testing.T) {
+	var r = postgres.NewSchoolingRepo(db)
+	var ctx = context.Background()
+	pupils, cleanDB := seedPupils(t)
+	defer cleanDB()
+	ppIDs := make([]garbage.PupilID, len(pupils))
+	for i, p := range pupils {
+		ppIDs[i] = p.ID
+	}
+	tests := []struct {
+		name     string
+		pupilIDs []garbage.PupilID
+		want     []garbage.PupilID
+		wantErr  bool
+	}{
+		{
+			name:     "ok",
+			pupilIDs: ppIDs,
+			want:     ppIDs,
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := r.RemovePupils(ctx, tt.pupilIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RemovePupils() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("RemovePupils() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
