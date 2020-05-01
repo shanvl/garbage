@@ -14,12 +14,6 @@ const (
 	defLen = 10
 )
 
-// CreateClassID generates an ID for a class entity
-func CreateClassID() (garbage.ClassID, error) {
-	id, err := gen(classIDLen)
-	return garbage.ClassID(id), err
-}
-
 // CreateEventID generates an ID for an event entity
 func CreateEventID() (garbage.EventID, error) {
 	id, err := gen(eventIDLen)

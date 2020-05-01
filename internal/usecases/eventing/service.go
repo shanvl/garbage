@@ -14,8 +14,6 @@ import (
 // Service is an interface providing methods to manage an event.
 // Note that all methods and entities are used in the context of one event.
 type Service interface {
-	// ClassByID returns a class with a given id w/ resources for the specified event
-	ClassByID(ctx context.Context, classID garbage.ClassID, eventID garbage.EventID) (*Class, error)
 	// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 		resources map[garbage.Resource]int) (*Event, *Pupil, error)
@@ -37,7 +35,6 @@ type Service interface {
 
 // Repository provides methods to work with an event's persistence
 type Repository interface {
-	ClassByID(ctx context.Context, classID garbage.ClassID, eventID garbage.EventID) (*Class, error)
 	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 		resources map[garbage.Resource]int) (*Event, *Pupil, error)
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
@@ -62,24 +59,6 @@ const (
 // NewService returns an instance of Service with all its dependencies
 func NewService(repo Repository) Service {
 	return &service{repo}
-}
-
-// ClassByID returns a class with a given id w/ resources for a specified event
-func (s *service) ClassByID(ctx context.Context, classID garbage.ClassID, eventID garbage.EventID) (*Class, error) {
-	// check if classID and eventID are provided
-	errVld := valid.EmptyError()
-	if len(classID) == 0 {
-		errVld.Add("classID", "classID must be provided")
-	}
-	if len(eventID) == 0 {
-		errVld.Add("eventID", "eventID must be provided")
-	}
-	if !errVld.IsEmpty() {
-		return nil, errVld
-	}
-
-	// get the class
-	return s.repo.ClassByID(ctx, classID, eventID)
 }
 
 // ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
@@ -186,7 +165,7 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 }
 
 // EventClasses returns an array of sorted classes for the specified event
-// TODO: classes names must be relative to the event's date
+// TODO: class names must be relative to the event's date
 func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters,
 	sortBy sorting.By, amount, skip int) (classes []*Class, total int, err error) {
 
@@ -210,7 +189,7 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, fil
 }
 
 // EventPupils returns an array of sorted pupils for the specified event
-// TODO: classes names must be relative to the event's date
+// TODO: class names must be relative to the event's date
 func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*Pupil, total int, err error) {
 
@@ -234,7 +213,7 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filt
 }
 
 // PupilByID returns a pupil with a given id w/ resources for a specified event
-// TODO: classes names must be relative to the event's date
+// TODO: class names must be relative to the event's date
 func (s *service) PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error) {
 	// check if eventID and pupilID are provided
 	errVld := valid.EmptyError()
@@ -265,7 +244,6 @@ func validateAmountSkip(a, s int) (int, int) {
 
 // Class is a model of the class, adapted for this use case.
 type Class struct {
-	ID garbage.ClassID
 	// Name of the class as it was on the date of the event
 	Name string
 	// Resources brought by the class to the event
