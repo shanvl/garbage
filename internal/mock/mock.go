@@ -152,7 +152,7 @@ type SchoolingRepository struct {
 	PupilByIDFn      func(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error)
 	PupilByIDInvoked bool
 
-	RemovePupilsFn      func(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error)
+	RemovePupilsFn      func(ctx context.Context, pupilIDs []garbage.PupilID) error
 	RemovePupilsInvoked bool
 
 	StorePupilFn      func(ctx context.Context, pupils *schooling.Pupil) (garbage.PupilID, error)
@@ -169,7 +169,7 @@ func (r *SchoolingRepository) PupilByID(ctx context.Context, pupilID garbage.Pup
 }
 
 // RemovePupils calls RemovePupilsFn
-func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
+func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) error {
 	r.RemovePupilsInvoked = true
 	return r.RemovePupilsFn(ctx, pupilIDs)
 }

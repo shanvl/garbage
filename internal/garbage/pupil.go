@@ -13,5 +13,5 @@ type Pupil struct {
 	LastName  string
 }
 
-// ErrNoClass is used when a class couldn't be found
-var ErrNoPupil = errors.New("pupil doesn't exists")
+// ErrNoPupil is used when the pupil wasn't found
+var ErrNoPupil = errors.New("pupil wasn't found")

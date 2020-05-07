@@ -43,19 +43,19 @@ func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) 
 const removePupilsQuery = `delete from pupil where id in(?)`
 
 // removes pupils with the given ids
-func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
+func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) error {
 	// create the query with some magic of sqlx
 	q, args, err := sqlx.In(removePupilsQuery, pupilIDs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	q = s.db.Rebind(q)
 	// execute the query
 	if _, err := s.db.ExecContext(ctx, q, args...); err != nil {
-		return nil, err
+		return err
 	}
 	// if there's no error, all the passed pupils have been removed, so their ids can be returned
-	return pupilIDs, nil
+	return nil
 }
 
 const storePupilQuery = `

@@ -19,12 +19,12 @@ type Service interface {
 	// ChangePupilClass changes the class of the pupil if such a class exists
 	ChangePupilClass(ctx context.Context, pupilID garbage.PupilID, className string) (garbage.PupilID, error)
 	// RemovePupils removes pupils using provided IDs and returns their IDs
-	RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error)
+	RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) error
 }
 
 type Repository interface {
 	PupilByID(ctx context.Context, pupilID garbage.PupilID) (*Pupil, error)
-	RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error)
+	RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) error
 	StorePupil(ctx context.Context, pupil *Pupil) (garbage.PupilID, error)
 	StorePupils(ctx context.Context, pupils []*Pupil) ([]garbage.PupilID, error)
 }
@@ -143,12 +143,12 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
 }
 
 // RemovePupils removes pupils using provided IDs and returns their IDs
-func (s *service) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
+func (s *service) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) error {
 	if len(pupilIDs) == 0 {
-		return nil, valid.NewError("pupils", "no pupils ids were provided")
+		return valid.NewError("pupils", "no pupils ids were provided")
 	}
 	if len(pupilIDs) > MaxRemovePupils {
-		return nil, valid.NewError("pupils", fmt.Sprintf("no more than %d pupils can be deleted in one run",
+		return valid.NewError("pupils", fmt.Sprintf("no more than %d pupils can be deleted in one run",
 			MaxRemovePupils))
 	}
 	// validate pupils ids
@@ -160,7 +160,7 @@ func (s *service) RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) 
 		}
 	}
 	if !errVld.IsEmpty() {
-		return nil, errVld
+		return errVld
 	}
 
 	return s.repo.RemovePupils(ctx, pupilIDs)

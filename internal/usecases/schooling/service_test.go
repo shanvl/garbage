@@ -15,11 +15,11 @@ func Test_service_RemovePupils(t *testing.T) {
 	ids := []garbage.PupilID{"000", "001", "002"}
 
 	var repo mock.SchoolingRepository
-	repo.RemovePupilsFn = func(ctx context.Context, pupilIDs []garbage.PupilID) ([]garbage.PupilID, error) {
+	repo.RemovePupilsFn = func(ctx context.Context, pupilIDs []garbage.PupilID) error {
 		if len(pupilIDs) > 0 && pupilIDs[0] == "error" {
-			return nil, errors.New("some error")
+			return errors.New("some error")
 		}
-		return ids, nil
+		return nil
 	}
 	s := schooling.NewService(&repo)
 
@@ -27,62 +27,52 @@ func Test_service_RemovePupils(t *testing.T) {
 		pupilIDs []garbage.PupilID
 	}
 	tests := []struct {
-		name       string
-		args       args
-		wantIDsLen int
-		wantErr    bool
+		name    string
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "no ids",
 			args: args{
 				pupilIDs: nil,
 			},
-			wantIDsLen: 0,
-			wantErr:    true,
+			wantErr: true,
 		},
 		{
 			name: "too much pupil ids",
 			args: args{
 				pupilIDs: make([]garbage.PupilID, schooling.MaxRemovePupils+1),
 			},
-			wantIDsLen: 0,
-			wantErr:    true,
+			wantErr: true,
 		},
 		{
 			name: "one id is empty",
 			args: args{
 				pupilIDs: []garbage.PupilID{"123", ""},
 			},
-			wantIDsLen: 0,
-			wantErr:    true,
+			wantErr: true,
 		},
 		{
 			name: "repo's error",
 			args: args{
 				pupilIDs: []garbage.PupilID{"error"},
 			},
-			wantIDsLen: 0,
-			wantErr:    true,
+			wantErr: true,
 		},
 		{
 			name: "remove 10 pupils",
 			args: args{
 				pupilIDs: ids,
 			},
-			wantIDsLen: len(ids),
-			wantErr:    false,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.RemovePupils(ctx, tt.args.pupilIDs)
-			gotLen := len(got)
+			err := s.RemovePupils(ctx, tt.args.pupilIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RemovePupils() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if gotLen != tt.wantIDsLen {
-				t.Errorf("RemovePupils() gotLen = %v, wantIDsLen %v", gotLen, tt.wantIDsLen)
 			}
 		})
 	}
