@@ -248,9 +248,9 @@ func Test_service_EventByID(t *testing.T) {
 
 func Test_service_ChangePupilResources(t *testing.T) {
 	const (
-		eventID      = "123"
-		errorEventID = "error"
-		pupilID      = "123"
+		eventID                = "123"
+		eventIDErrNoEventPupil = "errornoeventpupil"
+		pupilID                = "123"
 	)
 	resourcesBrought := map[garbage.Resource]int{garbage.Plastic: 22}
 	resourcesAllowed := []garbage.Resource{garbage.Plastic, garbage.Gadgets}
@@ -259,8 +259,8 @@ func Test_service_ChangePupilResources(t *testing.T) {
 	var repository mock.EventingRepository
 	repository.ChangePupilResourcesFn = func(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 		resources map[garbage.Resource]int) error {
-		if eventID == errorEventID {
-			return errors.New("some error")
+		if eventID == eventIDErrNoEventPupil {
+			return eventing.ErrNoEventPupil
 		}
 		return nil
 	}
@@ -335,6 +335,16 @@ func Test_service_ChangePupilResources(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "ErrNoEventPupil",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventIDErrNoEventPupil,
+				pupilID:   pupilID,
+				resources: map[garbage.Resource]int{garbage.Plastic: 11, garbage.Gadgets: 33},
+			},
+			wantErr: true,
+		},
+		{
 			name: "add 2 resources",
 			args: args{
 				ctx:       ctx,
@@ -360,6 +370,10 @@ func Test_service_ChangePupilResources(t *testing.T) {
 			err := s.ChangePupilResources(tt.args.ctx, tt.args.eventID, tt.args.pupilID, tt.args.resources)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChangePupilResources() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.args.eventID == eventIDErrNoEventPupil && !errors.Is(err, garbage.ErrNoPupil) {
+				t.Errorf("ChangePupilResources() on repo's ErrNoEventPupil didn't return garbage.ErrNoPupil: %v", err)
 				return
 			}
 		})

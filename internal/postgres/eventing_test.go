@@ -3,7 +3,6 @@ package postgres_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/shanvl/garbage-events-service/internal/garbage"
@@ -65,7 +64,6 @@ func TestEventingRepo_ChangePupilResources(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChangePupilResources() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			fmt.Println(err)
 			if tt.name == "foreign key error" && !errors.Is(err, eventing.ErrNoEventPupil) {
 				t.Errorf("ChangePupilResources() must return an instance of eventing."+
 					"ErrNoEventPupil on foreign key error, returned %v", err)
