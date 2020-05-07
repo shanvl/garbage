@@ -92,7 +92,7 @@ func (s *service) ChangePupilResources(ctx context.Context, eventID garbage.Even
 		}
 	}
 	err = s.repo.ChangePupilResources(ctx, eventID, pupilID, resources)
-	if err == ErrNoEventPupil {
+	if errors.Is(err, ErrNoEventPupil) {
 		// we already know for sure that the event exists —— we've checked it earlier. Hence,
 		// we can be certain that only the pupil hasn't been found
 		err = garbage.ErrNoPupil

@@ -11,8 +11,8 @@ import (
 )
 
 func TestSchoolingRepo_StorePupil(t *testing.T) {
-	var r = postgres.NewSchoolingRepo(db)
-	var ctx = context.Background()
+	r := postgres.NewSchoolingRepo(db)
+	ctx := context.Background()
 	type args struct {
 		pupil *schooling.Pupil
 	}
@@ -54,8 +54,8 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 }
 
 func TestSchoolingRepo_PupilByID(t *testing.T) {
-	var r = postgres.NewSchoolingRepo(db)
-	var ctx = context.Background()
+	r := postgres.NewSchoolingRepo(db)
+	ctx := context.Background()
 	pp, cleanDB := seedPupils(t)
 	defer cleanDB()
 	type args struct {
@@ -91,8 +91,8 @@ func TestSchoolingRepo_PupilByID(t *testing.T) {
 }
 
 func TestSchoolingRepo_StorePupils(t *testing.T) {
-	var r = postgres.NewSchoolingRepo(db)
-	var ctx = context.Background()
+	r := postgres.NewSchoolingRepo(db)
+	ctx := context.Background()
 	pp := []*schooling.Pupil{
 		{
 			Pupil: garbage.Pupil{
@@ -155,8 +155,8 @@ func TestSchoolingRepo_StorePupils(t *testing.T) {
 }
 
 func TestSchoolingRepo_RemovePupils(t *testing.T) {
-	var r = postgres.NewSchoolingRepo(db)
-	var ctx = context.Background()
+	r := postgres.NewSchoolingRepo(db)
+	ctx := context.Background()
 	pupils, cleanDB := seedPupils(t)
 	defer cleanDB()
 	ppIDs := make([]garbage.PupilID, len(pupils))

@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -31,10 +32,10 @@ func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) 
 	err := s.db.QueryRowContext(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
 		&p.Class.YearFormed)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, garbage.ErrNoPupil
+		if errors.Is(err, sql.ErrNoRows) {
+			err = garbage.ErrNoPupil
 		}
-		return nil, fmt.Errorf("error finding a pupil by id: %w", err)
+		return nil, err
 	}
 	return p, nil
 }

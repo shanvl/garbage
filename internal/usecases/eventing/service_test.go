@@ -246,7 +246,7 @@ func Test_service_EventByID(t *testing.T) {
 	}
 }
 
-func Test_service_ChangeEventResources(t *testing.T) {
+func Test_service_ChangePupilResources(t *testing.T) {
 	const (
 		eventID      = "123"
 		errorEventID = "error"

@@ -9,6 +9,9 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// code which postgres returns on the violation of a foreign key
+const foreignKeyViolationCode = "23503"
+
 // Config allows to configure the db
 type Config struct {
 	Host, Database, User, Password string
