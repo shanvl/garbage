@@ -97,3 +97,39 @@ func removePupilResources(t *testing.T, pupilID garbage.PupilID, eventID garbage
 		t.Fatalf("prepare db: %v", err)
 	}
 }
+
+func TestEventingRepo_DeleteEvent(t *testing.T) {
+	r := postgres.NewEventingRepo(db)
+	ctx := context.Background()
+	eventID := getEventID(t)
+	type args struct {
+		eventID garbage.EventID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			args: args{
+				eventID: eventID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "ok2",
+			args: args{
+				eventID: eventID,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := r.DeleteEvent(ctx, tt.args.eventID); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteEvent() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

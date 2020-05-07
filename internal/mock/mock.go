@@ -79,7 +79,7 @@ type EventingRepository struct {
 		pupilID garbage.PupilID, resources map[garbage.Resource]int) error
 	ChangePupilResourcesInvoked bool
 
-	DeleteEventFn      func(ctx context.Context, id garbage.EventID) (garbage.EventID, error)
+	DeleteEventFn      func(ctx context.Context, id garbage.EventID) error
 	DeleteEventInvoked bool
 
 	EventByIDFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
@@ -108,7 +108,7 @@ func (r *EventingRepository) ChangePupilResources(ctx context.Context, eventID g
 }
 
 // DeleteEvent calls DeleteEventFn
-func (r *EventingRepository) DeleteEvent(ctx context.Context, id garbage.EventID) (garbage.EventID, error) {
+func (r *EventingRepository) DeleteEvent(ctx context.Context, id garbage.EventID) error {
 	r.StoreEventInvoked = true
 	return r.DeleteEventFn(ctx, id)
 }

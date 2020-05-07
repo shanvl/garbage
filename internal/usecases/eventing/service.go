@@ -20,8 +20,8 @@ type Service interface {
 		resources map[garbage.Resource]int) error
 	// CreateEvent creates and stores an event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
-	// DeleteEvent deletes an event
-	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
+	// DeleteEvent deletes an event with the id passed
+	DeleteEvent(ctx context.Context, eventID garbage.EventID) error
 	// EventByID returns an event by its ID
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	// EventClasses returns an array of sorted classes for the specified event
@@ -38,7 +38,7 @@ type Service interface {
 type Repository interface {
 	ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 		resources map[garbage.Resource]int) error
-	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
+	DeleteEvent(ctx context.Context, eventID garbage.EventID) error
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
 		amount int, skip int) (classes []*Class, total int, err error)
@@ -145,10 +145,10 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 }
 
 // DeleteEvent deletes an event
-func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
+func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) error {
 	// check if there's eventID
 	if len(eventID) == 0 {
-		return "", valid.NewError("eventID", "eventID must be provided")
+		return valid.NewError("eventID", "eventID must be provided")
 	}
 	// delete the event
 	return s.repo.DeleteEvent(ctx, eventID)

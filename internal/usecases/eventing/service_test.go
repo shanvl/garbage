@@ -107,12 +107,13 @@ func Test_service_CreateEvent(t *testing.T) {
 }
 
 func Test_service_DeleteEvent(t *testing.T) {
+	const repoErrorEventID = "error"
 	var repository mock.EventingRepository
-	repository.DeleteEventFn = func(ctx context.Context, eventID garbage.EventID) (id garbage.EventID, err error) {
-		if eventID == "not_found" {
-			return "", errors.New("repo's not found error")
+	repository.DeleteEventFn = func(ctx context.Context, eventID garbage.EventID) error {
+		if eventID == repoErrorEventID {
+			return garbage.ErrNoEvent
 		}
-		return eventID, nil
+		return nil
 	}
 	s := eventing.NewService(&repository)
 
@@ -125,7 +126,6 @@ func Test_service_DeleteEvent(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    garbage.EventID
 		wantErr bool
 	}{
 		{
@@ -134,16 +134,14 @@ func Test_service_DeleteEvent(t *testing.T) {
 				ctx:     ctx,
 				eventID: "",
 			},
-			want:    "",
 			wantErr: true,
 		},
 		{
 			name: "no event with such eventID",
 			args: args{
 				ctx:     ctx,
-				eventID: "not_found",
+				eventID: repoErrorEventID,
 			},
-			want:    "",
 			wantErr: true,
 		},
 		{
@@ -152,19 +150,15 @@ func Test_service_DeleteEvent(t *testing.T) {
 				ctx:     ctx,
 				eventID: "123",
 			},
-			want:    "123",
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.DeleteEvent(tt.args.ctx, tt.args.eventID)
+			err := s.DeleteEvent(tt.args.ctx, tt.args.eventID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteEvent() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != tt.want {
-				t.Errorf("DeleteEvent() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

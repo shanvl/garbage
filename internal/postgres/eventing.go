@@ -43,8 +43,16 @@ func (e *EventingRepo) ChangePupilResources(ctx context.Context, eventID garbage
 	return err
 }
 
-func (e *EventingRepo) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
-	panic("implement me")
+const deleteEventQuery = `
+	delete
+    from event e
+	where e.id = $1;
+`
+
+// DeleteEvent deletes an event with the id passed
+func (e *EventingRepo) DeleteEvent(ctx context.Context, eventID garbage.EventID) error {
+	_, err := e.db.ExecContext(ctx, deleteEventQuery, eventID)
+	return err
 }
 
 func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (*eventing.Event, error) {
