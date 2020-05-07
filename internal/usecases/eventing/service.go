@@ -2,6 +2,7 @@ package eventing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -14,9 +15,9 @@ import (
 // Service is an interface providing methods to manage an event.
 // Note that all methods and entities are used in the context of one event.
 type Service interface {
-	// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
-	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (*Event, *Pupil, error)
+	// ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
+	ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+		resources map[garbage.Resource]int) error
 	// CreateEvent creates and stores an event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// DeleteEvent deletes an event
@@ -35,8 +36,8 @@ type Service interface {
 
 // Repository provides methods to work with an event's persistence
 type Repository interface {
-	ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (*Event, *Pupil, error)
+	ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+		resources map[garbage.Resource]int) error
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error)
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
@@ -52,8 +53,9 @@ type service struct {
 }
 
 const (
-	DefaultAmount = 25
+	DefaultAmount = 50
 	DefaultSkip   = 0
+	MaxAmount     = 1000
 )
 
 // NewService returns an instance of Service with all its dependencies
@@ -61,9 +63,9 @@ func NewService(repo Repository) Service {
 	return &service{repo}
 }
 
-// ChangeEventResources adds/subtracts resources brought by a pupil to/from the event
-func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources map[garbage.Resource]int) (*Event, *Pupil, error) {
+// ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
+func (s *service) ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+	resources map[garbage.Resource]int) error {
 
 	errVld := valid.EmptyError()
 	if len(pupilID) == 0 {
@@ -76,22 +78,26 @@ func (s *service) ChangeEventResources(ctx context.Context, eventID garbage.Even
 		errVld.Add("resources", "no resources were provided")
 	}
 	if !errVld.IsEmpty() {
-		return nil, nil, errVld
+		return errVld
 	}
 	// find an event by its id
 	event, err := s.repo.EventByID(ctx, eventID)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 	// check that provided resources are allowed at this event
 	for res := range resources {
 		if !event.IsResourceAllowed(res) {
-			errVld.Add("resources", fmt.Sprintf("%s not allowed", res))
-			return nil, nil, errVld
+			return valid.NewError("resources", fmt.Sprintf("%s not allowed", res))
 		}
 	}
-	// make changes
-	return s.repo.ChangeEventResources(ctx, eventID, pupilID, resources)
+	err = s.repo.ChangePupilResources(ctx, eventID, pupilID, resources)
+	if err == ErrNoEventPupil {
+		// we already know for sure that the event exists —— we've checked it earlier. Hence,
+		// we can be certain that only the pupil hasn't been found
+		err = garbage.ErrNoPupil
+	}
+	return err
 }
 
 // CreateEvent creates and stores an event
@@ -107,6 +113,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 	if len(resourcesAllowed) == 0 {
 		errVld.Add("resourcesAllowed", "at least one resource must be specified")
 	}
+	// TODO: do we need this check here?
 	if !errVld.IsEmpty() {
 		return "", errVld
 	}
@@ -131,6 +138,7 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 		return "", err
 	}
 	// create event
+	// TODO: remove NewEvent and use the type instead
 	event := garbage.NewEvent(id, date, name, resourcesAllowed)
 
 	return s.repo.StoreEvent(ctx, event)
@@ -138,29 +146,20 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 
 // DeleteEvent deletes an event
 func (s *service) DeleteEvent(ctx context.Context, eventID garbage.EventID) (garbage.EventID, error) {
-	errVld := valid.EmptyError()
 	// check if there's eventID
 	if len(eventID) == 0 {
-		errVld.Add("eventID", "eventID must be provided")
+		return "", valid.NewError("eventID", "eventID must be provided")
 	}
-	if !errVld.IsEmpty() {
-		return "", errVld
-	}
-
 	// delete the event
 	return s.repo.DeleteEvent(ctx, eventID)
 }
 
 // EventByID returns an event by its ID
 func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error) {
-	errVld := valid.EmptyError()
+	// check if there's eventID
 	if len(eventID) == 0 {
-		errVld.Add("eventID", "eventID is needed")
+		return nil, valid.NewError("eventID", "eventID is needed")
 	}
-	if !errVld.IsEmpty() {
-		return nil, errVld
-	}
-
 	return s.repo.EventByID(ctx, eventID)
 }
 
@@ -233,7 +232,7 @@ func (s *service) PupilByID(ctx context.Context, pupilID garbage.PupilID, eventI
 
 // ensures that amount and skip are valid
 func validateAmountSkip(a, s int) (int, int) {
-	if a <= 0 {
+	if a <= 0 || a > MaxAmount {
 		a = DefaultAmount
 	}
 	if s < 0 {
@@ -241,6 +240,9 @@ func validateAmountSkip(a, s int) (int, int) {
 	}
 	return a, s
 }
+
+// ErrNoEventPupil indicates that no event or pupil was found
+var ErrNoEventPupil = errors.New("no event or pupil was found")
 
 // Class is a model of the class, adapted for this use case.
 type Class struct {

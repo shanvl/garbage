@@ -75,9 +75,9 @@ func (r *AggregatingRepository) PupilByID(ctx context.Context, id garbage.PupilI
 
 // EventingRepository is a mock repository for eventing use case
 type EventingRepository struct {
-	ChangeEventResourcesFn func(ctx context.Context, eventID garbage.EventID,
-		pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error)
-	ChangeEventResourcesInvoked bool
+	ChangePupilResourcesFn func(ctx context.Context, eventID garbage.EventID,
+		pupilID garbage.PupilID, resources map[garbage.Resource]int) error
+	ChangePupilResourcesInvoked bool
 
 	DeleteEventFn      func(ctx context.Context, id garbage.EventID) (garbage.EventID, error)
 	DeleteEventInvoked bool
@@ -100,11 +100,11 @@ type EventingRepository struct {
 	StoreEventInvoked bool
 }
 
-// ChangeEventResources calls ChangeEventResourcesFn
-func (r *EventingRepository) ChangeEventResources(ctx context.Context, eventID garbage.EventID,
-	pupilID garbage.PupilID, resources map[garbage.Resource]int) (*eventing.Event, *eventing.Pupil, error) {
-	r.ChangeEventResourcesInvoked = true
-	return r.ChangeEventResourcesFn(ctx, eventID, pupilID, resources)
+// ChangePupilResources calls ChangeEventResourcesFn
+func (r *EventingRepository) ChangePupilResources(ctx context.Context, eventID garbage.EventID,
+	pupilID garbage.PupilID, resources map[garbage.Resource]int) error {
+	r.ChangePupilResourcesInvoked = true
+	return r.ChangePupilResourcesFn(ctx, eventID, pupilID, resources)
 }
 
 // DeleteEvent calls DeleteEventFn

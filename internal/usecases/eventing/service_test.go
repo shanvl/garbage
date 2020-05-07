@@ -248,24 +248,21 @@ func Test_service_EventByID(t *testing.T) {
 
 func Test_service_ChangeEventResources(t *testing.T) {
 	const (
-		eventID = "123"
-		pupilID = "123"
+		eventID      = "123"
+		errorEventID = "error"
+		pupilID      = "123"
 	)
 	resourcesBrought := map[garbage.Resource]int{garbage.Plastic: 22}
 	resourcesAllowed := []garbage.Resource{garbage.Plastic, garbage.Gadgets}
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.ChangeEventResourcesFn = func(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) (event *eventing.Event, pupil *eventing.Pupil, err error) {
-		if eventID == "error" {
-			return nil, nil, errors.New("some error")
+	repository.ChangePupilResourcesFn = func(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
+		resources map[garbage.Resource]int) error {
+		if eventID == errorEventID {
+			return errors.New("some error")
 		}
-		return &eventing.Event{
-				Event:            garbage.Event{ID: eventID},
-				ResourcesBrought: resources,
-			},
-			&eventing.Pupil{Pupil: garbage.Pupil{ID: pupilID}, ResourcesBrought: resources}, nil
+		return nil
 	}
 	repository.EventByIDFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
 		return &eventing.Event{
@@ -285,8 +282,6 @@ func Test_service_ChangeEventResources(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    garbage.EventID
-		want1   garbage.PupilID
 		wantErr bool
 	}{
 		{
@@ -297,8 +292,6 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				pupilID:   pupilID,
 				resources: resourcesBrought,
 			},
-			want:    "",
-			want1:   "",
 			wantErr: true,
 		},
 		{
@@ -309,8 +302,6 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				pupilID:   "",
 				resources: resourcesBrought,
 			},
-			want:    "",
-			want1:   "",
 			wantErr: true,
 		},
 		{
@@ -321,8 +312,6 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				pupilID:   pupilID,
 				resources: nil,
 			},
-			want:    "",
-			want1:   "",
 			wantErr: true,
 		},
 		{
@@ -333,8 +322,6 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				pupilID:   pupilID,
 				resources: map[garbage.Resource]int{garbage.Paper: 1},
 			},
-			want:    "",
-			want1:   "",
 			wantErr: true,
 		},
 		{
@@ -345,8 +332,6 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				pupilID:   pupilID,
 				resources: map[garbage.Resource]int{garbage.Paper: 11, garbage.Plastic: 33},
 			},
-			want:    "",
-			want1:   "",
 			wantErr: true,
 		},
 		{
@@ -357,8 +342,6 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				pupilID:   pupilID,
 				resources: map[garbage.Resource]int{garbage.Plastic: 11, garbage.Gadgets: 33},
 			},
-			want:    eventID,
-			want1:   pupilID,
 			wantErr: false,
 		},
 		{
@@ -369,23 +352,15 @@ func Test_service_ChangeEventResources(t *testing.T) {
 				pupilID:   pupilID,
 				resources: map[garbage.Resource]int{garbage.Plastic: -55, garbage.Gadgets: 33},
 			},
-			want:    eventID,
-			want1:   pupilID,
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := s.ChangeEventResources(tt.args.ctx, tt.args.eventID, tt.args.pupilID, tt.args.resources)
+			err := s.ChangePupilResources(tt.args.ctx, tt.args.eventID, tt.args.pupilID, tt.args.resources)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ChangeEventResources() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ChangePupilResources() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != nil && got.ID != tt.want {
-				t.Errorf("ChangeEventResources() got = %v, want %v", got.ID, tt.want)
-			}
-			if got1 != nil && got1.ID != tt.want1 {
-				t.Errorf("ChangeEventResources() got1 = %v, want %v", got1.ID, tt.want1)
 			}
 		})
 	}
