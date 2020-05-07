@@ -19,7 +19,6 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    garbage.PupilID
 		wantErr bool
 	}{
 		{
@@ -37,21 +36,17 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 					},
 				},
 			},
-			want:    "111",
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := r.StorePupil(ctx, tt.args.pupil)
+			err := r.StorePupil(ctx, tt.args.pupil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StorePupil() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("StorePupil() got = %v, want %v", got, tt.want)
-			}
-			if _, err := r.RemovePupils(ctx, []garbage.PupilID{tt.args.pupil.ID}); err != nil {
+			if err := r.RemovePupils(ctx, []garbage.PupilID{tt.args.pupil.ID}); err != nil {
 				t.Fatalf("wasn't able to clean the db after StorePupil(): %v", err)
 			}
 		})
@@ -136,27 +131,22 @@ func TestSchoolingRepo_StorePupils(t *testing.T) {
 	tests := []struct {
 		name    string
 		pupils  []*schooling.Pupil
-		want    []garbage.PupilID
 		wantErr bool
 	}{
 		{
 			name:    "ok",
 			pupils:  pp,
-			want:    []garbage.PupilID{pp[0].ID, pp[1].ID, pp[2].ID},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := r.StorePupils(ctx, tt.pupils)
+			err := r.StorePupils(ctx, tt.pupils)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StorePupils() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("StorePupils() got = %v, want %v", got, tt.want)
-			}
-			if _, err := r.RemovePupils(ctx, []garbage.PupilID{tt.pupils[0].ID, tt.pupils[1].ID,
+			if err := r.RemovePupils(ctx, []garbage.PupilID{tt.pupils[0].ID, tt.pupils[1].ID,
 				tt.pupils[2].ID}); err != nil {
 				t.Fatalf("wasn't able to clean db after StorePupils(): %v", err)
 			}
@@ -176,25 +166,20 @@ func TestSchoolingRepo_RemovePupils(t *testing.T) {
 	tests := []struct {
 		name     string
 		pupilIDs []garbage.PupilID
-		want     []garbage.PupilID
 		wantErr  bool
 	}{
 		{
 			name:     "ok",
 			pupilIDs: ppIDs,
-			want:     ppIDs,
 			wantErr:  false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := r.RemovePupils(ctx, tt.pupilIDs)
+			err := r.RemovePupils(ctx, tt.pupilIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RemovePupils() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RemovePupils() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

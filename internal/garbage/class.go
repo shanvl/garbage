@@ -26,9 +26,6 @@ type Class struct {
 	YearFormed int
 }
 
-// ErrNoClass is used when a class couldn't be found
-var ErrNoClass = errors.New("class doesn't exists")
-
 // NameOnDate constructs a class name on a specific date. For example, if a class, which has
 // a letter Б, was formed on 09.2001, on 09.2002 it was 2Б, on 02.2002 it still was 2Б, on 09.2003
 // it was 3Б

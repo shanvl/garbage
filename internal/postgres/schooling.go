@@ -60,25 +60,20 @@ func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []garbage.Pup
 
 const storePupilQuery = `
 	insert into pupil (id, first_name, last_name, class_letter, class_year_formed)
-	values ($1, $2, $3, $4, $5)
-	returning id;
+	values ($1, $2, $3, $4, $5);
 `
 
 // saves the given pupil
-func (s *SchoolingRepo) StorePupil(ctx context.Context, pupil *schooling.Pupil) (garbage.PupilID, error) {
-	var id garbage.PupilID
-	err := s.db.QueryRowContext(ctx, storePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
-		pupil.Class.YearFormed).Scan(&id)
-	if err != nil {
-		return "", err
-	}
-	return id, nil
+func (s *SchoolingRepo) StorePupil(ctx context.Context, pupil *schooling.Pupil) error {
+	_, err := s.db.ExecContext(ctx, storePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
+		pupil.Class.YearFormed)
+	return err
 }
 
 const storePupilsQuery = `insert into pupil (id, first_name, last_name, class_letter, class_year_formed) values`
 
 // saves the given pupils
-func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
+func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pupil) error {
 	pupilsLen := len(pupils)
 	// params placeholders to pass to the query
 	queryParams := make([]string, pupilsLen)
@@ -99,8 +94,5 @@ func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pup
 	// create and execute the query
 	q := fmt.Sprintf("%s %s;", storePupilsQuery, strings.Join(queryParams, ","))
 	_, err := s.db.ExecContext(ctx, q, queryValues...)
-	if err != nil {
-		return nil, err
-	}
-	return ids, nil
+	return err
 }

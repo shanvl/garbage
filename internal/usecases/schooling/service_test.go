@@ -82,11 +82,11 @@ func Test_service_AddPupils(t *testing.T) {
 	ctx := context.Background()
 
 	var repo mock.SchoolingRepository
-	repo.StorePupilsFn = func(ctx context.Context, pupils []*schooling.Pupil) ([]garbage.PupilID, error) {
+	repo.StorePupilsFn = func(ctx context.Context, pupils []*schooling.Pupil) error {
 		if len(pupils) > 0 && pupils[0].FirstName == "error" {
-			return nil, errors.New("repo's error")
+			return errors.New("repo's error")
 		}
-		return make([]garbage.PupilID, len(pupils)), nil
+		return nil
 	}
 	s := schooling.NewService(&repo)
 
@@ -196,37 +196,18 @@ func Test_service_ChangePupilClass(t *testing.T) {
 		pupilIDPupilWithRequestedClass = "111"
 		requestedClassName             = "10B"
 	)
-	requestedClass := garbage.Class{
-		YearFormed: 2010,
-		Letter:     "B",
-	}
-	someClass := garbage.Class{
-		Letter:     "Y",
-		YearFormed: 2010,
-	}
-	pupilWithRequestedClass := &schooling.Pupil{
-		Pupil: garbage.Pupil{
-			ID:        pupilIDPupilWithRequestedClass,
-			FirstName: "FN",
-			LastName:  "LN",
-		},
-		Class: requestedClass,
-	}
 	ctx := context.Background()
 
 	var repo mock.SchoolingRepository
-	repo.StorePupilFn = func(ctx context.Context, pupil *schooling.Pupil) (garbage.PupilID, error) {
+	repo.StorePupilFn = func(ctx context.Context, pupil *schooling.Pupil) error {
 		if pupil.ID == pupilIDStoreError {
-			return "", errors.New("repo's error")
+			return errors.New("repo's error")
 		}
-		return pupil.ID, nil
+		return nil
 	}
 	repo.PupilByIDFn = func(ctx context.Context, pupilID garbage.PupilID) (pupil *schooling.Pupil, err error) {
 		if pupilID == pupilIDPupilNotFound {
 			return nil, errors.New("pupil not found error")
-		}
-		if pupilID == pupilIDPupilWithRequestedClass {
-			return pupilWithRequestedClass, nil
 		}
 		return &schooling.Pupil{
 			Pupil: garbage.Pupil{
@@ -234,7 +215,10 @@ func Test_service_ChangePupilClass(t *testing.T) {
 				FirstName: "FN",
 				LastName:  "LN",
 			},
-			Class: someClass,
+			Class: garbage.Class{
+				Letter:     "Y",
+				YearFormed: 2010,
+			},
 		}, nil
 	}
 	s := schooling.NewService(&repo)
@@ -246,7 +230,6 @@ func Test_service_ChangePupilClass(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    garbage.PupilID
 		wantErr bool
 	}{
 		{
@@ -255,7 +238,6 @@ func Test_service_ChangePupilClass(t *testing.T) {
 				pupilID:   "",
 				className: "className",
 			},
-			want:    "",
 			wantErr: true,
 		},
 		{
@@ -264,7 +246,22 @@ func Test_service_ChangePupilClass(t *testing.T) {
 				pupilID:   "pupilID",
 				className: "",
 			},
-			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "invalid className",
+			args: args{
+				pupilID:   "pupilID",
+				className: "12B",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid className2",
+			args: args{
+				pupilID:   "pupilID",
+				className: "10 BB",
+			},
 			wantErr: true,
 		},
 		{
@@ -273,7 +270,6 @@ func Test_service_ChangePupilClass(t *testing.T) {
 				pupilID:   pupilIDPupilNotFound,
 				className: "class name",
 			},
-			want:    "",
 			wantErr: true,
 		},
 		{
@@ -282,7 +278,6 @@ func Test_service_ChangePupilClass(t *testing.T) {
 				pupilID:   pupilIDStoreError,
 				className: "10B",
 			},
-			want:    "",
 			wantErr: true,
 		},
 		{
@@ -291,28 +286,23 @@ func Test_service_ChangePupilClass(t *testing.T) {
 				pupilID:   pupilIDPupilWithRequestedClass,
 				className: requestedClassName,
 			},
-			want:    pupilIDPupilWithRequestedClass,
 			wantErr: false,
 		},
 		{
-			name: "swap a pupil's class for a found one",
+			name: "swap a pupil's class for the found one",
 			args: args{
 				pupilID:   "pupilID",
 				className: "10Y",
 			},
-			want:    "pupilID",
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.ChangePupilClass(ctx, tt.args.pupilID, tt.args.className)
+			err := s.ChangePupilClass(ctx, tt.args.pupilID, tt.args.className)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChangePupilClass() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != tt.want {
-				t.Errorf("ChangePupilClass() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

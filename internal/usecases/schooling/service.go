@@ -17,16 +17,16 @@ type Service interface {
 	// AddPupils adds pupils returning ids of added
 	AddPupils(ctx context.Context, pupilInfo []PupilBio) ([]garbage.PupilID, error)
 	// ChangePupilClass changes the class of the pupil if such a class exists
-	ChangePupilClass(ctx context.Context, pupilID garbage.PupilID, className string) (garbage.PupilID, error)
-	// RemovePupils removes pupils using provided IDs and returns their IDs
+	ChangePupilClass(ctx context.Context, pupilID garbage.PupilID, className string) error
+	// RemovePupils removes pupils with provided IDs
 	RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) error
 }
 
 type Repository interface {
 	PupilByID(ctx context.Context, pupilID garbage.PupilID) (*Pupil, error)
 	RemovePupils(ctx context.Context, pupilIDs []garbage.PupilID) error
-	StorePupil(ctx context.Context, pupil *Pupil) (garbage.PupilID, error)
-	StorePupils(ctx context.Context, pupils []*Pupil) ([]garbage.PupilID, error)
+	StorePupil(ctx context.Context, pupil *Pupil) error
+	StorePupils(ctx context.Context, pupils []*Pupil) error
 }
 
 type service struct {
@@ -53,6 +53,7 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 	}
 	// pupils to pass to the repo
 	pupils := make([]*Pupil, 0, len(pupilsBio))
+	pupilIDs := make([]garbage.PupilID, 0, len(pupilsBio))
 	// date needed to derive a pupil's class entity out of its class name
 	today := time.Now()
 
@@ -92,19 +93,24 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 		}
 		// push the pupil entity to the pupils slice
 		pupils = append(pupils, p)
+		// push the pupil's id to to the slice of pupil's ids
+		pupilIDs = append(pupilIDs, pupilID)
 	}
 	// if there are validation errors, return them w/o proceeding further
 	if !errVld.IsEmpty() {
 		return nil, errVld
 	}
 
-	// save pupils
-	return s.repo.StorePupils(ctx, pupils)
+	// save the pupils
+	err := s.repo.StorePupils(ctx, pupils)
+	if err != nil {
+		return nil, err
+	}
+	return pupilIDs, nil
 }
 
 // ChangePupilClass changes the class of the pupil
-func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID, className string) (garbage.PupilID,
-	error) {
+func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID, className string) error {
 
 	// validate args
 	errVld := valid.EmptyError()
@@ -115,31 +121,27 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
 		errVld.Add("className", "className must be provided")
 	}
 	if !errVld.IsEmpty() {
-		return "", errVld
+		return errVld
 	}
 
 	// get pupil
 	pupil, err := s.repo.PupilByID(ctx, pupilID)
 	if err != nil {
-		return "", err
+		return err
 	}
 	// parse className
 	classLetter, classYearFormed, err := garbage.ParseClassName(className, time.Now())
 	if err != nil {
-		return "", err
+		return valid.NewError("className", err.Error())
 	}
 	// if the pupil is already in the class, return their id
 	if classLetter == pupil.Class.Letter && classYearFormed == pupil.Class.YearFormed {
-		return pupil.ID, nil
+		return nil
 	}
 	// otherwise, change the class' data
 	pupil.Class.Letter, pupil.Class.YearFormed = classLetter, classYearFormed
 	// save the pupil
-	pupilID, err = s.repo.StorePupil(ctx, pupil)
-	if err != nil {
-		return "", err
-	}
-	return pupilID, nil
+	return s.repo.StorePupil(ctx, pupil)
 }
 
 // RemovePupils removes pupils using provided IDs and returns their IDs
