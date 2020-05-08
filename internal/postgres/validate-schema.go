@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // a query to create tables and indices if they don't already exist.
@@ -69,8 +69,8 @@ create index if not exists resources_event_id_plastic_idx on resources(event_id,
 `
 
 // ValidateSchema creates tables and indices if they don't already exist
-func ValidateSchema(ctx context.Context, db *sqlx.DB) error {
-	if _, err := db.ExecContext(ctx, schema); err != nil {
+func ValidateSchema(ctx context.Context, db *pgxpool.Pool) error {
+	if _, err := db.Exec(ctx, schema); err != nil {
 		return err
 	}
 	return nil

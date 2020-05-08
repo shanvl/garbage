@@ -75,7 +75,7 @@ func TestEventingRepo_ChangePupilResources(t *testing.T) {
 func getPupilID(t *testing.T) garbage.PupilID {
 	t.Helper()
 	var pupilID garbage.PupilID
-	if err := db.QueryRow(`select id from pupil`).Scan(&pupilID); err != nil {
+	if err := db.QueryRow(context.Background(), `select id from pupil`).Scan(&pupilID); err != nil {
 		t.Fatalf("prepare db: %v", err)
 	}
 	return pupilID
@@ -84,7 +84,7 @@ func getPupilID(t *testing.T) garbage.PupilID {
 func getEventID(t *testing.T) garbage.EventID {
 	t.Helper()
 	var eventID garbage.EventID
-	if err := db.QueryRow(`select id from event`).Scan(&eventID); err != nil {
+	if err := db.QueryRow(context.Background(), `select id from event`).Scan(&eventID); err != nil {
 		t.Fatalf("prepare db: %v", err)
 	}
 	return eventID
@@ -92,7 +92,7 @@ func getEventID(t *testing.T) garbage.EventID {
 
 func removePupilResources(t *testing.T, pupilID garbage.PupilID, eventID garbage.EventID) {
 	t.Helper()
-	if _, err := db.Exec(`delete from resources where pupil_id = $1 and event_id = $2;`, pupilID,
+	if _, err := db.Exec(context.Background(), `delete from resources where pupil_id = $1 and event_id = $2;`, pupilID,
 		eventID); err != nil {
 		t.Fatalf("prepare db: %v", err)
 	}
@@ -129,6 +129,42 @@ func TestEventingRepo_DeleteEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := r.DeleteEvent(ctx, tt.args.eventID); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteEvent() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestEventingRepo_EventByID(t *testing.T) {
+	r := postgres.NewEventingRepo(db)
+	ctx := context.Background()
+	type args struct {
+		eventID garbage.EventID
+	}
+	eventID := getEventID(t)
+	tests := []struct {
+		name    string
+		args    args
+		want    garbage.EventID
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			args: args{
+				eventID: eventID,
+			},
+			want:    eventID,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := r.EventByID(ctx, tt.args.eventID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EventByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err == nil && got.ID != tt.want {
+				t.Errorf("EventByID() got eventID = %v, want %v", got.ID, tt.want)
 			}
 		})
 	}

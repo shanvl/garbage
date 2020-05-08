@@ -222,20 +222,21 @@ func seedPupils(t *testing.T) ([]*schooling.Pupil, func()) {
 		},
 	}
 	t.Helper()
-	stmt, err := db.Prepare(`
-	insert into pupil (id, first_name, last_name, class_letter, class_year_formed)
-	values ($1, $2, $3, $4, $5);`)
-	if err != nil {
-		t.Fatalf("prepare db: %v", err)
-	}
-	defer stmt.Close()
+	q := `
+		insert into pupil (id, first_name, last_name, class_letter, class_year_formed)
+		values ($1, $2, $3, $4, $5);
+	`
 	for _, p := range pp {
-		if _, err := stmt.Exec(p.ID, p.FirstName, p.LastName, p.Class.Letter, p.Class.YearFormed); err != nil {
+		if _, err := db.Exec(context.Background(), q, p.ID, p.FirstName, p.LastName, p.Class.Letter,
+			p.Class.YearFormed); err != nil {
+
 			t.Fatalf("prepare db: %v", err)
 		}
 	}
 	return pp, func() {
-		_, err := db.Exec(`delete from pupil where pupil.id in ($1, $2, $3)`, pp[0].ID, pp[1].ID, pp[2].ID)
+		_, err := db.Exec(context.Background(), `delete from pupil where pupil.id in ($1, $2, $3)`, pp[0].ID,
+			pp[1].ID, pp[2].ID)
+
 		if err != nil {
 			t.Fatalf("clean db: %v", err)
 		}

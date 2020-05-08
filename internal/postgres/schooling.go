@@ -7,16 +7,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jmoiron/sqlx"
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/usecases/schooling"
 )
 
 type SchoolingRepo struct {
-	db *sqlx.DB
+	db *pgxpool.Pool
 }
 
-func NewSchoolingRepo(db *sqlx.DB) *SchoolingRepo {
+func NewSchoolingRepo(db *pgxpool.Pool) *SchoolingRepo {
 	return &SchoolingRepo{db}
 }
 
@@ -29,7 +30,7 @@ const pupilByIDQuery = `
 // returns pupils with the given id
 func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error) {
 	p := &schooling.Pupil{}
-	err := s.db.QueryRowContext(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
+	err := s.db.QueryRow(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
 		&p.Class.YearFormed)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -50,9 +51,9 @@ func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []garbage.Pup
 	if err != nil {
 		return err
 	}
-	q = s.db.Rebind(q)
+	q = sqlx.Rebind(sqlx.BindType("pgx"), q)
 	// execute the query
-	if _, err := s.db.ExecContext(ctx, q, args...); err != nil {
+	if _, err := s.db.Exec(ctx, q, args...); err != nil {
 		return err
 	}
 	// if there's no error, all the passed pupils have been removed, so their ids can be returned
@@ -66,7 +67,7 @@ const storePupilQuery = `
 
 // saves the given pupil
 func (s *SchoolingRepo) StorePupil(ctx context.Context, pupil *schooling.Pupil) error {
-	_, err := s.db.ExecContext(ctx, storePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
+	_, err := s.db.Exec(ctx, storePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
 		pupil.Class.YearFormed)
 	return err
 }
@@ -94,6 +95,6 @@ func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pup
 	}
 	// create and execute the query
 	q := fmt.Sprintf("%s %s;", storePupilsQuery, strings.Join(queryParams, ","))
-	_, err := s.db.ExecContext(ctx, q, queryValues...)
+	_, err := s.db.Exec(ctx, q, queryValues...)
 	return err
 }

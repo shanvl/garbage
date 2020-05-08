@@ -2,20 +2,21 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
-	"github.com/jackc/pgx"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/sorting"
 	"github.com/shanvl/garbage-events-service/internal/usecases/eventing"
 )
 
 type EventingRepo struct {
-	db *sqlx.DB
+	db *pgxpool.Pool
 }
 
-func NewEventingRepo(db *sqlx.DB) *EventingRepo {
+func NewEventingRepo(db *pgxpool.Pool) *EventingRepo {
 	return &EventingRepo{db}
 }
 
@@ -30,11 +31,11 @@ const changePupilResourcesQuery = `
 func (e *EventingRepo) ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
 	resources map[garbage.Resource]int) error {
 
-	_, err := e.db.ExecContext(ctx, changePupilResourcesQuery, pupilID, eventID, resources[garbage.Gadgets],
+	_, err := e.db.Exec(ctx, changePupilResourcesQuery, pupilID, eventID, resources[garbage.Gadgets],
 		resources[garbage.Paper], resources[garbage.Plastic])
 
 	// violation of the foreign key (pupil_id, event_id) means that there has been no pupil or event found
-	var pgErr pgx.PgError
+	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == foreignKeyViolationCode {
 			err = eventing.ErrNoEventPupil
@@ -51,12 +52,42 @@ const deleteEventQuery = `
 
 // DeleteEvent deletes an event with the id passed
 func (e *EventingRepo) DeleteEvent(ctx context.Context, eventID garbage.EventID) error {
-	_, err := e.db.ExecContext(ctx, deleteEventQuery, eventID)
+	_, err := e.db.Exec(ctx, deleteEventQuery, eventID)
 	return err
 }
 
+const eventByIDQuery = `
+	select e.id,
+       e.name,
+       e.date,
+       e.resources_allowed,
+       coalesce(sum(gadgets), 0) as gadgets,
+       coalesce(sum(r.paper), 0)   as paper,
+       coalesce(sum(plastic), 0) as plastic
+	from event e
+			 left join resources r on e.id = r.event_id
+	where e.id = $1
+	group by e.id;
+`
+
+// EventByID returns an event by its ID
 func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (*eventing.Event, error) {
-	panic("implement me")
+	event := &eventing.Event{
+		ResourcesBrought: make(map[garbage.Resource]int),
+	}
+	// query db
+	err := e.db.QueryRow(ctx, eventByIDQuery, eventID).Scan(&event.ID, &event.Name, &event.Date,
+		&event.ResourcesAllowed, event.ResourcesBrought[garbage.Gadgets], event.ResourcesBrought[garbage.Paper],
+		event.ResourcesBrought[garbage.Plastic])
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, garbage.ErrNoEvent
+		}
+		return nil, err
+	}
+	// filter only allowed resources
+	event.ResourcesBrought = filterResources(event.ResourcesAllowed, event.ResourcesBrought)
+	return event, nil
 }
 
 func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID,
@@ -79,4 +110,16 @@ func (e *EventingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID,
 
 func (e *EventingRepo) StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error) {
 	panic("implement me")
+}
+
+func filterResources(resourcesAllowed []garbage.Resource, resourcesBrought map[garbage.Resource]int) map[garbage.
+	Resource]int {
+
+	resourcesFiltered := make(map[garbage.Resource]int, len(resourcesAllowed))
+	for _, ra := range resourcesAllowed {
+		if _, ok := resourcesBrought[ra]; ok {
+			resourcesFiltered[ra] = resourcesBrought[ra]
+		}
+	}
+	return resourcesFiltered
 }

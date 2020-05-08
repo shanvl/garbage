@@ -2,11 +2,11 @@
 package postgres
 
 import (
+	"context"
 	"time"
 
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // code which postgres returns on the violation of a foreign key
@@ -16,8 +16,8 @@ const foreignKeyViolationCode = "23503"
 type Config struct {
 	Host, Database, User, Password string
 	Port                           int
-	MaxOpenConns, MaxIdleConns     int
-	ConnMaxLifetime                time.Duration
+	MaxConns                       int
+	MaxConnLifetime                time.Duration
 	// SimpleProtocol becomes needed when using PgBouncer
 	PreferSimpleProtocol bool
 	// Logger allows to log the driver's events
@@ -25,46 +25,29 @@ type Config struct {
 }
 
 // Connect establishes a connection to the db server using a provided config
-func Connect(c Config) (*sqlx.DB, error) {
-	// if we are using SimpleProtocol, the driver must escape params because statements won't be prepared
+func Connect(ctx context.Context, c Config) (*pgxpool.Pool, error) {
+	// if we decide to use SimpleProtocol, the driver will have to escape params because statements won't be prepared
 	escapeParams := "off"
 	if c.PreferSimpleProtocol {
 		escapeParams = "on"
 	}
 
-	// set up the pgx connection pool
-	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig: pgx.ConnConfig{
-			Host:                 c.Host,
-			Port:                 uint16(c.Port),
-			Database:             c.Database,
-			User:                 c.User,
-			Password:             c.Password,
-			Logger:               c.Logger,
-			PreferSimpleProtocol: c.PreferSimpleProtocol,
-			RuntimeParams: map[string]string{
-				"standard_conforming_strings": escapeParams,
-			},
-		},
-		MaxConnections: c.MaxOpenConns,
-		AfterConnect:   nil,
-	})
+	// create a config for the pool
+	conf, err := pgxpool.ParseConfig("")
 	if err != nil {
 		return nil, err
 	}
-	pgxDB := stdlib.OpenDBFromPool(pool, stdlib.OptionPreferSimpleProtocol(c.PreferSimpleProtocol))
+	// max conns and max conn time
+	conf.MaxConns, conf.MaxConnLifetime = int32(c.MaxConns), c.MaxConnLifetime
+	// db credentials
+	conf.ConnConfig.Host, conf.ConnConfig.Port, conf.ConnConfig.Database, conf.ConnConfig.User,
+		conf.ConnConfig.Password = c.Host, uint16(c.Port), c.Database, c.User, c.Password
+	// logger
+	conf.ConnConfig.Logger = c.Logger
+	// simple protocol
+	conf.ConnConfig.PreferSimpleProtocol = c.PreferSimpleProtocol
+	conf.ConnConfig.RuntimeParams = map[string]string{"standard_conforming_strings": escapeParams}
 
-	// set up sqlx
-	db := sqlx.NewDb(pgxDB, "pgx")
-	db.SetMaxIdleConns(c.MaxOpenConns)
-	db.SetMaxIdleConns(c.MaxIdleConns)
-	db.SetConnMaxLifetime(c.ConnMaxLifetime)
-
-	// ping the db
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	// create the pool and ping the db
+	return pgxpool.ConnectConfig(ctx, conf)
 }
