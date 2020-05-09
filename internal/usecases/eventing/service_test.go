@@ -246,13 +246,13 @@ func Test_service_ChangePupilResources(t *testing.T) {
 		eventIDErrNoEventPupil = "errornoeventpupil"
 		pupilID                = "123"
 	)
-	resourcesBrought := map[garbage.Resource]int{garbage.Plastic: 22}
+	resourcesBrought := map[garbage.Resource]float32{garbage.Plastic: 22}
 	resourcesAllowed := []garbage.Resource{garbage.Plastic, garbage.Gadgets}
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
 	repository.ChangePupilResourcesFn = func(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) error {
+		resources map[garbage.Resource]float32) error {
 		if eventID == eventIDErrNoEventPupil {
 			return eventing.ErrNoEventPupil
 		}
@@ -260,8 +260,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 	}
 	repository.EventByIDFn = func(ctx context.Context, id garbage.EventID) (event *eventing.Event, err error) {
 		return &eventing.Event{
-				Event:            garbage.Event{ID: id, ResourcesAllowed: resourcesAllowed},
-				ResourcesBrought: resourcesBrought,
+				Event: garbage.Event{ID: id, ResourcesAllowed: resourcesAllowed},
 			},
 			nil
 	}
@@ -271,7 +270,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 		ctx       context.Context
 		eventID   garbage.EventID
 		pupilID   garbage.PupilID
-		resources map[garbage.Resource]int
+		resources map[garbage.Resource]float32
 	}
 	tests := []struct {
 		name    string
@@ -314,7 +313,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{garbage.Paper: 1},
+				resources: map[garbage.Resource]float32{garbage.Paper: 1},
 			},
 			wantErr: true,
 		},
@@ -324,7 +323,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{garbage.Paper: 11, garbage.Plastic: 33},
+				resources: map[garbage.Resource]float32{garbage.Paper: 11, garbage.Plastic: 33},
 			},
 			wantErr: true,
 		},
@@ -334,7 +333,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventIDErrNoEventPupil,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{garbage.Plastic: 11, garbage.Gadgets: 33},
+				resources: map[garbage.Resource]float32{garbage.Plastic: 11, garbage.Gadgets: 33},
 			},
 			wantErr: true,
 		},
@@ -344,7 +343,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{garbage.Plastic: 11, garbage.Gadgets: 33},
+				resources: map[garbage.Resource]float32{garbage.Plastic: 11, garbage.Gadgets: 33},
 			},
 			wantErr: false,
 		},
@@ -354,7 +353,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 				ctx:       ctx,
 				eventID:   eventID,
 				pupilID:   pupilID,
-				resources: map[garbage.Resource]int{garbage.Plastic: -55, garbage.Gadgets: 33},
+				resources: map[garbage.Resource]float32{garbage.Plastic: -55, garbage.Gadgets: 33},
 			},
 			wantErr: false,
 		},
@@ -694,8 +693,7 @@ func Test_service_PupilByID(t *testing.T) {
 			FirstName: "FN",
 			LastName:  "LN",
 		},
-		Class:            "3B",
-		ResourcesBrought: nil,
+		Class: "3B",
 	}
 	ctx := context.Background()
 

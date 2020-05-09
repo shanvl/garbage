@@ -17,7 +17,7 @@ import (
 type Service interface {
 	// ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
 	ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) error
+		resources map[garbage.Resource]float32) error
 	// CreateEvent creates and stores an event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// DeleteEvent deletes an event with the id passed
@@ -37,7 +37,7 @@ type Service interface {
 // Repository provides methods to work with an event's persistence
 type Repository interface {
 	ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]int) error
+		resources map[garbage.Resource]float32) error
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) error
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
@@ -65,7 +65,7 @@ func NewService(repo Repository) Service {
 
 // ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
 func (s *service) ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources map[garbage.Resource]int) error {
+	resources map[garbage.Resource]float32) error {
 
 	errVld := valid.EmptyError()
 	if len(pupilID) == 0 {
@@ -88,7 +88,7 @@ func (s *service) ChangePupilResources(ctx context.Context, eventID garbage.Even
 	// check that provided resources are allowed at this event
 	for res := range resources {
 		if !event.IsResourceAllowed(res) {
-			return valid.NewError("resources", fmt.Sprintf("%s not allowed", res))
+			return valid.NewError("resources", fmt.Sprintf("%s is not allowed", res))
 		}
 	}
 	err = s.repo.ChangePupilResources(ctx, eventID, pupilID, resources)
@@ -249,7 +249,7 @@ type Class struct {
 	// Name of the class as it was on the date of the event
 	Name string
 	// Resources brought by the class to the event
-	ResourcesBrought map[garbage.Resource]int
+	ResourcesBrought garbage.Resources
 }
 
 // Event is a model of the event, adapted for this use case.
@@ -257,7 +257,7 @@ type Class struct {
 type Event struct {
 	garbage.Event
 	// resources brought by pupils to this event
-	ResourcesBrought map[garbage.Resource]int
+	ResourcesBrought garbage.Resources
 }
 
 // Pupil is a model of the pupil, adapted for this use case.
@@ -267,7 +267,7 @@ type Pupil struct {
 	// It is the name of the class as it was on the date of the event
 	Class string
 	// Resources brought by the pupil to the event
-	ResourcesBrought map[garbage.Resource]int
+	ResourcesBrought garbage.Resources
 }
 
 // EventClassesFilters are used to filter classes participating in an event

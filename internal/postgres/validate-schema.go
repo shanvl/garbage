@@ -51,9 +51,9 @@ create index if not exists pupil_class_name_idx on pupil(class_year_formed, clas
 create table if not exists resources (
     pupil_id varchar(25) not null,
     event_id varchar(25) not null,
-    paper integer not null default 0,
-    plastic integer not null default 0,
-    gadgets integer not null default 0,
+    paper numeric(9, 3) not null default 0,
+    plastic numeric(9, 3) not null default 0,
+    gadgets numeric(9, 3) not null default 0,
     primary key (pupil_id, event_id),
     foreign key (event_id) references event(id)
         on delete cascade

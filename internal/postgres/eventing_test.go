@@ -15,14 +15,14 @@ func TestEventingRepo_ChangePupilResources(t *testing.T) {
 	ctx := context.Background()
 	pupilID, eventID := getPupilID(t), getEventID(t)
 	removePupilResources(t, pupilID, eventID)
-	resources := map[garbage.Resource]int{
+	resources := map[garbage.Resource]float32{
 		garbage.Plastic: 10,
 		garbage.Paper:   15,
 	}
 	type args struct {
 		eventID   garbage.EventID
 		pupilID   garbage.PupilID
-		resources map[garbage.Resource]int
+		resources map[garbage.Resource]float32
 	}
 	tests := []struct {
 		name    string

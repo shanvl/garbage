@@ -17,3 +17,8 @@ func (r Resource) IsKnown() bool {
 	}
 	return false
 }
+
+// Resources in kg
+type Resources struct {
+	Gadgets, Paper, Plastic float32
+}

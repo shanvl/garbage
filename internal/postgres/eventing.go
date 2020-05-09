@@ -29,7 +29,7 @@ const changePupilResourcesQuery = `
 
 // ChangePupilResources adds/subtracts resources brought by a pupil to/from the event, updating `resources` table
 func (e *EventingRepo) ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources map[garbage.Resource]int) error {
+	resources map[garbage.Resource]float32) error {
 
 	_, err := e.db.Exec(ctx, changePupilResourcesQuery, pupilID, eventID, resources[garbage.Gadgets],
 		resources[garbage.Paper], resources[garbage.Plastic])
@@ -72,21 +72,17 @@ const eventByIDQuery = `
 
 // EventByID returns an event by its ID
 func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (*eventing.Event, error) {
-	event := &eventing.Event{
-		ResourcesBrought: make(map[garbage.Resource]int),
-	}
+	event := &eventing.Event{}
 	// query db
 	err := e.db.QueryRow(ctx, eventByIDQuery, eventID).Scan(&event.ID, &event.Name, &event.Date,
-		&event.ResourcesAllowed, event.ResourcesBrought[garbage.Gadgets], event.ResourcesBrought[garbage.Paper],
-		event.ResourcesBrought[garbage.Plastic])
+		&event.ResourcesAllowed, event.ResourcesBrought.Gadgets, event.ResourcesBrought.Paper,
+		event.ResourcesBrought.Plastic)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, garbage.ErrNoEvent
 		}
 		return nil, err
 	}
-	// filter only allowed resources
-	event.ResourcesBrought = filterResources(event.ResourcesAllowed, event.ResourcesBrought)
 	return event, nil
 }
 
