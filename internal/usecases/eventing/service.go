@@ -17,7 +17,7 @@ import (
 type Service interface {
 	// ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
 	ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]float32) error
+		resources garbage.ResourcesMap) error
 	// CreateEvent creates and stores an event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []garbage.Resource) (garbage.EventID, error)
 	// DeleteEvent deletes an event with the id passed
@@ -37,7 +37,7 @@ type Service interface {
 // Repository provides methods to work with an event's persistence
 type Repository interface {
 	ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-		resources map[garbage.Resource]float32) error
+		resources garbage.ResourcesMap) error
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) error
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
@@ -65,7 +65,7 @@ func NewService(repo Repository) Service {
 
 // ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
 func (s *service) ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources map[garbage.Resource]float32) error {
+	resources garbage.ResourcesMap) error {
 
 	errVld := valid.EmptyError()
 	if len(pupilID) == 0 {

@@ -22,3 +22,6 @@ func (r Resource) IsKnown() bool {
 type Resources struct {
 	Gadgets, Paper, Plastic float32
 }
+
+// ResourcesMap is a map of resources in kg
+type ResourcesMap map[Resource]float32

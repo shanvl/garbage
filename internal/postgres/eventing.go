@@ -29,7 +29,7 @@ const changePupilResourcesQuery = `
 
 // ChangePupilResources adds/subtracts resources brought by a pupil to/from the event, updating `resources` table
 func (e *EventingRepo) ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources map[garbage.Resource]float32) error {
+	resources garbage.ResourcesMap) error {
 
 	_, err := e.db.Exec(ctx, changePupilResourcesQuery, pupilID, eventID, resources[garbage.Gadgets],
 		resources[garbage.Paper], resources[garbage.Plastic])
@@ -106,16 +106,4 @@ func (e *EventingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID,
 
 func (e *EventingRepo) StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error) {
 	panic("implement me")
-}
-
-func filterResources(resourcesAllowed []garbage.Resource, resourcesBrought map[garbage.Resource]int) map[garbage.
-	Resource]int {
-
-	resourcesFiltered := make(map[garbage.Resource]int, len(resourcesAllowed))
-	for _, ra := range resourcesAllowed {
-		if _, ok := resourcesBrought[ra]; ok {
-			resourcesFiltered[ra] = resourcesBrought[ra]
-		}
-	}
-	return resourcesFiltered
 }
