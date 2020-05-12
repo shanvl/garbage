@@ -113,13 +113,9 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 	if len(resourcesAllowed) == 0 {
 		errVld.Add("resourcesAllowed", "at least one resource must be specified")
 	}
-	// TODO: do we need this check here?
-	if !errVld.IsEmpty() {
-		return "", errVld
-	}
-	for _, resource := range resourcesAllowed {
+	for i, resource := range resourcesAllowed {
 		if !resource.IsKnown() {
-			errVld.Add("resourcesAllowed", "unknown resource")
+			errVld.Add(fmt.Sprintf("resourcesAllowed[%d]", i), fmt.Sprintf("unknown resource: %s", resource))
 			break
 		}
 	}
@@ -137,10 +133,14 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 	if err != nil {
 		return "", err
 	}
-	// create event
-	// TODO: remove NewEvent and use the type instead
-	event := garbage.NewEvent(id, date, name, resourcesAllowed)
-
+	// create an event
+	event := &garbage.Event{
+		ID:               id,
+		Date:             date,
+		Name:             name,
+		ResourcesAllowed: resourcesAllowed,
+	}
+	// store the event
 	return s.repo.StoreEvent(ctx, event)
 }
 

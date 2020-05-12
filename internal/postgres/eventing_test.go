@@ -3,7 +3,9 @@ package postgres_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/postgres"
@@ -69,6 +71,12 @@ func TestEventingRepo_ChangePupilResources(t *testing.T) {
 					"ErrNoEventPupil on foreign key error, returned %v", err)
 			}
 		})
+	}
+}
+
+func deleteEvent(t *testing.T, eventID garbage.EventID) {
+	if _, err := db.Exec(context.Background(), fmt.Sprintf("delete from event where id='%s'", eventID)); err != nil {
+		t.Fatalf("prepare db: deleteEvent error: %v", err)
 	}
 }
 
@@ -167,5 +175,52 @@ func TestEventingRepo_EventByID(t *testing.T) {
 				t.Errorf("EventByID() got eventID = %v, want %v", got.ID, tt.want)
 			}
 		})
+	}
+}
+
+func TestEventingRepo_StoreEvent(t *testing.T) {
+	r := postgres.NewEventingRepo(db)
+	ctx := context.Background()
+	type args struct {
+		event *garbage.Event
+	}
+	event := &garbage.Event{
+		ID:               "someid",
+		Date:             time.Now().AddDate(0, 0, 5),
+		Name:             "some name",
+		ResourcesAllowed: []garbage.Resource{garbage.Gadgets, garbage.Paper},
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid resource",
+			args: args{
+				&garbage.Event{
+					ID:               "someid",
+					Date:             time.Now().AddDate(0, 0, 5),
+					Name:             "some name",
+					ResourcesAllowed: []garbage.Resource{garbage.Gadgets, "invalid resource"},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "ok",
+			args: args{
+				event,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := r.StoreEvent(ctx, tt.args.event); (err != nil) != tt.wantErr {
+				t.Errorf("StoreEvent() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+		deleteEvent(t, event.ID)
 	}
 }

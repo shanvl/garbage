@@ -111,6 +111,15 @@ func (e *EventingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID,
 	panic("implement me")
 }
 
-func (e *EventingRepo) StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error) {
-	panic("implement me")
+// ::text[]::resource[] is a workaround for pgx to save an enum array. It won't break or slow anything
+const storeEventQuery = `
+	insert into event (id, name, date, resources_allowed)
+	values ($1, $2, $3, $4::text[]::resource[]);
+`
+
+// StoreEvent stores event into the db
+func (e *EventingRepo) StoreEvent(ctx context.Context, event *garbage.Event) error {
+	_, err := e.db.Exec(ctx, storeEventQuery, event.ID, event.Name, event.Date,
+		garbage.ResourceSliceToStringSlice(event.ResourcesAllowed))
+	return err
 }
