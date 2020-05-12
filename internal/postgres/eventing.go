@@ -29,7 +29,7 @@ const changePupilResourcesQuery = `
 
 // ChangePupilResources adds/subtracts resources brought by a pupil to/from the event, updating `resources` table
 func (e *EventingRepo) ChangePupilResources(ctx context.Context, eventID garbage.EventID, pupilID garbage.PupilID,
-	resources garbage.ResourcesMap) error {
+	resources garbage.ResourceMap) error {
 
 	_, err := e.db.Exec(ctx, changePupilResourcesQuery, pupilID, eventID, resources[garbage.Gadgets],
 		resources[garbage.Paper], resources[garbage.Plastic])
@@ -60,7 +60,7 @@ const eventByIDQuery = `
 	select e.id,
        e.name,
        e.date,
-       e.resources_allowed,
+       e.resources_allowed::text[],
        coalesce(sum(gadgets), 0) as gadgets,
        coalesce(sum(r.paper), 0)   as paper,
        coalesce(sum(plastic), 0) as plastic
@@ -72,18 +72,25 @@ const eventByIDQuery = `
 
 // EventByID returns an event by its ID
 func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (*eventing.Event, error) {
-	event := &eventing.Event{}
+	ev := &eventing.Event{}
+	// need this one in order to scan resources_allowed into it
+	var resAllowedStr []string
 	// query db
-	err := e.db.QueryRow(ctx, eventByIDQuery, eventID).Scan(&event.ID, &event.Name, &event.Date,
-		&event.ResourcesAllowed, event.ResourcesBrought.Gadgets, event.ResourcesBrought.Paper,
-		event.ResourcesBrought.Plastic)
+	err := e.db.QueryRow(ctx, eventByIDQuery, eventID).Scan(&ev.ID, &ev.Name, &ev.Date,
+		&resAllowedStr, &ev.ResourcesBrought.Gadgets, &ev.ResourcesBrought.Paper, &ev.ResourcesBrought.Plastic)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, garbage.ErrNoEvent
 		}
 		return nil, err
 	}
-	return event, nil
+	// convert a string slice resources_allowed to a slice of resources
+	resAllowed, err := garbage.StringSliceToResourceSlice(resAllowedStr)
+	if err != nil {
+		return nil, err
+	}
+	ev.ResourcesAllowed = resAllowed
+	return ev, nil
 }
 
 func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID,

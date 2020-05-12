@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/jackc/pgconn v1.5.0
+	github.com/jackc/pgtype v1.3.0
 	github.com/jackc/pgx/v4 v4.6.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/matoous/go-nanoid v1.1.0

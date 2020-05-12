@@ -174,7 +174,7 @@ type Class struct {
 type Event struct {
 	garbage.Event
 	// resources collected at this event OR resources brought by the parent entity to this event
-	ResourcesBrought garbage.ResourcesMap
+	ResourcesBrought garbage.ResourceMap
 }
 
 // Pupil is a model of the pupil, adapted for this use case
