@@ -58,6 +58,9 @@ const (
 	MaxAmount     = 1000
 )
 
+// ErrNoEventPupil indicates that the pupil didn't participate in the event
+var ErrNoEventPupil = errors.New("pupil didn't participate in the event")
+
 // NewService returns an instance of Service with all its dependencies
 func NewService(repo Repository) Service {
 	return &service{repo}
@@ -212,7 +215,6 @@ func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filt
 }
 
 // PupilByID returns a pupil with a given id w/ resources for a specified event
-// TODO: class names must be relative to the event's date
 func (s *service) PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error) {
 	// check if eventID and pupilID are provided
 	errVld := valid.EmptyError()
@@ -240,9 +242,6 @@ func validateAmountSkip(a, s int) (int, int) {
 	}
 	return a, s
 }
-
-// ErrNoEventPupil indicates that no event or pupil was found
-var ErrNoEventPupil = errors.New("no event or pupil was found")
 
 // Class is a model of the class, adapted for this use case.
 type Class struct {

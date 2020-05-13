@@ -3,7 +3,6 @@ package postgres_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -74,8 +73,44 @@ func TestEventingRepo_ChangePupilResources(t *testing.T) {
 	}
 }
 
+func createEvent(t *testing.T, event *garbage.Event) (garbage.EventID, func()) {
+	t.Helper()
+	q := "insert into event (id, name, date, resources_allowed)\n\tvalues ($1, $2, $3, $4::text[]::resource[]);"
+	_, err := db.Exec(context.Background(), q, event.ID, event.Name, event.Date,
+		garbage.ResourceSliceToStringSlice(event.ResourcesAllowed))
+	if err != nil {
+		t.Fatalf("prepare db: %v", err)
+	}
+	return event.ID, func() {
+		q := "delete from event where id = $1"
+		_, err := db.Exec(context.Background(), q, event.ID)
+		if err != nil {
+			t.Fatalf("clean db: %v", err)
+		}
+	}
+}
+
+func createPupil(t *testing.T, p *garbage.Pupil, c *garbage.Class) (garbage.PupilID, func()) {
+	t.Helper()
+	q := `
+		insert into pupil (id, first_name, last_name, class_letter, class_year_formed)
+		values ($1, $2, $3, $4, $5);
+	`
+	if _, err := db.Exec(context.Background(), q, p.ID, p.FirstName, p.LastName, c.Letter, c.YearFormed); err != nil {
+		t.Fatalf("prepare db: %v", err)
+	}
+	return p.ID, func() {
+		_, err := db.Exec(context.Background(), `delete from pupil where pupil.id = $1`, p.ID)
+
+		if err != nil {
+			t.Fatalf("clean db: %v", err)
+		}
+	}
+}
+
 func deleteEvent(t *testing.T, eventID garbage.EventID) {
-	if _, err := db.Exec(context.Background(), fmt.Sprintf("delete from event where id='%s'", eventID)); err != nil {
+	t.Helper()
+	if _, err := db.Exec(context.Background(), "delete from event where id=$1", eventID); err != nil {
 		t.Fatalf("prepare db: deleteEvent error: %v", err)
 	}
 }
@@ -222,5 +257,99 @@ func TestEventingRepo_StoreEvent(t *testing.T) {
 			}
 		})
 		deleteEvent(t, event.ID)
+	}
+}
+
+func TestEventingRepo_PupilByID(t *testing.T) {
+	r := postgres.NewEventingRepo(db)
+	ctx := context.Background()
+
+	eID, deleteE := createEvent(t, &garbage.Event{
+		ID:               "someid",
+		Date:             time.Now().AddDate(0, 1, 0),
+		Name:             "some name",
+		ResourcesAllowed: []garbage.Resource{garbage.Gadgets},
+	})
+	defer deleteE()
+
+	pID, deleteP := createPupil(t, &garbage.Pupil{
+		ID:        "someid",
+		FirstName: "fn",
+		LastName:  "sn",
+	}, &garbage.Class{
+		Letter:     "A",
+		YearFormed: time.Now().Year() - 2,
+	})
+	defer deleteP()
+
+	oldPID, deleteOldP := createPupil(t, &garbage.Pupil{
+		ID:        "someanotherid",
+		FirstName: "fn",
+		LastName:  "sn",
+	}, &garbage.Class{
+		Letter:     "A",
+		YearFormed: time.Now().Year() - 13,
+	})
+	defer deleteOldP()
+
+	type args struct {
+		pupilID garbage.PupilID
+		eventID garbage.EventID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			args: args{
+				pupilID: pID,
+				eventID: eID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "pupil is too old to participate in the event",
+			args: args{
+				pupilID: oldPID,
+				eventID: eID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "no event",
+			args: args{
+				pupilID: pID,
+				eventID: "noevent",
+			},
+			wantErr: true,
+		},
+		{
+			name: "no pupil",
+			args: args{
+				pupilID: "nopupil",
+				eventID: eID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := r.PupilByID(ctx, tt.args.pupilID, tt.args.eventID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PupilByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.name == "pupil is too old to participate in the event" && !errors.Is(err, eventing.ErrNoEventPupil) {
+				t.Errorf("PupilByID() error = %v, want eventing.ErrNoEventPupil", err)
+			}
+			if tt.name == "no event" && !errors.Is(err, garbage.ErrNoEvent) {
+				t.Errorf("PupilByID() error = %v, want garbage.ErrNoEvent", err)
+			}
+			if tt.name == "no pupil" && !errors.Is(err, garbage.ErrNoPupil) {
+				t.Errorf("PupilByID() error = %v, want garbage.ErrNoPupil", err)
+			}
+		})
 	}
 }

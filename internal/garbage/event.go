@@ -31,13 +31,3 @@ func (e *Event) IsResourceAllowed(r Resource) bool {
 	}
 	return false
 }
-
-// NewEvent returns an instance of an event
-func NewEvent(id EventID, date time.Time, name string, resourcesAllowed []Resource) *Event {
-	return &Event{
-		ID:               id,
-		Date:             date,
-		Name:             name,
-		ResourcesAllowed: resourcesAllowed,
-	}
-}

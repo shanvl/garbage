@@ -75,7 +75,7 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 		// if invalid className, add it to validation error and go on to the next pupil
 		// in order to collect all validation errors
 		if err != nil {
-			errVld.Add(fmt.Sprintf("%s[class]", f), fmt.Sprintf("invalid class name: %s", bio.ClassName))
+			errVld.Add(fmt.Sprintf("%s[class]", f), err.Error())
 			continue
 		}
 		// create a pupil entity

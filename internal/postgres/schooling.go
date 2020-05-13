@@ -2,11 +2,11 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jmoiron/sqlx"
 	"github.com/shanvl/garbage-events-service/internal/garbage"
@@ -33,7 +33,7 @@ func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) 
 	err := s.db.QueryRow(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
 		&p.Class.YearFormed)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			err = garbage.ErrNoPupil
 		}
 		return nil, err

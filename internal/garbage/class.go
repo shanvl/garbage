@@ -14,6 +14,10 @@ import (
 // ClassID uniquely identifies a particular class
 type ClassID string
 
+// ErrNoClassOnDate indicates that there was no class with the specified credentials on the given date.
+// It can occur, for example, if the class was formed in 2002 and the date is 01.01.2020
+var ErrNoClassOnDate = errors.New("there was no such class on that date")
+
 // Class is a school class consisting of pupils, which changes its name depending on a given date
 // relative to the time when it was formed.
 // This type is often used by various use cases as a carcass for their own Class types
@@ -27,15 +31,15 @@ type Class struct {
 }
 
 // NameOnDate constructs a class name on a specific date. For example, if a class, which has
-// a letter Б, was formed on 09.2001, on 09.2002 it was 2Б, on 02.2002 it still was 2Б, on 09.2003
-// it was 3Б
+// a letter B, was formed on 09.2001, on 09.2002 it was 2B, on 02.2002 it still was 2B, on 09.2003
+// it was 3B
 func (c *Class) NameOnDate(date time.Time) (string, error) {
 	// classes are formed on 1st September
 	formedDate := time.Date(c.YearFormed, 9, 1, 0, 0, 0, 0, time.UTC)
 	yearsPassed := date.Sub(formedDate).Hours() / 24 / 365
 	classNumber := int(math.Ceil(yearsPassed))
 	if classNumber <= 0 || classNumber > 11 {
-		return "", errors.New("invalid date range")
+		return "", ErrNoClassOnDate
 	}
 	return fmt.Sprintf("%d%s", classNumber, c.Letter), nil
 }

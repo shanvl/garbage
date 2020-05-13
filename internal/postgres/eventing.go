@@ -2,10 +2,11 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/jackc/pgconn"
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/sorting"
@@ -79,7 +80,7 @@ func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (
 	err := e.db.QueryRow(ctx, eventByIDQuery, eventID).Scan(&ev.ID, &ev.Name, &ev.Date,
 		&resAllowedStr, &ev.ResourcesBrought.Gadgets, &ev.ResourcesBrought.Paper, &ev.ResourcesBrought.Plastic)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, garbage.ErrNoEvent
 		}
 		return nil, err
@@ -105,10 +106,72 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 	panic("implement me")
 }
 
+// doing it via the left join so as to differ between the absence of the event or the pupil.
+// If no rows have been returned, then there's no pupil, otherwise, if e.id is null, there's no event
+const evPupilByIDQuery = `
+	select e.id,
+           e.date,
+		   p.id,
+		   p.first_name,
+		   p.last_name,
+		   p.class_letter,
+		   p.class_year_formed,
+		   coalesce(gadgets, 0) as gadgets,
+		   coalesce(paper, 0)   as paper,
+		   coalesce(plastic, 0) as plastic
+	from pupil p
+			 left join event e on e.id = $1
+			 left join resources r on e.id = r.event_id and p.id = r.pupil_id
+	where p.id = $2;
+`
+
 func (e *EventingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID,
 	eventID garbage.EventID) (*eventing.Pupil, error) {
 
-	panic("implement me")
+	p := &eventing.Pupil{
+		Pupil: garbage.Pupil{
+			ID:        "",
+			FirstName: "",
+			LastName:  "",
+		},
+		Class:            "",
+		ResourcesBrought: garbage.Resources{},
+	}
+
+	// if there's no e.id has been returned, then there's no event with such an event_id
+	var eID pgtype.Varchar
+	// class name is always relative to the date of the event, not to the current date
+	var eDate pgtype.Date
+	// class instance to derive a class name from
+	c := &garbage.Class{}
+
+	err := e.db.QueryRow(ctx, evPupilByIDQuery, eventID, pupilID).Scan(&eID, &eDate, &p.ID, &p.FirstName, &p.LastName,
+		&c.Letter, &c.YearFormed, &p.ResourcesBrought.Gadgets, &p.ResourcesBrought.Paper, &p.ResourcesBrought.Plastic)
+
+	if err != nil {
+		// if no rows have been returned, there's no such a pupil
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, garbage.ErrNoPupil
+		}
+		return nil, err
+	}
+	// if eID is null, there's no such an event
+	if eID.Status != pgtype.Present {
+		return nil, garbage.ErrNoEvent
+	}
+
+	// create a class name and assign it to the pupil
+	class, err := c.NameOnDate(eDate.Time)
+	if err != nil {
+		// if there was no such class on the event's date, then the pupil didn't participate in the event
+		if errors.Is(err, garbage.ErrNoClassOnDate) {
+			return nil, eventing.ErrNoEventPupil
+		}
+		return nil, err
+	}
+	p.Class = class
+
+	return p, nil
 }
 
 // ::text[]::resource[] is a workaround for pgx to save an enum array. It won't break or slow anything
