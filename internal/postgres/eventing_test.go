@@ -198,6 +198,14 @@ func TestEventingRepo_EventByID(t *testing.T) {
 			want:    eventID,
 			wantErr: false,
 		},
+		{
+			name: "no event",
+			args: args{
+				eventID: "noeventid",
+			},
+			want:    eventID,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -208,6 +216,9 @@ func TestEventingRepo_EventByID(t *testing.T) {
 			}
 			if err == nil && got.ID != tt.want {
 				t.Errorf("EventByID() got eventID = %v, want %v", got.ID, tt.want)
+			}
+			if tt.name == "no event" && !errors.Is(err, garbage.ErrNoEvent) {
+				t.Errorf("EventByID() want garbage.ErrNoEvent, got %v", err)
 			}
 		})
 	}
