@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/postgres"
@@ -32,7 +33,7 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 					},
 					Class: garbage.Class{
 						Letter:     "A",
-						YearFormed: 2015,
+						DateFormed: classDateFromYear(2015),
 					},
 				},
 			},
@@ -102,7 +103,7 @@ func TestSchoolingRepo_StorePupils(t *testing.T) {
 			},
 			Class: garbage.Class{
 				Letter:     "a",
-				YearFormed: 2015,
+				DateFormed: classDateFromYear(2015),
 			},
 		},
 		{
@@ -113,7 +114,7 @@ func TestSchoolingRepo_StorePupils(t *testing.T) {
 			},
 			Class: garbage.Class{
 				Letter:     "b",
-				YearFormed: 2016,
+				DateFormed: classDateFromYear(2016),
 			},
 		},
 		{
@@ -124,7 +125,7 @@ func TestSchoolingRepo_StorePupils(t *testing.T) {
 			},
 			Class: garbage.Class{
 				Letter:     "c",
-				YearFormed: 2017,
+				DateFormed: classDateFromYear(2017),
 			},
 		},
 	}
@@ -195,7 +196,7 @@ func seedPupils(t *testing.T) ([]*schooling.Pupil, func()) {
 			},
 			Class: garbage.Class{
 				Letter:     "a",
-				YearFormed: 2015,
+				DateFormed: classDateFromYear(2015),
 			},
 		},
 		{
@@ -206,7 +207,7 @@ func seedPupils(t *testing.T) ([]*schooling.Pupil, func()) {
 			},
 			Class: garbage.Class{
 				Letter:     "b",
-				YearFormed: 2016,
+				DateFormed: classDateFromYear(2016),
 			},
 		},
 		{
@@ -217,18 +218,18 @@ func seedPupils(t *testing.T) ([]*schooling.Pupil, func()) {
 			},
 			Class: garbage.Class{
 				Letter:     "c",
-				YearFormed: 2017,
+				DateFormed: classDateFromYear(2017),
 			},
 		},
 	}
 	t.Helper()
 	q := `
-		insert into pupil (id, first_name, last_name, class_letter, class_year_formed)
+		insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
 		values ($1, $2, $3, $4, $5);
 	`
 	for _, p := range pp {
 		if _, err := db.Exec(context.Background(), q, p.ID, p.FirstName, p.LastName, p.Class.Letter,
-			p.Class.YearFormed); err != nil {
+			p.Class.DateFormed); err != nil {
 
 			t.Fatalf("prepare db: %v", err)
 		}
@@ -241,4 +242,8 @@ func seedPupils(t *testing.T) ([]*schooling.Pupil, func()) {
 			t.Fatalf("clean db: %v", err)
 		}
 	}
+}
+
+func classDateFromYear(year int) time.Time {
+	return time.Date(year, 9, 1, 0, 0, 0, 0, time.UTC)
 }

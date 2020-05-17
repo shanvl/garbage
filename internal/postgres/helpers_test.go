@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func Test_prepareFilterQuery(t *testing.T) {
+func Test_prepareTextSearchQuery(t *testing.T) {
 	date := time.Date(2020, 10, 10, 10, 10, 10, 10, time.UTC)
 	type args struct {
 		q string
@@ -43,8 +43,8 @@ func Test_prepareFilterQuery(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := prepareFilterQuery(tt.args.q, tt.args.t); got != tt.want {
-				t.Errorf("prepareFilterQuery() = %v, want %v", got, tt.want)
+			if got := prepareTextSearchQuery(tt.args.q, tt.args.t); got != tt.want {
+				t.Errorf("prepareTextSearchQuery() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -22,21 +22,16 @@ var ErrNoClassOnDate = errors.New("there was no such class on that date")
 // relative to the time when it was formed.
 // This type is often used by various use cases as a carcass for their own Class types
 type Class struct {
-	// Year in which the class was formed
-	// better than an instance of time.Time because that way it has no pointers, so won't be allocated on the heap
-	// TODO: no sense in such droching because class is usually passed as a pointer so it will usually be located on the
-	//  heap
 	Letter     string
-	YearFormed int
+	DateFormed time.Time
 }
 
 // NameOnDate constructs a class name on a specific date. For example, if a class, which has
 // a letter B, was formed on 09.2001, on 09.2002 it was 2B, on 02.2002 it still was 2B, on 09.2003
 // it was 3B
-func (c *Class) NameOnDate(date time.Time) (string, error) {
+func (c Class) NameOnDate(date time.Time) (string, error) {
 	// classes are formed on 1st September
-	formedDate := time.Date(c.YearFormed, 9, 1, 0, 0, 0, 0, time.UTC)
-	yearsPassed := date.Sub(formedDate).Hours() / 24 / 365
+	yearsPassed := date.Sub(c.DateFormed).Hours() / 24 / 365
 	classNumber := int(math.Ceil(yearsPassed))
 	if classNumber <= 0 || classNumber > 11 {
 		return "", ErrNoClassOnDate
@@ -46,15 +41,16 @@ func (c *Class) NameOnDate(date time.Time) (string, error) {
 
 // ParseClassName derives a class' letter and the year the class was formed from its name and a given date.
 // Let the className be "3B" and the date is 10.10.2010. Then the letter is "B" and the class was formed in 2008
-func ParseClassName(className string, date time.Time) (letter string, yearFormed int, err error) {
+func ParseClassName(className string, date time.Time) (Class, error) {
 	// string to be Atoi'ed to the class number
 	numberBuf := strings.Builder{}
 	// parse the className, ignoring non-alphanumeric chars;
 	// if there are two letters or a digit after a letter, throw an error
 	wasLetter := false
+	letter := ""
 	for _, r := range className {
 		if wasLetter && (unicode.IsLetter(r) || unicode.IsNumber(r)) {
-			return "", 0, fmt.Errorf("invalid class: %s", className)
+			return Class{}, fmt.Errorf("invalid class: %s", className)
 		}
 		if unicode.IsNumber(r) {
 			numberBuf.WriteRune(r)
@@ -66,15 +62,15 @@ func ParseClassName(className string, date time.Time) (letter string, yearFormed
 	}
 	number, err := strconv.Atoi(numberBuf.String())
 	if err != nil {
-		return "", 0, err
+		return Class{}, err
 	}
 	if number > 11 || number < 1 {
-		return "", 0, fmt.Errorf("invalid class number: %d", number)
+		return Class{}, fmt.Errorf("invalid class number: %d", number)
 	}
-	yearFormed = date.Year() - number
+	yearFormed := date.Year() - number
 	// classes are formed in September
 	if date.Month() >= 9 {
 		yearFormed += 1
 	}
-	return letter, yearFormed, nil
+	return Class{Letter: letter, DateFormed: time.Date(yearFormed, 9, 1, 0, 0, 0, 0, time.UTC)}, nil
 }

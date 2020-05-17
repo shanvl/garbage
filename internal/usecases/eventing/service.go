@@ -191,7 +191,6 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, fil
 }
 
 // EventPupils returns an array of sorted pupils for the specified event
-// TODO: class names must be relative to the event's date
 func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*Pupil, total int, err error) {
 

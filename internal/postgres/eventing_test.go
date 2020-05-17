@@ -3,11 +3,13 @@ package postgres_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/postgres"
+	"github.com/shanvl/garbage-events-service/internal/sorting"
 	"github.com/shanvl/garbage-events-service/internal/usecases/eventing"
 )
 
@@ -93,10 +95,10 @@ func createEvent(t *testing.T, event *garbage.Event) (garbage.EventID, func()) {
 func createPupil(t *testing.T, p *garbage.Pupil, c *garbage.Class) (garbage.PupilID, func()) {
 	t.Helper()
 	q := `
-		insert into pupil (id, first_name, last_name, class_letter, class_year_formed)
+		insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
 		values ($1, $2, $3, $4, $5);
 	`
-	if _, err := db.Exec(context.Background(), q, p.ID, p.FirstName, p.LastName, c.Letter, c.YearFormed); err != nil {
+	if _, err := db.Exec(context.Background(), q, p.ID, p.FirstName, p.LastName, c.Letter, c.DateFormed); err != nil {
 		t.Fatalf("prepare db: %v", err)
 	}
 	return p.ID, func() {
@@ -289,7 +291,7 @@ func TestEventingRepo_PupilByID(t *testing.T) {
 		LastName:  "sn",
 	}, &garbage.Class{
 		Letter:     "A",
-		YearFormed: time.Now().Year() - 2,
+		DateFormed: time.Now().AddDate(-2, 0, 0),
 	})
 	defer deleteP()
 
@@ -299,7 +301,7 @@ func TestEventingRepo_PupilByID(t *testing.T) {
 		LastName:  "sn",
 	}, &garbage.Class{
 		Letter:     "A",
-		YearFormed: time.Now().Year() - 13,
+		DateFormed: time.Now().AddDate(-13, 0, 0),
 	})
 	defer deleteOldP()
 
@@ -360,6 +362,52 @@ func TestEventingRepo_PupilByID(t *testing.T) {
 			}
 			if tt.name == "no pupil" && !errors.Is(err, garbage.ErrNoPupil) {
 				t.Errorf("PupilByID() error = %v, want garbage.ErrNoPupil", err)
+			}
+		})
+	}
+}
+
+func TestEventingRepo_EventPupils(t *testing.T) {
+	r := postgres.NewEventingRepo(db)
+	ctx := context.Background()
+	eID := getEventID(t)
+
+	type args struct {
+		eventID garbage.EventID
+		filters eventing.EventPupilsFilters
+		sortBy  sorting.By
+		amount  int
+		skip    int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventPupilsFilters{
+					Name: "a",
+				},
+				sortBy: "",
+				amount: 50,
+				skip:   0,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPupils, gotTotal, err := r.EventPupils(ctx, tt.args.eventID, tt.args.filters, tt.args.sortBy, tt.args.amount, tt.args.skip)
+			fmt.Println(eID, gotTotal, len(gotPupils), err)
+			for _, pupil := range gotPupils {
+				fmt.Printf("%+v", pupil)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EventPupils() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

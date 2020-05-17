@@ -22,7 +22,7 @@ func NewSchoolingRepo(db *pgxpool.Pool) *SchoolingRepo {
 }
 
 const pupilByIDQuery = `
-	select id, first_name, last_name, class_letter, class_year_formed
+	select id, first_name, last_name, class_letter, class_date_formed
 	from pupil
 	where pupil.id = $1;
 `
@@ -31,7 +31,7 @@ const pupilByIDQuery = `
 func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) (*schooling.Pupil, error) {
 	p := &schooling.Pupil{}
 	err := s.db.QueryRow(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
-		&p.Class.YearFormed)
+		&p.Class.DateFormed)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			err = garbage.ErrNoPupil
@@ -61,18 +61,18 @@ func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []garbage.Pup
 }
 
 const storePupilQuery = `
-	insert into pupil (id, first_name, last_name, class_letter, class_year_formed)
+	insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
 	values ($1, $2, $3, $4, $5);
 `
 
 // saves the given pupil
 func (s *SchoolingRepo) StorePupil(ctx context.Context, pupil *schooling.Pupil) error {
 	_, err := s.db.Exec(ctx, storePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
-		pupil.Class.YearFormed)
+		pupil.Class.DateFormed)
 	return err
 }
 
-const storePupilsQuery = `insert into pupil (id, first_name, last_name, class_letter, class_year_formed) values`
+const storePupilsQuery = `insert into pupil (id, first_name, last_name, class_letter, class_date_formed) values`
 
 // saves the given pupils
 func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pupil) error {
@@ -89,7 +89,7 @@ func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pup
 		qp := fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", n+1, n+2, n+3, n+4, n+5)
 		queryParams[i] = qp
 		// push param values
-		queryValues = append(queryValues, p.ID, p.FirstName, p.LastName, p.Class.Letter, p.Class.YearFormed)
+		queryValues = append(queryValues, p.ID, p.FirstName, p.LastName, p.Class.Letter, p.Class.DateFormed)
 		// push the pupil's id
 		ids[i] = p.ID
 	}

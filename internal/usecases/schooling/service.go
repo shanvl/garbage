@@ -71,7 +71,7 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 			errVld.Add(fmt.Sprintf("%s[class]", f), "class must be provided")
 		}
 		// derive the classLetter and classYearFormed from the class name
-		classLetter, classYearFormed, err := garbage.ParseClassName(bio.ClassName, today)
+		class, err := garbage.ParseClassName(bio.ClassName, today)
 		// if invalid className, add it to validation error and go on to the next pupil
 		// in order to collect all validation errors
 		if err != nil {
@@ -89,7 +89,7 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 				FirstName: bio.FirstName,
 				LastName:  bio.LastName,
 			},
-			Class: garbage.Class{Letter: classLetter, YearFormed: classYearFormed},
+			Class: class,
 		}
 		// push the pupil entity to the pupils slice
 		pupils = append(pupils, p)
@@ -130,16 +130,16 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
 		return err
 	}
 	// parse className
-	classLetter, classYearFormed, err := garbage.ParseClassName(className, time.Now())
+	class, err := garbage.ParseClassName(className, time.Now())
 	if err != nil {
 		return valid.NewError("className", err.Error())
 	}
 	// if the pupil is already in the class, return their id
-	if classLetter == pupil.Class.Letter && classYearFormed == pupil.Class.YearFormed {
+	if class == pupil.Class {
 		return nil
 	}
-	// otherwise, change the class' data
-	pupil.Class.Letter, pupil.Class.YearFormed = classLetter, classYearFormed
+	// otherwise, change the pupil's class
+	pupil.Class = class
 	// save the pupil
 	return s.repo.StorePupil(ctx, pupil)
 }

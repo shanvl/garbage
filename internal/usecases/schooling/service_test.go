@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/mock"
@@ -217,7 +218,7 @@ func Test_service_ChangePupilClass(t *testing.T) {
 			},
 			Class: garbage.Class{
 				Letter:     "Y",
-				YearFormed: 2010,
+				DateFormed: time.Date(2010, 9, 1, 0, 0, 0, 0, time.UTC),
 			},
 		}, nil
 	}
