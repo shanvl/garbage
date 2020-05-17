@@ -92,7 +92,7 @@ func createEvent(t *testing.T, event *garbage.Event) (garbage.EventID, func()) {
 	}
 }
 
-func createPupil(t *testing.T, p *garbage.Pupil, c *garbage.Class) (garbage.PupilID, func()) {
+func createPupil(t *testing.T, p *garbage.Pupil, c garbage.Class) (garbage.PupilID, func()) {
 	t.Helper()
 	q := `
 		insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
@@ -289,7 +289,7 @@ func TestEventingRepo_PupilByID(t *testing.T) {
 		ID:        "someid",
 		FirstName: "fn",
 		LastName:  "sn",
-	}, &garbage.Class{
+	}, garbage.Class{
 		Letter:     "A",
 		DateFormed: time.Now().AddDate(-2, 0, 0),
 	})
@@ -299,7 +299,7 @@ func TestEventingRepo_PupilByID(t *testing.T) {
 		ID:        "someanotherid",
 		FirstName: "fn",
 		LastName:  "sn",
-	}, &garbage.Class{
+	}, garbage.Class{
 		Letter:     "A",
 		DateFormed: time.Now().AddDate(-13, 0, 0),
 	})
@@ -392,8 +392,8 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 					Name: "a",
 				},
 				sortBy: "",
-				amount: 50,
-				skip:   0,
+				amount: 150,
+				skip:   5,
 			},
 			wantErr: true,
 		},
