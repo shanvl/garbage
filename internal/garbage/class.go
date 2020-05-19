@@ -31,7 +31,7 @@ type Class struct {
 // it was 3B
 func (c Class) NameOnDate(date time.Time) (string, error) {
 	// classes are formed on 1st September
-	yearsPassed := date.Sub(c.DateFormed).Hours() / 24 / 365
+	yearsPassed := date.Sub(c.DateFormed).Hours() / 24 / 365.25
 	classNumber := int(math.Ceil(yearsPassed))
 	if classNumber <= 0 || classNumber > 11 {
 		return "", ErrNoClassOnDate

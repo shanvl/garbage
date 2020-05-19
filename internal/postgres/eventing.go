@@ -107,6 +107,11 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 	filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
 	total int, err error) {
 
+	// get the event's date
+	//
+	// get the class' letter and date formed
+	// figure out all how to map orderBy
+
 	panic("implement me")
 }
 
@@ -117,6 +122,7 @@ const eventPupilsQuery = `
            p.last_name,
            p.class_letter,
            p.class_date_formed,
+		   e.date,
            coalesce(r.gadgets, 0) as gadgets,
            coalesce(r.paper, 0)   as paper,
            coalesce(r.plastic, 0) as plastic
@@ -144,6 +150,7 @@ const eventPupilsQueryTextSearch = `
            p.last_name,
            p.class_letter,
            p.class_date_formed,
+           e.date,
            coalesce(r.gadgets, 0) as gadgets,
            coalesce(r.paper, 0)   as paper,
            coalesce(r.plastic, 0) as plastic
@@ -169,28 +176,28 @@ const eventPupilsQueryTextSearch = `
 func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilsFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil, total int, err error) {
 
-	// we need to know the event's date in order to create a text search query. Every word,
-	// which resembles a class name, will be copied,
-	// processed and concatenated with itself so as to hit the table indices. The event's date is needed there.
-	// "3B" will become "3B:* | 2018B:*" if the event's date is 10.10.2020. Also,
-	// the event's date is needed when we create a class name from it's letter and the year it was formed in
-	var eDate time.Time
-	if err := e.db.QueryRow(ctx, `select date from event where id = $1`, eventID).Scan(&eDate); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, 0, garbage.ErrNoEvent
-		}
-		return nil, 0, err
-	}
+	var rows pgx.Rows
 	// derive orderBy query from the sortBy passed
 	orderBy := orderQueryMap[sortBy]
-	// create a query from the filters passed
-	textSearchQuery := prepareTextSearchQuery(filters.Name, eDate)
-	// iterate of the rows and scan them into the pupil structs
-	var rows pgx.Rows
-	if textSearchQuery == "" {
-		rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
-	} else {
+	// if there's a text filters, make a text search query from them and query the db using it
+	if filters.Name != "" {
+		// we need to know the event's date in order to create a text search query. Every word,
+		// which resembles a class name, will be copied,
+		// processed and concatenated with itself so as to hit the table indices. The event's date is needed there.
+		// "3B" will become "3B:* | 2018B:*" if the event's date is 10.10.2020. Also,
+		// the event's date is needed when we create a class name from it's letter and the year it was formed in
+		var eDate time.Time
+		if err := e.db.QueryRow(ctx, `select date from event where id = $1`, eventID).Scan(&eDate); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, 0, garbage.ErrNoEvent
+			}
+			return nil, 0, err
+		}
+		// create a query from the filters passed
+		textSearchQuery := prepareTextSearchQuery(filters.Name, eDate)
 		rows, err = e.db.Query(ctx, eventPupilsQueryTextSearch, eventID, textSearchQuery, orderBy, amount, skip)
+	} else {
+		rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
 	}
 	if err != nil {
 		return nil, 0, err
@@ -204,13 +211,15 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		lastName    pgtype.Varchar
 		classLetter pgtype.Varchar
 		classDate   pgtype.Date
+		eventDate   pgtype.Date
 		gadgets     pgtype.Float4
 		paper       pgtype.Float4
 		plastic     pgtype.Float4
 	)
 
 	for rows.Next() {
-		err := rows.Scan(&id, &firstName, &lastName, &classLetter, &classDate, &gadgets, &paper, &plastic, &total)
+		err := rows.Scan(&id, &firstName, &lastName, &classLetter, &classDate, &eventDate, &gadgets, &paper, &plastic,
+			&total)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -233,7 +242,7 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		}
 		c := garbage.Class{Letter: classLetter.String, DateFormed: classDate.Time}
 		// derive a class name from its letter and a year it was formed in
-		className, err := c.NameOnDate(eDate)
+		className, err := c.NameOnDate(eventDate.Time)
 		if err != nil {
 			return nil, 0, err
 		}
