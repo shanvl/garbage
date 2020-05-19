@@ -3,7 +3,6 @@ package postgres_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -385,28 +384,52 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "ok",
+			name: "without text search",
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
-					Name: "a",
+					Name: "",
 				},
 				sortBy: "",
 				amount: 150,
-				skip:   5,
+				skip:   0,
 			},
-			wantErr: true,
+			wantErr: false,
+		},
+		{
+			name: "with text search",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventPupilsFilters{
+					Name: "a 3",
+				},
+				sortBy: "",
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "skip more than in the db",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventPupilsFilters{
+					Name: "",
+				},
+				sortBy: "",
+				amount: 150,
+				skip:   5000,
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotPupils, gotTotal, err := r.EventPupils(ctx, tt.args.eventID, tt.args.filters, tt.args.sortBy, tt.args.amount, tt.args.skip)
-			fmt.Println(eID, gotTotal, len(gotPupils), err)
-			for _, pupil := range gotPupils {
-				fmt.Printf("%+v", pupil)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("EventPupils() error = %v, wantErr %v", err, tt.wantErr)
+			_, gotTotal, err := r.EventPupils(ctx, tt.args.eventID, tt.args.filters, tt.args.sortBy, tt.args.amount,
+				tt.args.skip)
+
+			if (err != nil) != tt.wantErr || gotTotal == 0 {
+				t.Errorf("EventPupils() error = %v, wantErr %v, gotTotal %d, ", err, tt.wantErr, gotTotal)
 				return
 			}
 		})

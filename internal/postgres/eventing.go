@@ -124,6 +124,33 @@ const eventPupilsQuery = `
              cross join event e
              left join resources r on r.pupil_id = p.id and r.event_id = e.id
     where e.id = $1
+      and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
+	),
+	pagination as (
+		select *
+		from query
+		order by $2
+		limit $3 offset $4
+	)
+	select *
+	from pagination
+	right join (SELECT count(*) FROM query) as c(total) on true;
+`
+
+const eventPupilsQueryTextSearch = `
+	with query as (
+    select p.id,
+           p.first_name,
+           p.last_name,
+           p.class_letter,
+           p.class_date_formed,
+           coalesce(r.gadgets, 0) as gadgets,
+           coalesce(r.paper, 0)   as paper,
+           coalesce(r.plastic, 0) as plastic
+    from pupil p
+             cross join event e
+             left join resources r on r.pupil_id = p.id and r.event_id = e.id
+    where e.id = $1
       and p.text_search @@ to_tsquery('simple', $2)
       and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
 	),
@@ -138,7 +165,7 @@ const eventPupilsQuery = `
 	right join (SELECT count(*) FROM query) as c(total) on true;
 `
 
-// EventPupils returns a paginated and sorted list of the pupils that have participated in the specified event
+// EventPupils returns a paginated and sorted list of the pupils who have participated in the specified event
 func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilsFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil, total int, err error) {
 
@@ -154,17 +181,22 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		}
 		return nil, 0, err
 	}
-	// create a query from the filters passed
-	textSearchQuery := prepareTextSearchQuery(filters.Name, eDate)
 	// derive orderBy query from the sortBy passed
 	orderBy := orderQueryMap[sortBy]
+	// create a query from the filters passed
+	textSearchQuery := prepareTextSearchQuery(filters.Name, eDate)
 	// iterate of the rows and scan them into the pupil structs
-	rows, err := e.db.Query(ctx, eventPupilsQuery, eventID, textSearchQuery, orderBy, amount, skip)
+	var rows pgx.Rows
+	if textSearchQuery == "" {
+		rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
+	} else {
+		rows, err = e.db.Query(ctx, eventPupilsQueryTextSearch, eventID, textSearchQuery, orderBy, amount, skip)
+	}
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
-	// next types are needed only in case the offset is >= total rows found. Then all the columns, except 'total',
+	// next types are only needed in case the offset is >= total rows found. Then all the columns, except 'total',
 	// will be null
 	var (
 		id          pgtype.Varchar
