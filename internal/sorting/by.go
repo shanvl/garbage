@@ -49,22 +49,3 @@ func (b By) IsResources() bool {
 	}
 	return false
 }
-
-//
-// // IsForEventPupils checks if a provided string can be used to sorting an event's pupils
-// func (b By) IsForEventPupils() bool {
-// 	switch b {
-// 	case NameAsc, NameDes, Gadgets, Paper, Plastic:
-// 		return true
-// 	}
-// 	return false
-// }
-//
-// // IsForEventPupils checks if a provided string can be used to sorting an event's classes
-// func (b By) IsForEventClasses() bool {
-// 	switch b {
-// 	case NameAsc, NameDes, Gadgets, Paper, Plastic:
-// 		return true
-// 	}
-// 	return false
-// }

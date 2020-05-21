@@ -71,7 +71,7 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]garbag
 			errVld.Add(fmt.Sprintf("%s[class]", f), "class must be provided")
 		}
 		// derive the classLetter and classYearFormed from the class name
-		class, err := garbage.ParseClassName(bio.ClassName, today)
+		class, err := garbage.ClassFromClassName(bio.ClassName, today)
 		// if invalid className, add it to validation error and go on to the next pupil
 		// in order to collect all validation errors
 		if err != nil {
@@ -130,7 +130,7 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID garbage.PupilID,
 		return err
 	}
 	// parse className
-	class, err := garbage.ParseClassName(className, time.Now())
+	class, err := garbage.ClassFromClassName(className, time.Now())
 	if err != nil {
 		return valid.NewError("className", err.Error())
 	}

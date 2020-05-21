@@ -34,7 +34,7 @@ func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID) 
 		&p.Class.DateFormed)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			err = garbage.ErrNoPupil
+			err = garbage.ErrUnknownPupil
 		}
 		return nil, err
 	}

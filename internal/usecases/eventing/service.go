@@ -98,7 +98,7 @@ func (s *service) ChangePupilResources(ctx context.Context, eventID garbage.Even
 	if errors.Is(err, ErrNoEventPupil) {
 		// we already know for sure that the event exists —— we've checked it earlier. Hence,
 		// we can be certain that only the pupil hasn't been found
-		err = garbage.ErrNoPupil
+		err = garbage.ErrUnknownPupil
 	}
 	return err
 }
@@ -275,5 +275,5 @@ type EventClassesFilters struct {
 
 // EventPupilsFilters are used to filter pupils participating in an event
 type EventPupilsFilters struct {
-	Name string
+	NameAndClass string
 }

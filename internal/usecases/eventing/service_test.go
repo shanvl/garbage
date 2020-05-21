@@ -111,7 +111,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 	var repository mock.EventingRepository
 	repository.DeleteEventFn = func(ctx context.Context, eventID garbage.EventID) error {
 		if eventID == repoErrorEventID {
-			return garbage.ErrNoEvent
+			return garbage.ErrUnknownEvent
 		}
 		return nil
 	}
@@ -365,8 +365,8 @@ func Test_service_ChangePupilResources(t *testing.T) {
 				t.Errorf("ChangePupilResources() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.args.eventID == eventIDErrNoEventPupil && !errors.Is(err, garbage.ErrNoPupil) {
-				t.Errorf("ChangePupilResources() on repo's ErrNoEventPupil didn't return garbage.ErrNoPupil: %v", err)
+			if tt.args.eventID == eventIDErrNoEventPupil && !errors.Is(err, garbage.ErrUnknownPupil) {
+				t.Errorf("ChangePupilResources() on repo's ErrNoEventPupil didn't return garbage.ErrUnknownPupil: %v", err)
 				return
 			}
 		})

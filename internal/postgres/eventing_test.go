@@ -218,8 +218,8 @@ func TestEventingRepo_EventByID(t *testing.T) {
 			if err == nil && got.ID != tt.want {
 				t.Errorf("EventByID() got eventID = %v, want %v", got.ID, tt.want)
 			}
-			if tt.name == "no event" && !errors.Is(err, garbage.ErrNoEvent) {
-				t.Errorf("EventByID() want garbage.ErrNoEvent, got %v", err)
+			if tt.name == "no event" && !errors.Is(err, garbage.ErrUnknownEvent) {
+				t.Errorf("EventByID() want garbage.ErrUnknownEvent, got %v", err)
 			}
 		})
 	}
@@ -356,11 +356,11 @@ func TestEventingRepo_PupilByID(t *testing.T) {
 			if tt.name == "pupil is too old to participate in the event" && !errors.Is(err, eventing.ErrNoEventPupil) {
 				t.Errorf("PupilByID() error = %v, want eventing.ErrNoEventPupil", err)
 			}
-			if tt.name == "no event" && !errors.Is(err, garbage.ErrNoEvent) {
-				t.Errorf("PupilByID() error = %v, want garbage.ErrNoEvent", err)
+			if tt.name == "no event" && !errors.Is(err, garbage.ErrUnknownEvent) {
+				t.Errorf("PupilByID() error = %v, want garbage.ErrUnknownEvent", err)
 			}
-			if tt.name == "no pupil" && !errors.Is(err, garbage.ErrNoPupil) {
-				t.Errorf("PupilByID() error = %v, want garbage.ErrNoPupil", err)
+			if tt.name == "no pupil" && !errors.Is(err, garbage.ErrUnknownPupil) {
+				t.Errorf("PupilByID() error = %v, want garbage.ErrUnknownPupil", err)
 			}
 		})
 	}
@@ -388,7 +388,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
-					Name: "",
+					NameAndClass: "",
 				},
 				sortBy: "",
 				amount: 150,
@@ -401,7 +401,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
-					Name: "a 3",
+					NameAndClass: "a 3",
 				},
 				sortBy: "",
 				amount: 150,
@@ -414,7 +414,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
-					Name: "",
+					NameAndClass: "",
 				},
 				sortBy: "",
 				amount: 150,

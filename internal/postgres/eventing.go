@@ -22,14 +22,6 @@ func NewEventingRepo(db *pgxpool.Pool) *EventingRepo {
 	return &EventingRepo{db}
 }
 
-var orderQueryMap = map[sorting.By]string{
-	sorting.NameAsc: "class_date_formed, class_letter, last_name, first_name asc",
-	sorting.NameDes: "class_date_formed, class_letter, last_name, first_name desc",
-	sorting.Gadgets: "gadgets desc",
-	sorting.Paper:   "paper desc",
-	sorting.Plastic: "plastic desc",
-}
-
 const changePupilResourcesQuery = `
 	insert into resources (pupil_id, event_id, gadgets, paper, plastic)
 	values ($1, $2, $3, $4, $5)
@@ -90,7 +82,7 @@ func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (
 		&resAllowedStr, &ev.ResourcesBrought.Gadgets, &ev.ResourcesBrought.Paper, &ev.ResourcesBrought.Plastic)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, garbage.ErrNoEvent
+			return nil, garbage.ErrUnknownEvent
 		}
 		return nil, err
 	}
@@ -103,15 +95,83 @@ func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (
 	return ev, nil
 }
 
+//
+// var eventClassesOrderMap = map[sorting.By]string{
+// 	sorting.NameAsc: "class_date_formed, class_letter asc",
+// 	sorting.NameDes: "class_date_formed, class_letter desc",
+// 	sorting.Gadgets: "gadgets desc",
+// 	sorting.Paper:   "paper desc",
+// 	sorting.Plastic: "plastic desc",
+// }
+//
+// const eventClassesQuery = `
+// 	with query as (
+// 		select p.class_letter,
+// 			   p.class_date_formed,
+// 			   e.date,
+// 			   coalesce(sum(paper), 0)   as paper,
+// 			   coalesce(sum(plastic), 0) as plastic,
+// 			   coalesce(sum(gadgets), 0) as gadgets
+// 		from pupil p
+// 				 cross join event e
+// 				 left join resources r on r.pupil_id = p.id and r.event_id = e.id
+// 		where e.id = ? %s
+// 		  and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
+// 		group by p.class_date_formed, p.class_letter, e.date
+// 	),
+// 		 pagination as (
+// 			 select *
+// 			 from query
+// 			 order by ?
+// 			 limit ? offset ?
+// 		 )
+// 	select *
+// 	from pagination
+// 			 right join (SELECT count(*) FROM query) as c(total) on true;
+// `
+
 func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID,
 	filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
 	total int, err error) {
+	/*
+		orderBy := eventClassesOrderMap[sortBy]
+		// if there's a text filter, derive a garbage.Class from it
+		if filters.Name != "" {
+			// the event's date is needed when we create a garbage.Class from it's name.
+			// A class' name changes depending on the event date
+			var eDate time.Time
+			if err := e.db.QueryRow(ctx, `select date from event where id = $1`, eventID).Scan(&eDate); err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					return nil, 0, garbage.ErrUnknownEvent
+				}
+				return nil, 0, err
+			}
+			// get the class' letter and date formed, using the event's date
+			letter, dateFormed, err := garbage.ParseClassName(filters.Name, eDate)
+			if err != nil {
+				return nil, 0, err
+			}
+			// create a "where" clause based on the presence of the letter and the dateFormed
+			var args []interface{}
+			where := ""
+			if len(letter) > 0 {
+				where += " and p.class_letter = ? "
+				args = append(args, letter)
+			}
+			if !dateFormed.IsZero() {
+				where += " and p.class_date_formed = ? "
+				args = append(args, dateFormed)
+			}
+			// add the where clause to the query
+			q := fmt.Sprintf(eventClassesQuery, where)
+			q, args, err = sqlx.In(q, eventID, args, orderBy, amount, skip)
+			q = sqlx.Rebind(sqlx.BindType("pgx"), q)
+			// execute the query
+			e.db.Query(ctx, q, args...)
+		}
+		// use the constant query w/o the class' letter or date
 
-	// get the event's date
-	//
-	// get the class' letter and date formed
-	// figure out all how to map orderBy
-
+		panic("implement me")*/
 	panic("implement me")
 }
 
@@ -172,15 +232,26 @@ const eventPupilsQueryTextSearch = `
 	right join (SELECT count(*) FROM query) as c(total) on true;
 `
 
+var eventPupilsOrderMap = map[sorting.By]string{
+	sorting.NameAsc: "class_date_formed, class_letter, last_name, first_name asc",
+	sorting.NameDes: "class_date_formed, class_letter, last_name, first_name desc",
+	sorting.Gadgets: "gadgets desc",
+	sorting.Paper:   "paper desc",
+	sorting.Plastic: "plastic desc",
+}
+
 // EventPupils returns a paginated and sorted list of the pupils who have participated in the specified event
 func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilsFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil, total int, err error) {
 
 	var rows pgx.Rows
 	// derive orderBy query from the sortBy passed
-	orderBy := orderQueryMap[sortBy]
-	// if there's a text filters, make a text search query from them and query the db using it
-	if filters.Name != "" {
+	orderBy := eventPupilsOrderMap[sortBy]
+	// if there's no text filter, just query the db. Otherwise,
+	// make a text search query from it and query the db with it
+	if filters.NameAndClass == "" {
+		rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
+	} else {
 		// we need to know the event's date in order to create a text search query. Every word,
 		// which resembles a class name, will be copied,
 		// processed and concatenated with itself so as to hit the table indices. The event's date is needed there.
@@ -189,15 +260,18 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		var eDate time.Time
 		if err := e.db.QueryRow(ctx, `select date from event where id = $1`, eventID).Scan(&eDate); err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				return nil, 0, garbage.ErrNoEvent
+				return nil, 0, garbage.ErrUnknownEvent
 			}
 			return nil, 0, err
 		}
 		// create a query from the filters passed
-		textSearchQuery := prepareTextSearchQuery(filters.Name, eDate)
-		rows, err = e.db.Query(ctx, eventPupilsQueryTextSearch, eventID, textSearchQuery, orderBy, amount, skip)
-	} else {
-		rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
+		textSearchQuery := prepareTextSearchQuery(filters.NameAndClass, eDate)
+		// if the text query is empty, query the db without it. Otherwise, with it
+		if textSearchQuery == "" {
+			rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
+		} else {
+			rows, err = e.db.Query(ctx, eventPupilsQueryTextSearch, eventID, textSearchQuery, orderBy, amount, skip)
+		}
 	}
 	if err != nil {
 		return nil, 0, err
@@ -304,13 +378,13 @@ func (e *EventingRepo) PupilByID(ctx context.Context, pupilID garbage.PupilID,
 	if err != nil {
 		// if no rows have been returned, there's no such a pupil
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, garbage.ErrNoPupil
+			return nil, garbage.ErrUnknownPupil
 		}
 		return nil, err
 	}
 	// if eID is null, there's no such an event
 	if eID.Status != pgtype.Present {
-		return nil, garbage.ErrNoEvent
+		return nil, garbage.ErrUnknownEvent
 	}
 
 	// create a class name and assign it to the pupil

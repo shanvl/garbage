@@ -8,8 +8,8 @@ import (
 // EventID uniquely identifies an event
 type EventID string
 
-// ErrNoPupil is used when the pupil wasn't found
-var ErrNoEvent = errors.New("event wasn't found")
+// ErrUnknownPupil is used when the pupil wasn't found
+var ErrUnknownEvent = errors.New("unknown event")
 
 // Event is a meeting of pupils who bring in recyclables.
 // The goal of the event is to gather as many recyclable materials (resources) as possible
