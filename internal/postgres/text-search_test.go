@@ -25,7 +25,7 @@ func Test_prepareTextSearchQuery(t *testing.T) {
 			want: "",
 		},
 		{
-			name: "words with no class name",
+			name: "string with no class name",
 			args: args{
 				q: "iv id 213bas",
 				t: time.Now(),
@@ -33,12 +33,28 @@ func Test_prepareTextSearchQuery(t *testing.T) {
 			want: "iv:* & id:* & 213bas:*",
 		},
 		{
-			name: "words with no class name",
+			name: "string with a class name",
 			args: args{
 				q: "iv id 3B 213bas",
 				t: date,
 			},
 			want: "iv:* & id:* & 3B:* | 2018B:* & 213bas:*",
+		},
+		{
+			name: "string with a class name without a letter",
+			args: args{
+				q: "iv id 3",
+				t: date,
+			},
+			want: "iv:* & id:* & 3:* | 2018:*",
+		},
+		{
+			name: "string with invalid symbols",
+			args: args{
+				q: "iv i&d 3",
+				t: date,
+			},
+			want: "",
 		},
 	}
 	for _, tt := range tests {

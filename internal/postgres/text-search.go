@@ -9,7 +9,7 @@ import (
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 )
 
-// prepareTextSearchQuery processes a query to make it a valid argument for to_tsquery,
+// prepareTextSearchQuery processes the query to make it a valid argument for to_tsquery,
 // adding ':*' at the end of each word, concatenating the words with ' & ' and,
 // if a word resembles a school class name,
 // creating a copy of it with changes needed to hit the indices of the tables. For example,
@@ -17,15 +17,25 @@ import (
 func prepareTextSearchQuery(q string, t time.Time) string {
 	ss := strings.Fields(q)
 	for i, s := range ss {
+		// only digits, letters, "'" and "-" are allowed
+		for _, r := range s {
+			if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '\'' && r != '-' {
+				return ""
+			}
+		}
 		// if the word starts with a number, try to parse it as a class name and concatenate with itself
 		if unicode.IsDigit(rune(s[0])) {
 			// if the word can be parsed as a class name, process it and concatenate with itself.
 			// "3B" becomes "3B:* | 2018A:*"
-			class, err := garbage.ParseClassName(s, t)
-			// error means that the word doesn't resemble a class name,
-			// so it can be skipped here and processed as a regular word
+			letter, dateFormed, err := garbage.ParseClassName(s, t)
+			// error means that neither letter, nor dateFormed can be extracted from the word,
+			// so it shouldn't be processed as a class
 			if err == nil {
-				ss[i] = fmt.Sprintf("%s:* | %d%s:*", s, class.DateFormed.Year(), class.Letter)
+				if len(letter) > 0 && !dateFormed.IsZero() {
+					ss[i] = fmt.Sprintf("%s:* | %d%s:*", s, dateFormed.Year(), letter)
+				} else if !dateFormed.IsZero() {
+					ss[i] = fmt.Sprintf("%s:* | %d:*", s, dateFormed.Year())
+				}
 				continue
 			}
 		}
