@@ -73,75 +73,6 @@ func TestEventingRepo_ChangePupilResources(t *testing.T) {
 		})
 	}
 }
-
-func createEvent(t *testing.T, event *garbage.Event) (garbage.EventID, func()) {
-	t.Helper()
-	q := "insert into event (id, name, date, resources_allowed)\n\tvalues ($1, $2, $3, $4::text[]::resource[]);"
-	_, err := db.Exec(context.Background(), q, event.ID, event.Name, event.Date,
-		garbage.ResourceSliceToStringSlice(event.ResourcesAllowed))
-	if err != nil {
-		t.Fatalf("prepare db: %v", err)
-	}
-	return event.ID, func() {
-		q := "delete from event where id = $1"
-		_, err := db.Exec(context.Background(), q, event.ID)
-		if err != nil {
-			t.Fatalf("clean db: %v", err)
-		}
-	}
-}
-
-func createPupil(t *testing.T, p *garbage.Pupil, c garbage.Class) (garbage.PupilID, func()) {
-	t.Helper()
-	q := `
-		insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
-		values ($1, $2, $3, $4, $5);
-	`
-	if _, err := db.Exec(context.Background(), q, p.ID, p.FirstName, p.LastName, c.Letter, c.DateFormed); err != nil {
-		t.Fatalf("prepare db: %v", err)
-	}
-	return p.ID, func() {
-		_, err := db.Exec(context.Background(), `delete from pupil where pupil.id = $1`, p.ID)
-
-		if err != nil {
-			t.Fatalf("clean db: %v", err)
-		}
-	}
-}
-
-func deleteEvent(t *testing.T, eventID garbage.EventID) {
-	t.Helper()
-	if _, err := db.Exec(context.Background(), "delete from event where id=$1", eventID); err != nil {
-		t.Fatalf("prepare db: deleteEvent error: %v", err)
-	}
-}
-
-func getPupilID(t *testing.T) garbage.PupilID {
-	t.Helper()
-	var pupilID garbage.PupilID
-	if err := db.QueryRow(context.Background(), `select id from pupil`).Scan(&pupilID); err != nil {
-		t.Fatalf("prepare db: %v", err)
-	}
-	return pupilID
-}
-
-func getEventID(t *testing.T) garbage.EventID {
-	t.Helper()
-	var eventID garbage.EventID
-	if err := db.QueryRow(context.Background(), `select id from event`).Scan(&eventID); err != nil {
-		t.Fatalf("prepare db: %v", err)
-	}
-	return eventID
-}
-
-func removePupilResources(t *testing.T, pupilID garbage.PupilID, eventID garbage.EventID) {
-	t.Helper()
-	if _, err := db.Exec(context.Background(), `delete from resources where pupil_id = $1 and event_id = $2;`, pupilID,
-		eventID); err != nil {
-		t.Fatalf("prepare db: %v", err)
-	}
-}
-
 func TestEventingRepo_DeleteEvent(t *testing.T) {
 	r := postgres.NewEventingRepo(db)
 	ctx := context.Background()
@@ -525,5 +456,73 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 				return
 			}
 		})
+	}
+}
+
+func createEvent(t *testing.T, event *garbage.Event) (garbage.EventID, func()) {
+	t.Helper()
+	q := "insert into event (id, name, date, resources_allowed)\n\tvalues ($1, $2, $3, $4::text[]::resource[]);"
+	_, err := db.Exec(context.Background(), q, event.ID, event.Name, event.Date,
+		garbage.ResourceSliceToStringSlice(event.ResourcesAllowed))
+	if err != nil {
+		t.Fatalf("prepare db: %v", err)
+	}
+	return event.ID, func() {
+		q := "delete from event where id = $1"
+		_, err := db.Exec(context.Background(), q, event.ID)
+		if err != nil {
+			t.Fatalf("clean db: %v", err)
+		}
+	}
+}
+
+func createPupil(t *testing.T, p *garbage.Pupil, c garbage.Class) (garbage.PupilID, func()) {
+	t.Helper()
+	q := `
+		insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
+		values ($1, $2, $3, $4, $5);
+	`
+	if _, err := db.Exec(context.Background(), q, p.ID, p.FirstName, p.LastName, c.Letter, c.DateFormed); err != nil {
+		t.Fatalf("prepare db: %v", err)
+	}
+	return p.ID, func() {
+		_, err := db.Exec(context.Background(), `delete from pupil where pupil.id = $1`, p.ID)
+
+		if err != nil {
+			t.Fatalf("clean db: %v", err)
+		}
+	}
+}
+
+func deleteEvent(t *testing.T, eventID garbage.EventID) {
+	t.Helper()
+	if _, err := db.Exec(context.Background(), "delete from event where id=$1", eventID); err != nil {
+		t.Fatalf("prepare db: deleteEvent error: %v", err)
+	}
+}
+
+func getPupilID(t *testing.T) garbage.PupilID {
+	t.Helper()
+	var pupilID garbage.PupilID
+	if err := db.QueryRow(context.Background(), `select id from pupil`).Scan(&pupilID); err != nil {
+		t.Fatalf("prepare db: %v", err)
+	}
+	return pupilID
+}
+
+func getEventID(t *testing.T) garbage.EventID {
+	t.Helper()
+	var eventID garbage.EventID
+	if err := db.QueryRow(context.Background(), `select id from event`).Scan(&eventID); err != nil {
+		t.Fatalf("prepare db: %v", err)
+	}
+	return eventID
+}
+
+func removePupilResources(t *testing.T, pupilID garbage.PupilID, eventID garbage.EventID) {
+	t.Helper()
+	if _, err := db.Exec(context.Background(), `delete from resources where pupil_id = $1 and event_id = $2;`, pupilID,
+		eventID); err != nil {
+		t.Fatalf("prepare db: %v", err)
 	}
 }

@@ -97,14 +97,6 @@ func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (
 	return ev, nil
 }
 
-var eventClassesOrderMap = map[sorting.By]string{
-	sorting.NameAsc: "class_date_formed, class_letter asc",
-	sorting.NameDes: "class_date_formed, class_letter desc",
-	sorting.Gadgets: "gadgets desc",
-	sorting.Paper:   "paper desc",
-	sorting.Plastic: "plastic desc",
-}
-
 const eventClassesQuery = `
 	with query as (
 		select p.class_letter,
@@ -130,6 +122,15 @@ const eventClassesQuery = `
 	from pagination
 			 right join (SELECT count(*) FROM query) as c(total) on true;
 `
+
+// a map needed to transform a sorting value to the "order by" part of the EventClasses query
+var eventClassesOrderMap = map[sorting.By]string{
+	sorting.NameAsc: "class_date_formed, class_letter asc",
+	sorting.NameDes: "class_date_formed, class_letter desc",
+	sorting.Gadgets: "gadgets desc",
+	sorting.Paper:   "paper desc",
+	sorting.Plastic: "plastic desc",
+}
 
 // EventClasses returns a sorted and paginated list of classes that match the passed filters
 func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID,
@@ -240,49 +241,22 @@ const eventPupilsQuery = `
     from pupil p
              cross join event e
              left join resources r on r.pupil_id = p.id and r.event_id = e.id
-    where e.id = $1
+    where e.id = ?
+      %s
       and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
 	),
 	pagination as (
 		select *
 		from query
-		order by $2
-		limit $3 offset $4
+		order by ?
+		limit ? offset ?
 	)
 	select *
 	from pagination
 	right join (SELECT count(*) FROM query) as c(total) on true;
 `
 
-const eventPupilsQueryTextSearch = `
-	with query as (
-    select p.id,
-           p.first_name,
-           p.last_name,
-           p.class_letter,
-           p.class_date_formed,
-           e.date,
-           coalesce(r.gadgets, 0) as gadgets,
-           coalesce(r.paper, 0)   as paper,
-           coalesce(r.plastic, 0) as plastic
-    from pupil p
-             cross join event e
-             left join resources r on r.pupil_id = p.id and r.event_id = e.id
-    where e.id = $1
-      and p.text_search @@ to_tsquery('simple', $2)
-      and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
-	),
-	pagination as (
-		select *
-		from query
-		order by $3
-		limit $4 offset $5
-	)
-	select *
-	from pagination
-	right join (SELECT count(*) FROM query) as c(total) on true;
-`
-
+// a map needed to transform a sorting value to the "order by" part of the EventPupils query
 var eventPupilsOrderMap = map[sorting.By]string{
 	sorting.NameAsc: "class_date_formed, class_letter, last_name, first_name asc",
 	sorting.NameDes: "class_date_formed, class_letter, last_name, first_name desc",
@@ -295,13 +269,15 @@ var eventPupilsOrderMap = map[sorting.By]string{
 func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilsFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil, total int, err error) {
 
-	var rows pgx.Rows
-	// derive orderBy query from the sortBy passed
+	var q string
+	// derive the "order by" query part from the sortBy passed
 	orderBy := eventPupilsOrderMap[sortBy]
-	// if there's no text filter, just query the db. Otherwise,
-	// make a text search query from it and query the db with it
+	// create a slice of the query arguments
+	args := []interface{}{eventID}
+	// if there're no filters passed, create a simple query. Otherwise, create a query w/ the text search
 	if filters.NameAndClass == "" {
-		rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
+		q = fmt.Sprintf(eventPupilsQuery, "")
+		args = append(args, orderBy, amount, skip)
 	} else {
 		// we need to know the event's date in order to create a text search query. Every word,
 		// which resembles a class name, will be copied,
@@ -315,15 +291,20 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 			}
 			return nil, 0, err
 		}
-		// create a query from the filters passed
+		// create the text search part of the query from the filters passed
 		textSearchQuery := prepareTextSearchQuery(filters.NameAndClass, eDate)
-		// if the text query is empty, query the db without it. Otherwise, with it
+		// if the text query is empty, make a query without it. Otherwise, with it
 		if textSearchQuery == "" {
-			rows, err = e.db.Query(ctx, eventPupilsQuery, eventID, orderBy, amount, skip)
+			q = fmt.Sprintf(eventPupilsQuery, "")
+			args = append(args, orderBy, amount, skip)
 		} else {
-			rows, err = e.db.Query(ctx, eventPupilsQueryTextSearch, eventID, textSearchQuery, orderBy, amount, skip)
+			q = fmt.Sprintf(eventPupilsQuery, " and p.text_search @@ to_tsquery('simple', ?)")
+			args = append(args, textSearchQuery, orderBy, amount, skip)
 		}
 	}
+	// change "?" to "$" in the query
+	q = sqlx.Rebind(sqlx.BindType("pgx"), q)
+	rows, err := e.db.Query(ctx, q, args...)
 	if err != nil {
 		return nil, 0, err
 	}
