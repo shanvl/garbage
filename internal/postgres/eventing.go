@@ -3,12 +3,14 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jmoiron/sqlx"
 	"github.com/shanvl/garbage-events-service/internal/garbage"
 	"github.com/shanvl/garbage-events-service/internal/sorting"
 	"github.com/shanvl/garbage-events-service/internal/usecases/eventing"
@@ -95,84 +97,133 @@ func (e *EventingRepo) EventByID(ctx context.Context, eventID garbage.EventID) (
 	return ev, nil
 }
 
-//
-// var eventClassesOrderMap = map[sorting.By]string{
-// 	sorting.NameAsc: "class_date_formed, class_letter asc",
-// 	sorting.NameDes: "class_date_formed, class_letter desc",
-// 	sorting.Gadgets: "gadgets desc",
-// 	sorting.Paper:   "paper desc",
-// 	sorting.Plastic: "plastic desc",
-// }
-//
-// const eventClassesQuery = `
-// 	with query as (
-// 		select p.class_letter,
-// 			   p.class_date_formed,
-// 			   e.date,
-// 			   coalesce(sum(paper), 0)   as paper,
-// 			   coalesce(sum(plastic), 0) as plastic,
-// 			   coalesce(sum(gadgets), 0) as gadgets
-// 		from pupil p
-// 				 cross join event e
-// 				 left join resources r on r.pupil_id = p.id and r.event_id = e.id
-// 		where e.id = ? %s
-// 		  and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
-// 		group by p.class_date_formed, p.class_letter, e.date
-// 	),
-// 		 pagination as (
-// 			 select *
-// 			 from query
-// 			 order by ?
-// 			 limit ? offset ?
-// 		 )
-// 	select *
-// 	from pagination
-// 			 right join (SELECT count(*) FROM query) as c(total) on true;
-// `
+var eventClassesOrderMap = map[sorting.By]string{
+	sorting.NameAsc: "class_date_formed, class_letter asc",
+	sorting.NameDes: "class_date_formed, class_letter desc",
+	sorting.Gadgets: "gadgets desc",
+	sorting.Paper:   "paper desc",
+	sorting.Plastic: "plastic desc",
+}
 
+const eventClassesQuery = `
+	with query as (
+		select p.class_letter,
+			   p.class_date_formed,
+			   e.date,
+			   coalesce(sum(paper), 0)   as paper,
+			   coalesce(sum(plastic), 0) as plastic,
+			   coalesce(sum(gadgets), 0) as gadgets
+		from pupil p
+				 cross join event e
+				 left join resources r on r.pupil_id = p.id and r.event_id = e.id
+		where e.id = ? %s
+		  and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
+		group by p.class_date_formed, p.class_letter, e.date
+	),
+		 pagination as (
+			 select *
+			 from query
+			 order by ?
+			 limit ? offset ?
+		 )
+	select *
+	from pagination
+			 right join (SELECT count(*) FROM query) as c(total) on true;
+`
+
+// EventClasses returns a sorted and paginated list of classes that match the passed filters
 func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID,
 	filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
 	total int, err error) {
-	/*
-		orderBy := eventClassesOrderMap[sortBy]
-		// if there's a text filter, derive a garbage.Class from it
-		if filters.Name != "" {
-			// the event's date is needed when we create a garbage.Class from it's name.
-			// A class' name changes depending on the event date
-			var eDate time.Time
-			if err := e.db.QueryRow(ctx, `select date from event where id = $1`, eventID).Scan(&eDate); err != nil {
-				if errors.Is(err, pgx.ErrNoRows) {
-					return nil, 0, garbage.ErrUnknownEvent
-				}
-				return nil, 0, err
-			}
-			// get the class' letter and date formed, using the event's date
-			letter, dateFormed, err := garbage.ParseClassName(filters.Name, eDate)
-			if err != nil {
-				return nil, 0, err
-			}
-			// create a "where" clause based on the presence of the letter and the dateFormed
-			var args []interface{}
-			where := ""
-			if len(letter) > 0 {
-				where += " and p.class_letter = ? "
-				args = append(args, letter)
-			}
-			if !dateFormed.IsZero() {
-				where += " and p.class_date_formed = ? "
-				args = append(args, dateFormed)
-			}
-			// add the where clause to the query
-			q := fmt.Sprintf(eventClassesQuery, where)
-			q, args, err = sqlx.In(q, eventID, args, orderBy, amount, skip)
-			q = sqlx.Rebind(sqlx.BindType("pgx"), q)
-			// execute the query
-			e.db.Query(ctx, q, args...)
-		}
-		// use the constant query w/o the class' letter or date
 
-		panic("implement me")*/
-	panic("implement me")
+	var q string
+	// derive the "order by" query part from the sortBy passed
+	orderBy := eventClassesOrderMap[sortBy]
+	// create a slice of the query arguments
+	args := []interface{}{eventID}
+	// if there're no filters passed, create a simple query. Otherwise, create a query w/ a conditional "where" part
+	if filters.Name == "" {
+		q = fmt.Sprintf(eventClassesQuery, "")
+		args = append(args, orderBy, amount, skip)
+	} else {
+		// the event's date is needed when we create a garbage.Class from it's name.
+		// A class' name changes depending on the event date
+		var eDate time.Time
+		if err := e.db.QueryRow(ctx, `select date from event where id = $1`, eventID).Scan(&eDate); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, 0, garbage.ErrUnknownEvent
+			}
+			return nil, 0, err
+		}
+		// get the class' letter and date formed, using the event's date
+		letter, dateFormed, err := garbage.ParseClassName(filters.Name, eDate)
+		if err != nil {
+			return nil, 0, err
+		}
+		// create the "where" clause based on the presence of the letter and the dateFormed and append the
+		// arguments to the slice
+		where := ""
+		if letter != "" {
+			where += " and p.class_letter = ? "
+			args = append(args, letter)
+		}
+		if !dateFormed.IsZero() {
+			where += " and p.class_date_formed = ? "
+			args = append(args, dateFormed)
+		}
+		// add other arguments
+		args = append(args, orderBy, amount, skip)
+		// add the where clause to the query
+		q = fmt.Sprintf(eventClassesQuery, where)
+	}
+	// swap "?" for "$" in the query
+	q = sqlx.Rebind(sqlx.BindType("pgx"), q)
+	// exec the query
+	rows, err := e.db.Query(ctx, q, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	// next types are only needed in case the offset is >= total rows found. Then all the columns, except 'total',
+	// will be null
+	var (
+		classLetter pgtype.Varchar
+		classDate   pgtype.Date
+		eventDate   pgtype.Date
+		gadgets     pgtype.Float4
+		paper       pgtype.Float4
+		plastic     pgtype.Float4
+	)
+	for rows.Next() {
+		if err := rows.Scan(&classLetter, &classDate, &eventDate, &gadgets, &paper, &plastic, &total); err != nil {
+			return nil, 0, err
+		}
+		// this will only happen if the offset is >= total rows found.
+		// In that case we simply return total.
+		if classLetter.Status != pgtype.Present {
+			return nil, total, nil
+		}
+		// derive a className from its letter, dateFormed and the event's date
+		c := garbage.Class{Letter: classLetter.String, DateFormed: classDate.Time}
+		className, err := c.NameOnDate(eventDate.Time)
+		if err != nil {
+			return nil, 0, err
+		}
+		// append the class to other classes
+		classes = append(classes, &eventing.Class{
+			Name: className,
+			ResourcesBrought: garbage.Resources{
+				Gadgets: gadgets.Float,
+				Paper:   paper.Float,
+				Plastic: plastic.Float,
+			},
+		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+	return classes, total, nil
 }
 
 const eventPupilsQuery = `

@@ -38,7 +38,7 @@ func Test_prepareTextSearchQuery(t *testing.T) {
 				q: "iv id 3B 213bas",
 				t: date,
 			},
-			want: "iv:* & id:* & 3B:* | 2018B:* & 213bas:*",
+			want: "iv:* & id:* & 3B:* | 2018b:* & 213bas:*",
 		},
 		{
 			name: "string with a class name without a letter",

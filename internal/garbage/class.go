@@ -76,7 +76,7 @@ func ParseClassName(className string, date time.Time) (letter string, dateFormed
 			numberBuf.WriteRune(r)
 		}
 		if unicode.IsLetter(r) {
-			letter = string(unicode.ToUpper(r))
+			letter = string(unicode.ToLower(r))
 			wasLetter = true
 		}
 	}

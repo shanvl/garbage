@@ -410,7 +410,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "skip more than in the db",
+			name: "skip more than the total amount of the pupils in the db",
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
@@ -430,6 +430,98 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 
 			if (err != nil) != tt.wantErr || gotTotal == 0 {
 				t.Errorf("EventPupils() error = %v, wantErr %v, gotTotal %d, ", err, tt.wantErr, gotTotal)
+				return
+			}
+		})
+	}
+}
+
+func TestEventingRepo_EventClasses(t *testing.T) {
+	r := postgres.NewEventingRepo(db)
+	ctx := context.Background()
+	eID := getEventID(t)
+
+	type args struct {
+		eventID garbage.EventID
+		filters eventing.EventClassesFilters
+		sortBy  sorting.By
+		amount  int
+		skip    int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "no classes specified",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventClassesFilters{},
+				sortBy:  sorting.Plastic,
+				amount:  50,
+				skip:    0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "a class is specified",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventClassesFilters{
+					Name: "3b",
+				},
+				sortBy: sorting.Plastic,
+				amount: 50,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "classes are specified",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventClassesFilters{
+					Name: "3",
+				},
+				sortBy: sorting.Plastic,
+				amount: 50,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "skip is more than the total amount of the classes in the db",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventClassesFilters{},
+				sortBy:  sorting.Plastic,
+				amount:  50,
+				skip:    999,
+			},
+			wantErr: false,
+		},
+		{
+			name: "ivalid class name",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventClassesFilters{
+					Name: "3b3",
+				},
+				sortBy: sorting.Plastic,
+				amount: 50,
+				skip:   0,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := r.EventClasses(ctx, tt.args.eventID, tt.args.filters,
+				tt.args.sortBy, tt.args.amount, tt.args.skip)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EventClasses() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
