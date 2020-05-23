@@ -32,9 +32,9 @@ func prepareTextSearchQuery(q string, t time.Time) string {
 			// so it shouldn't be processed as a class
 			if err == nil {
 				if len(letter) > 0 && !dateFormed.IsZero() {
-					ss[i] = fmt.Sprintf("%s:* | %d%s:*", s, dateFormed.Year(), letter)
+					ss[i] = fmt.Sprintf("(%s:* | %d%s:*)", s, dateFormed.Year(), letter)
 				} else if !dateFormed.IsZero() {
-					ss[i] = fmt.Sprintf("%s:* | %d:*", s, dateFormed.Year())
+					ss[i] = fmt.Sprintf("(%s:* | %d:*)", s, dateFormed.Year())
 				}
 				continue
 			}
