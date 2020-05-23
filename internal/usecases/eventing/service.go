@@ -167,7 +167,6 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 }
 
 // EventClasses returns an array of sorted classes for the specified event
-// TODO: class names must be relative to the event's date
 func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters,
 	sortBy sorting.By, amount, skip int) (classes []*Class, total int, err error) {
 

@@ -16,10 +16,12 @@ import (
 	"github.com/shanvl/garbage-events-service/internal/usecases/eventing"
 )
 
+// EventingRepo is a repository used by Eventing service
 type EventingRepo struct {
 	db *pgxpool.Pool
 }
 
+// NewEventingRepo returns an instance of EventingRepo
 func NewEventingRepo(db *pgxpool.Pool) *EventingRepo {
 	return &EventingRepo{db}
 }
@@ -111,16 +113,16 @@ const eventClassesQuery = `
 		where e.id = ? %s
 		  and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
 		group by p.class_date_formed, p.class_letter, e.date
-	),
-		 pagination as (
+	),  pagination as (
 			 select *
 			 from query
 			 order by ?
 			 limit ? offset ?
-		 )
+)
 	select *
 	from pagination
-			 right join (SELECT count(*) FROM query) as c(total) on true;
+			 right join (select count(*) FROM query) as c(total) on true
+             left join (select id from event where id = ?) as d(event_id) on true;
 `
 
 // a map needed to transform a sorting value to the "order by" part of the EventClasses query
@@ -145,7 +147,7 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 	// if there're no filters passed, create a simple query. Otherwise, create a query w/ a conditional "where" part
 	if filters.Name == "" {
 		q = fmt.Sprintf(eventClassesQuery, "")
-		args = append(args, orderBy, amount, skip)
+		args = append(args, orderBy, amount, skip, eventID)
 	} else {
 		// the event's date is needed when we create a garbage.Class from it's name.
 		// A class' name changes depending on the event date
@@ -158,8 +160,9 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 		}
 		// get the class' letter and date formed, using the event's date
 		letter, dateFormed, err := garbage.ParseClassName(filters.Name, eDate)
+		// if the letter or the date can't be derived from the class name, then simply return the total w/o any errors
 		if err != nil {
-			return nil, 0, err
+			return nil, 0, nil
 		}
 		// create the "where" clause based on the presence of the letter and the dateFormed and append the
 		// arguments to the slice
@@ -173,7 +176,7 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 			args = append(args, dateFormed)
 		}
 		// add other arguments
-		args = append(args, orderBy, amount, skip)
+		args = append(args, orderBy, amount, skip, eventID)
 		// add the where clause to the query
 		q = fmt.Sprintf(eventClassesQuery, where)
 	}
@@ -195,13 +198,19 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 		gadgets     pgtype.Float4
 		paper       pgtype.Float4
 		plastic     pgtype.Float4
+		eID         pgtype.Varchar
 	)
 	for rows.Next() {
-		if err := rows.Scan(&classLetter, &classDate, &eventDate, &gadgets, &paper, &plastic, &total); err != nil {
+		if err := rows.Scan(&classLetter, &classDate, &eventDate, &gadgets, &paper, &plastic, &total,
+			&eID); err != nil {
 			return nil, 0, err
 		}
-		// this will only happen if the offset is >= total rows found.
-		// In that case we simply return total.
+		// if the event hasn't been found, return an error
+		if eID.Status != pgtype.Present {
+			return nil, total, garbage.ErrUnknownEvent
+		}
+		// next will happen if the offset is >= total rows found or no classes with such class names have been found
+		// In that case we simply return the total w\o additional work
 		if classLetter.Status != pgtype.Present {
 			return nil, total, nil
 		}
@@ -253,7 +262,8 @@ const eventPupilsQuery = `
 	)
 	select *
 	from pagination
-	right join (SELECT count(*) FROM query) as c(total) on true;
+	right join (select count(*) from query) as c(total) on true
+	left join (select id from event where id = ?) as d(event_id) on true;
 `
 
 // a map needed to transform a sorting value to the "order by" part of the EventPupils query
@@ -277,7 +287,7 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 	// if there're no filters passed, create a simple query. Otherwise, create a query w/ the text search
 	if filters.NameAndClass == "" {
 		q = fmt.Sprintf(eventPupilsQuery, "")
-		args = append(args, orderBy, amount, skip)
+		args = append(args, orderBy, amount, skip, eventID)
 	} else {
 		// we need to know the event's date in order to create a text search query. Every word,
 		// which resembles a class name, will be copied,
@@ -296,10 +306,10 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		// if the text query is empty, make a query without it. Otherwise, with it
 		if textSearchQuery == "" {
 			q = fmt.Sprintf(eventPupilsQuery, "")
-			args = append(args, orderBy, amount, skip)
+			args = append(args, orderBy, amount, skip, eventID)
 		} else {
 			q = fmt.Sprintf(eventPupilsQuery, " and p.text_search @@ to_tsquery('simple', ?)")
-			args = append(args, textSearchQuery, orderBy, amount, skip)
+			args = append(args, textSearchQuery, orderBy, amount, skip, eventID)
 		}
 	}
 	// change "?" to "$" in the query
@@ -321,16 +331,20 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		gadgets     pgtype.Float4
 		paper       pgtype.Float4
 		plastic     pgtype.Float4
+		eID         pgtype.Varchar
 	)
 
 	for rows.Next() {
 		err := rows.Scan(&id, &firstName, &lastName, &classLetter, &classDate, &eventDate, &gadgets, &paper, &plastic,
-			&total)
+			&total, &eID)
 		if err != nil {
 			return nil, 0, err
 		}
-		// this will only happen if the offset is >= total rows found.
-		// In that case we simply return total.
+		if eID.Status != pgtype.Present {
+			return nil, total, garbage.ErrUnknownEvent
+		}
+		// next will happen if the offset is >= total rows found or no pupils with such names/classNames were found
+		// In that case we simply return the total w\o additional work
 		if id.Status != pgtype.Present {
 			return nil, total, nil
 		}

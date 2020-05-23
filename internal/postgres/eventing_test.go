@@ -315,7 +315,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "without text search",
+			name: "without the text search",
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
@@ -328,7 +328,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "with text search",
+			name: "with the text search",
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
@@ -353,14 +353,27 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "invalid event id",
+			args: args{
+				eventID: "wrongeventid",
+				filters: eventing.EventPupilsFilters{
+					NameAndClass: "",
+				},
+				sortBy: "",
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, gotTotal, err := r.EventPupils(ctx, tt.args.eventID, tt.args.filters, tt.args.sortBy, tt.args.amount,
+			_, _, err := r.EventPupils(ctx, tt.args.eventID, tt.args.filters, tt.args.sortBy, tt.args.amount,
 				tt.args.skip)
 
-			if (err != nil) != tt.wantErr || gotTotal == 0 {
-				t.Errorf("EventPupils() error = %v, wantErr %v, gotTotal %d, ", err, tt.wantErr, gotTotal)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EventPupils() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
@@ -433,11 +446,24 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "ivalid class name",
+			name: "invalid class name",
 			args: args{
 				eventID: eID,
 				filters: eventing.EventClassesFilters{
 					Name: "3b3",
+				},
+				sortBy: sorting.Plastic,
+				amount: 50,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid event id",
+			args: args{
+				eventID: "wrongeventid",
+				filters: eventing.EventClassesFilters{
+					Name: "",
 				},
 				sortBy: sorting.Plastic,
 				amount: 50,

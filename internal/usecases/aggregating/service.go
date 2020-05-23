@@ -144,7 +144,7 @@ func (s *service) PupilByID(ctx context.Context, id garbage.PupilID, filters Eve
 	return s.repo.PupilByID(ctx, id, filters, eventsSorting)
 }
 
-// if events sorting passed is not set to resources, name or date, sets it to DateDes
+// if the events sorting passed is not set to resources, name or date, sets it to DateDes
 func validateEventsSorting(s sorting.By) sorting.By {
 	if !s.IsResources() && !s.IsName() && !s.IsDate() {
 		s = sorting.DateDes
@@ -180,6 +180,7 @@ type Event struct {
 // Pupil is a model of the pupil, adapted for this use case
 type Pupil struct {
 	garbage.Pupil
+	garbage.Class
 	// list of events with resources brought by the pupil to each of them
 	Events []Event
 }
