@@ -45,7 +45,10 @@ create table if not exists pupil
 );
 
 create index if not exists pupil_text_search_idx on pupil using gin (text_search);
-create index if not exists pupil_class_name_idx on pupil (class_date_formed, class_letter, last_name, first_name);
+create index if not exists pupil_class_name_asc_idx on pupil (class_date_formed desc, class_letter, last_name,
+                                                              first_name);
+create index if not exists pupil_class_name_desc_idx on pupil (class_date_formed asc, class_letter desc, last_name
+                                                               desc, first_name desc);
 
 -- create resources table
 create table if not exists resources

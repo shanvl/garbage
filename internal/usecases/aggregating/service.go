@@ -54,8 +54,9 @@ type service struct {
 }
 
 const (
-	DefaultAmount = 25
+	DefaultAmount = 50
 	DefaultSkip   = 0
+	MaxAmount     = 1000
 )
 
 // NewService returns an instance of Service with all its dependencies
@@ -154,7 +155,7 @@ func validateEventsSorting(s sorting.By) sorting.By {
 
 // ensures that amount and skip are valid
 func validateAmountSkip(a, s int) (int, int) {
-	if a <= 0 {
+	if a <= 0 || a > MaxAmount {
 		a = DefaultAmount
 	}
 	if s < 0 {
@@ -174,7 +175,7 @@ type Class struct {
 type Event struct {
 	garbage.Event
 	// resources collected at this event OR resources brought by the parent entity to this event
-	ResourcesBrought garbage.ResourceMap
+	ResourcesBrought garbage.Resources
 }
 
 // Pupil is a model of the pupil, adapted for this use case

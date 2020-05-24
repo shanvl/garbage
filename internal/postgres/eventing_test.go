@@ -321,8 +321,8 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 				filters: eventing.EventPupilsFilters{
 					NameAndClass: "",
 				},
-				sortBy: "",
-				amount: 150,
+				sortBy: sorting.Plastic,
+				amount: 10,
 				skip:   0,
 			},
 			wantErr: false,
@@ -332,10 +332,10 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			args: args{
 				eventID: eID,
 				filters: eventing.EventPupilsFilters{
-					NameAndClass: "a 3",
+					NameAndClass: "ro 7",
 				},
-				sortBy: "",
-				amount: 150,
+				sortBy: sorting.Paper,
+				amount: 50,
 				skip:   0,
 			},
 			wantErr: false,
@@ -347,7 +347,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 				filters: eventing.EventPupilsFilters{
 					NameAndClass: "",
 				},
-				sortBy: "",
+				sortBy: sorting.Plastic,
 				amount: 150,
 				skip:   5000,
 			},
@@ -360,7 +360,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 				filters: eventing.EventPupilsFilters{
 					NameAndClass: "",
 				},
-				sortBy: "",
+				sortBy: sorting.Plastic,
 				amount: 150,
 				skip:   0,
 			},

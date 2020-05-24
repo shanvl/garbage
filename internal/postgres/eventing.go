@@ -104,9 +104,9 @@ const eventClassesQuery = `
 		select p.class_letter,
 			   p.class_date_formed,
 			   e.date,
+			   coalesce(sum(gadgets), 0) as gadgets,
 			   coalesce(sum(paper), 0)   as paper,
-			   coalesce(sum(plastic), 0) as plastic,
-			   coalesce(sum(gadgets), 0) as gadgets
+			   coalesce(sum(plastic), 0) as plastic
 		from pupil p
 				 cross join event e
 				 left join resources r on r.pupil_id = p.id and r.event_id = e.id
@@ -116,7 +116,7 @@ const eventClassesQuery = `
 	),  pagination as (
 			 select *
 			 from query
-			 order by ?
+			 order by %s
 			 limit ? offset ?
 )
 	select *
@@ -127,8 +127,8 @@ const eventClassesQuery = `
 
 // a map needed to transform a sorting value to the "order by" part of the EventClasses query
 var eventClassesOrderMap = map[sorting.By]string{
-	sorting.NameAsc: "class_date_formed, class_letter asc",
-	sorting.NameDes: "class_date_formed, class_letter desc",
+	sorting.NameAsc: "class_date_formed desc, class_letter asc",
+	sorting.NameDes: "class_date_formed asc, class_letter desc",
 	sorting.Gadgets: "gadgets desc",
 	sorting.Paper:   "paper desc",
 	sorting.Plastic: "plastic desc",
@@ -146,8 +146,8 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 	args := []interface{}{eventID}
 	// if there're no filters passed, create a simple query. Otherwise, create a query w/ a conditional "where" part
 	if filters.Name == "" {
-		q = fmt.Sprintf(eventClassesQuery, "")
-		args = append(args, orderBy, amount, skip, eventID)
+		q = fmt.Sprintf(eventClassesQuery, "", orderBy)
+		args = append(args, amount, skip, eventID)
 	} else {
 		// the event's date is needed when we create a garbage.Class from it's name.
 		// A class' name changes depending on the event date
@@ -176,9 +176,9 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 			args = append(args, dateFormed)
 		}
 		// add other arguments
-		args = append(args, orderBy, amount, skip, eventID)
+		args = append(args, amount, skip, eventID)
 		// add the where clause to the query
-		q = fmt.Sprintf(eventClassesQuery, where)
+		q = fmt.Sprintf(eventClassesQuery, where, orderBy)
 	}
 	// swap "?" for "$" in the query
 	q = sqlx.Rebind(sqlx.BindType("pgx"), q)
@@ -189,8 +189,8 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 	}
 	defer rows.Close()
 
-	// next types are only needed in case the offset is >= total rows found. Then all the columns, except 'total',
-	// will be null
+	// next types are only needed in case the offset is >= total rows found or no classes have been found.
+	// Then all the columns except 'total' will be null
 	var (
 		classLetter pgtype.Varchar
 		classDate   pgtype.Date
@@ -209,7 +209,7 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 		if eID.Status != pgtype.Present {
 			return nil, total, garbage.ErrUnknownEvent
 		}
-		// next will happen if the offset is >= total rows found or no classes with such class names have been found
+		// next will happen if the offset >= total rows found or no classes with such class names have been found
 		// In that case we simply return the total w\o additional work
 		if classLetter.Status != pgtype.Present {
 			return nil, total, nil
@@ -257,7 +257,7 @@ const eventPupilsQuery = `
 	pagination as (
 		select *
 		from query
-		order by ?
+		order by %s
 		limit ? offset ?
 	)
 	select *
@@ -268,8 +268,8 @@ const eventPupilsQuery = `
 
 // a map needed to transform a sorting value to the "order by" part of the EventPupils query
 var eventPupilsOrderMap = map[sorting.By]string{
-	sorting.NameAsc: "class_date_formed, class_letter, last_name, first_name asc",
-	sorting.NameDes: "class_date_formed, class_letter, last_name, first_name desc",
+	sorting.NameAsc: "class_date_formed desc, class_letter asc, last_name asc, first_name asc",
+	sorting.NameDes: "class_date_formed asc, class_letter desc, last_name desc, first_name desc",
 	sorting.Gadgets: "gadgets desc",
 	sorting.Paper:   "paper desc",
 	sorting.Plastic: "plastic desc",
@@ -286,8 +286,8 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 	args := []interface{}{eventID}
 	// if there're no filters passed, create a simple query. Otherwise, create a query w/ the text search
 	if filters.NameAndClass == "" {
-		q = fmt.Sprintf(eventPupilsQuery, "")
-		args = append(args, orderBy, amount, skip, eventID)
+		q = fmt.Sprintf(eventPupilsQuery, "", orderBy)
+		args = append(args, amount, skip, eventID)
 	} else {
 		// we need to know the event's date in order to create a text search query. Every word,
 		// which resembles a class name, will be copied,
@@ -305,11 +305,11 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		textSearchQuery := prepareTextSearchQuery(filters.NameAndClass, eDate)
 		// if the text query is empty, make a query without it. Otherwise, with it
 		if textSearchQuery == "" {
-			q = fmt.Sprintf(eventPupilsQuery, "")
-			args = append(args, orderBy, amount, skip, eventID)
+			q = fmt.Sprintf(eventPupilsQuery, "", orderBy)
+			args = append(args, amount, skip, eventID)
 		} else {
-			q = fmt.Sprintf(eventPupilsQuery, " and p.text_search @@ to_tsquery('simple', ?)")
-			args = append(args, textSearchQuery, orderBy, amount, skip, eventID)
+			q = fmt.Sprintf(eventPupilsQuery, " and p.text_search @@ to_tsquery('simple', ?)", orderBy)
+			args = append(args, textSearchQuery, amount, skip, eventID)
 		}
 	}
 	// change "?" to "$" in the query
@@ -319,8 +319,8 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		return nil, 0, err
 	}
 	defer rows.Close()
-	// next types are only needed in case the offset is >= total rows found. Then all the columns, except 'total',
-	// will be null
+	// next types are only needed in case the offset is >= total rows found or no pupils have been found.
+	// Then all the columns except 'total' will be null
 	var (
 		id          pgtype.Varchar
 		firstName   pgtype.Varchar
@@ -343,7 +343,7 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		if eID.Status != pgtype.Present {
 			return nil, total, garbage.ErrUnknownEvent
 		}
-		// next will happen if the offset is >= total rows found or no pupils with such names/classNames were found
+		// next will happen if the offset >= total rows found or no pupils with such names/classNames were found
 		// In that case we simply return the total w\o additional work
 		if id.Status != pgtype.Present {
 			return nil, total, nil
