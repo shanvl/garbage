@@ -18,10 +18,6 @@ type Service interface {
 	// filters
 	Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
-	// ClassByID returns a class with the given ID with a list of all the resources it has brought to every event that
-	// passed the provided filter
-	ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter, eventsSorting sorting.By) (*Class,
-		error)
 	// Pupils returns a list of sorted pupils with a list of resources they brought to events that passed the given
 	// filters
 	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
@@ -39,8 +35,6 @@ type Service interface {
 type Repository interface {
 	Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
-	ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter, eventsSorting sorting.By) (*Class,
-		error)
 	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
 	PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter, eventsSorting sorting.By) (*Pupil,
@@ -78,23 +72,6 @@ func (s *service) Classes(ctx context.Context, filters ClassesFilters, classesSo
 	eventsSorting = validateEventsSorting(eventsSorting)
 
 	return s.repo.Classes(ctx, filters, classesSorting, eventsSorting, amount, skip)
-}
-
-// ClassByID returns a class with the given ID with a list of all the resources it has brought to every event that
-// passed the provided filter. Events are sorted
-func (s *service) ClassByID(ctx context.Context, id garbage.ClassID, filters EventsByDateFilter,
-	eventsSorting sorting.By) (*Class, error) {
-
-	// check if eventID is provided
-	errVld := valid.EmptyError()
-	if len(id) == 0 {
-		errVld.Add("eventID", "eventID must be provided")
-		return nil, errVld
-	}
-	// validate events sorting
-	eventsSorting = validateEventsSorting(eventsSorting)
-
-	return s.repo.ClassByID(ctx, id, filters, eventsSorting)
 }
 
 // Events returns a list of sorted events that passed the provided filters

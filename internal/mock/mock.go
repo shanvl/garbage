@@ -16,10 +16,6 @@ type AggregatingRepository struct {
 		amount, skip int) (classes []*aggregating.Class, total int, err error)
 	ClassesInvoked bool
 
-	ClassByIDFn func(ctx context.Context, id garbage.ClassID, filters aggregating.EventsByDateFilter,
-		eventsSorting sorting.By) (*aggregating.Class, error)
-	ClassByIDInvoked bool
-
 	EventsFn func(ctx context.Context, filters aggregating.EventsFilters, sortBy sorting.By, amount,
 		skip int) (events []*aggregating.Event, total int, err error)
 	EventsInvoked bool
@@ -49,14 +45,6 @@ func (r *AggregatingRepository) Events(ctx context.Context, filters aggregating.
 	return r.EventsFn(ctx, filters, sortBy, amount, skip)
 }
 
-// ClassByID calls ClassByIDFn
-func (r *AggregatingRepository) ClassByID(ctx context.Context, id garbage.ClassID,
-	filters aggregating.EventsByDateFilter, eventsSorting sorting.By) (*aggregating.Class, error) {
-
-	r.ClassByIDInvoked = true
-	return r.ClassByIDFn(ctx, id, filters, eventsSorting)
-}
-
 // Pupils calls PupilsFn
 func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.PupilsFilters, pupilsSorting,
 	eventsSorting sorting.By, amount, skip int) (pupils []*aggregating.Pupil, total int, err error) {
@@ -69,7 +57,7 @@ func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.
 func (r *AggregatingRepository) PupilByID(ctx context.Context, id garbage.PupilID,
 	filters aggregating.EventsByDateFilter, eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
-	r.ClassByIDInvoked = true
+	r.PupilByIDInvoked = true
 	return r.PupilByIDFn(ctx, id, filters, eventsSorting)
 }
 
