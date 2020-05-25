@@ -341,6 +341,19 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "invalid value in the text search",
+			args: args{
+				eventID: eID,
+				filters: eventing.EventPupilsFilters{
+					NameAndClass: "ro&7",
+				},
+				sortBy: sorting.Paper,
+				amount: 50,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
 			name: "skip more than the total amount of the pupils in the db",
 			args: args{
 				eventID: eID,

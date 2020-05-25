@@ -104,6 +104,131 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 	}
 }
 
+func TestAggregatingRepo_Events(t *testing.T) {
+	r := postgres.NewAggregatingRepo(db)
+	ctx := context.Background()
+
+	type args struct {
+		filters aggregating.EventsFilters
+		sortBy  sorting.By
+		amount  int
+		skip    int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "no filters",
+			args: args{
+				filters: aggregating.EventsFilters{},
+				sortBy:  sorting.Plastic,
+				amount:  150,
+				skip:    0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "with a name",
+			args: args{
+				filters: aggregating.EventsFilters{
+					Name: "a b",
+				},
+				sortBy: sorting.Plastic,
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid name",
+			args: args{
+				filters: aggregating.EventsFilters{
+					Name: "a&b",
+				},
+				sortBy: sorting.Plastic,
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "from is set",
+			args: args{
+				filters: aggregating.EventsFilters{
+					EventsByDateFilter: aggregating.EventsByDateFilter{
+						From: newDate(2018, 1, 1),
+					},
+				},
+				sortBy: sorting.Plastic,
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "to is set",
+			args: args{
+				filters: aggregating.EventsFilters{
+					EventsByDateFilter: aggregating.EventsByDateFilter{
+						To: newDate(2020, 1, 1),
+					},
+				},
+				sortBy: sorting.Plastic,
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "dates are set",
+			args: args{
+				filters: aggregating.EventsFilters{
+					EventsByDateFilter: aggregating.EventsByDateFilter{
+						From: newDate(2018, 1, 1),
+						To:   newDate(2020, 1, 1),
+					},
+				},
+				sortBy: sorting.Plastic,
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "allowed resources are set",
+			args: args{
+				filters: aggregating.EventsFilters{
+					ResourcesAllowed: []garbage.Resource{garbage.Gadgets, garbage.Plastic, garbage.Paper},
+				},
+				sortBy: sorting.Plastic,
+				amount: 150,
+				skip:   0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "offset > entries",
+			args: args{
+				sortBy: sorting.Plastic,
+				amount: 150,
+				skip:   999,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := r.Events(ctx, tt.args.filters, tt.args.sortBy, tt.args.amount, tt.args.skip)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Events() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func newDate(year int, month int, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }

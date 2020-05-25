@@ -20,9 +20,11 @@ create table if not exists event
     id                varchar(25) primary key,
     date              date        not null,
     name              varchar(25) not null,
+    text_search       tsvector generated always as (to_tsvector('simple', name)) stored,
     resources_allowed resource[]  not null check (cardinality(resources_allowed) >= 1)
 );
 
+create index if not exists event_text_search on event using gin (text_search);
 create index if not exists event_resources_allowed on event using gin (resources_allowed);
 create index if not exists event_id_date_name_idx on event (id, date, name);
 create index if not exists event_id_name_date_idx on event (id, name, date);

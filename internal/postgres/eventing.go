@@ -210,7 +210,7 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 			return nil, total, garbage.ErrUnknownEvent
 		}
 		// next will happen if the offset >= total rows found or no classes with such class names have been found
-		// In that case we simply return the total w\o additional work
+		// In that case we simply return the total w/o additional work
 		if classLetter.Status != pgtype.Present {
 			return nil, total, nil
 		}
@@ -302,15 +302,9 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 			return nil, 0, err
 		}
 		// create the text search part of the query from the filters passed
-		textSearchQuery := prepareTextSearchQuery(filters.NameAndClass, eDate)
-		// if the text query is empty, make a query without it. Otherwise, with it
-		if textSearchQuery == "" {
-			q = fmt.Sprintf(eventPupilsQuery, "", orderBy)
-			args = append(args, amount, skip, eventID)
-		} else {
-			q = fmt.Sprintf(eventPupilsQuery, " and p.text_search @@ to_tsquery('simple', ?)", orderBy)
-			args = append(args, textSearchQuery, amount, skip, eventID)
-		}
+		textSearchQuery := prepareTextSearchClass(filters.NameAndClass, eDate)
+		q = fmt.Sprintf(eventPupilsQuery, " and p.text_search @@ to_tsquery('simple', ?)", orderBy)
+		args = append(args, textSearchQuery, amount, skip, eventID)
 	}
 	// change "?" to "$" in the query
 	q = sqlx.Rebind(sqlx.BindType("pgx"), q)

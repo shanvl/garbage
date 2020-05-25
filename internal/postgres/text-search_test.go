@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func Test_prepareTextSearchQuery(t *testing.T) {
+func Test_prepareTextSearchClass(t *testing.T) {
 	date := time.Date(2020, 10, 10, 10, 10, 10, 10, time.UTC)
 	type args struct {
 		q string
@@ -59,7 +59,38 @@ func Test_prepareTextSearchQuery(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := prepareTextSearchQuery(tt.args.q, tt.args.t); got != tt.want {
+			if got := prepareTextSearchClass(tt.args.q, tt.args.t); got != tt.want {
+				t.Errorf("prepareTextSearchClass() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_prepareTextSearch(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "empty input",
+			input: "",
+			want:  "",
+		},
+		{
+			name:  "2 words",
+			input: "some input",
+			want:  "some:* & input:*",
+		},
+		{
+			name:  "invalid input",
+			input: "some & input",
+			want:  "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := prepareTextSearch(tt.input); got != tt.want {
 				t.Errorf("prepareTextSearchQuery() = %v, want %v", got, tt.want)
 			}
 		})
