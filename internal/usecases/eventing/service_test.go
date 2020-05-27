@@ -385,7 +385,7 @@ func Test_service_EventPupils(t *testing.T) {
 
 	var repository mock.EventingRepository
 	repository.EventPupilsFn = func(ctx context.Context, eventID garbage.EventID,
-		filters eventing.EventPupilsFilters, sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil,
+		filters eventing.EventPupilFilters, sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil,
 		total int, err error) {
 
 		if eventID == "not_found" {
@@ -405,7 +405,7 @@ func Test_service_EventPupils(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		eventID garbage.EventID
-		filters eventing.EventPupilsFilters
+		filters eventing.EventPupilFilters
 		sortBy  sorting.By
 		amount  int
 		skip    int
@@ -541,7 +541,7 @@ func Test_service_EventClasses(t *testing.T) {
 
 	var repository mock.EventingRepository
 	repository.EventClassesFn = func(ctx context.Context, eventID garbage.EventID,
-		filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
+		filters eventing.EventClassFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
 		total int, err error) {
 
 		if eventID == "not_found" {
@@ -561,7 +561,7 @@ func Test_service_EventClasses(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		eventID garbage.EventID
-		filters eventing.EventClassesFilters
+		filters eventing.EventClassFilters
 		sortBy  sorting.By
 		amount  int
 		skip    int

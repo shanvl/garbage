@@ -304,7 +304,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 
 	type args struct {
 		eventID garbage.EventID
-		filters eventing.EventPupilsFilters
+		filters eventing.EventPupilFilters
 		sortBy  sorting.By
 		amount  int
 		skip    int
@@ -318,7 +318,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			name: "without the text search",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventPupilsFilters{
+				filters: eventing.EventPupilFilters{
 					NameAndClass: "",
 				},
 				sortBy: sorting.Plastic,
@@ -331,7 +331,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			name: "with the text search",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventPupilsFilters{
+				filters: eventing.EventPupilFilters{
 					NameAndClass: "ro 7",
 				},
 				sortBy: sorting.Paper,
@@ -344,7 +344,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			name: "invalid value in the text search",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventPupilsFilters{
+				filters: eventing.EventPupilFilters{
 					NameAndClass: "ro&7",
 				},
 				sortBy: sorting.Paper,
@@ -357,12 +357,10 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			name: "skip more than the total amount of the pupils in the db",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventPupilsFilters{
-					NameAndClass: "",
-				},
-				sortBy: sorting.Plastic,
-				amount: 150,
-				skip:   5000,
+				filters: eventing.EventPupilFilters{},
+				sortBy:  sorting.Plastic,
+				amount:  150,
+				skip:    5000,
 			},
 			wantErr: false,
 		},
@@ -370,12 +368,10 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 			name: "invalid event id",
 			args: args{
 				eventID: "wrongeventid",
-				filters: eventing.EventPupilsFilters{
-					NameAndClass: "",
-				},
-				sortBy: sorting.Plastic,
-				amount: 150,
-				skip:   0,
+				filters: eventing.EventPupilFilters{},
+				sortBy:  sorting.Plastic,
+				amount:  150,
+				skip:    0,
 			},
 			wantErr: true,
 		},
@@ -400,7 +396,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 
 	type args struct {
 		eventID garbage.EventID
-		filters eventing.EventClassesFilters
+		filters eventing.EventClassFilters
 		sortBy  sorting.By
 		amount  int
 		skip    int
@@ -414,7 +410,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 			name: "no classes specified",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventClassesFilters{},
+				filters: eventing.EventClassFilters{},
 				sortBy:  sorting.Plastic,
 				amount:  50,
 				skip:    0,
@@ -425,7 +421,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 			name: "a class is specified",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventClassesFilters{
+				filters: eventing.EventClassFilters{
 					Name: "3b",
 				},
 				sortBy: sorting.Plastic,
@@ -438,7 +434,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 			name: "classes are specified",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventClassesFilters{
+				filters: eventing.EventClassFilters{
 					Name: "3",
 				},
 				sortBy: sorting.Plastic,
@@ -451,7 +447,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 			name: "skip is more than the total amount of the classes in the db",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventClassesFilters{},
+				filters: eventing.EventClassFilters{},
 				sortBy:  sorting.Plastic,
 				amount:  50,
 				skip:    999,
@@ -462,7 +458,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 			name: "invalid class name",
 			args: args{
 				eventID: eID,
-				filters: eventing.EventClassesFilters{
+				filters: eventing.EventClassFilters{
 					Name: "3b3",
 				},
 				sortBy: sorting.Plastic,
@@ -475,7 +471,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 			name: "invalid event id",
 			args: args{
 				eventID: "wrongeventid",
-				filters: eventing.EventClassesFilters{
+				filters: eventing.EventClassFilters{
 					Name: "",
 				},
 				sortBy: sorting.Plastic,

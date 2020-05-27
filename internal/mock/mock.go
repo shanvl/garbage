@@ -12,25 +12,25 @@ import (
 
 // AggregatingRepository is a mock repository for aggregating use case
 type AggregatingRepository struct {
-	ClassesFn func(ctx context.Context, filters aggregating.ClassesFilters, classesSorting, eventsSorting sorting.By,
+	ClassesFn func(ctx context.Context, filters aggregating.ClassFilters, classesSorting, eventsSorting sorting.By,
 		amount, skip int) (classes []*aggregating.Class, total int, err error)
 	ClassesInvoked bool
 
-	EventsFn func(ctx context.Context, filters aggregating.EventsFilters, sortBy sorting.By, amount,
+	EventsFn func(ctx context.Context, filters aggregating.EventFilters, sortBy sorting.By, amount,
 		skip int) (events []*aggregating.Event, total int, err error)
 	EventsInvoked bool
 
-	PupilsFn func(ctx context.Context, filters aggregating.PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
+	PupilsFn func(ctx context.Context, filters aggregating.PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*aggregating.Pupil, total int, err error)
 	PupilsInvoked bool
 
-	PupilByIDFn func(ctx context.Context, id garbage.PupilID, filters aggregating.EventsByDateFilter,
+	PupilByIDFn func(ctx context.Context, id garbage.PupilID, filters aggregating.EventDateFilters,
 		eventsSorting sorting.By) (*aggregating.Pupil, error)
 	PupilByIDInvoked bool
 }
 
 // Classes calls ClassesFn
-func (r *AggregatingRepository) Classes(ctx context.Context, filters aggregating.ClassesFilters, classesSorting,
+func (r *AggregatingRepository) Classes(ctx context.Context, filters aggregating.ClassFilters, classesSorting,
 	eventsSorting sorting.By, amount, skip int) (classes []*aggregating.Class, total int, err error) {
 
 	r.ClassesInvoked = true
@@ -38,7 +38,7 @@ func (r *AggregatingRepository) Classes(ctx context.Context, filters aggregating
 }
 
 // Events calls EventsFn
-func (r *AggregatingRepository) Events(ctx context.Context, filters aggregating.EventsFilters, sortBy sorting.By,
+func (r *AggregatingRepository) Events(ctx context.Context, filters aggregating.EventFilters, sortBy sorting.By,
 	amount, skip int) (events []*aggregating.Event, total int, err error) {
 
 	r.EventsInvoked = true
@@ -46,7 +46,7 @@ func (r *AggregatingRepository) Events(ctx context.Context, filters aggregating.
 }
 
 // Pupils calls PupilsFn
-func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.PupilsFilters, pupilsSorting,
+func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.PupilFilters, pupilsSorting,
 	eventsSorting sorting.By, amount, skip int) (pupils []*aggregating.Pupil, total int, err error) {
 
 	r.PupilsInvoked = true
@@ -55,7 +55,7 @@ func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.
 
 // PupilByID calls PupilByIDFn
 func (r *AggregatingRepository) PupilByID(ctx context.Context, id garbage.PupilID,
-	filters aggregating.EventsByDateFilter, eventsSorting sorting.By) (*aggregating.Pupil, error) {
+	filters aggregating.EventDateFilters, eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
 	r.PupilByIDInvoked = true
 	return r.PupilByIDFn(ctx, id, filters, eventsSorting)
@@ -73,11 +73,11 @@ type EventingRepository struct {
 	EventByIDFn      func(ctx context.Context, id garbage.EventID) (*eventing.Event, error)
 	EventByIDInvoked bool
 
-	EventPupilsFn func(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilsFilters,
+	EventPupilsFn func(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilFilters,
 		sortBy sorting.By, amount int, skip int) ([]*eventing.Pupil, int, error)
 	EventPupilsInvoked bool
 
-	EventClassesFn func(ctx context.Context, eventID garbage.EventID, filters eventing.EventClassesFilters,
+	EventClassesFn func(ctx context.Context, eventID garbage.EventID, filters eventing.EventClassFilters,
 		sortBy sorting.By, amount int, skip int) ([]*eventing.Class, int, error)
 	EventClassesInvoked bool
 
@@ -109,14 +109,14 @@ func (r *EventingRepository) EventByID(ctx context.Context, id garbage.EventID) 
 
 // EventClasses calls EventClassesFn
 func (r *EventingRepository) EventClasses(ctx context.Context, eventID garbage.EventID,
-	filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Class, int, error) {
+	filters eventing.EventClassFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Class, int, error) {
 	r.EventClassesInvoked = true
 	return r.EventClassesFn(ctx, eventID, filters, sortBy, amount, skip)
 }
 
 // EventPupils calls EventPupilsFn
 func (r *EventingRepository) EventPupils(ctx context.Context, eventID garbage.EventID,
-	filters eventing.EventPupilsFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Pupil, int, error) {
+	filters eventing.EventPupilFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Pupil, int, error) {
 	r.EventPupilsInvoked = true
 	return r.EventPupilsFn(ctx, eventID, filters, sortBy, amount, skip)
 }

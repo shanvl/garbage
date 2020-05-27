@@ -21,7 +21,7 @@ func Test_service_Classes(t *testing.T) {
 	ctx := context.Background()
 
 	var repo mock.AggregatingRepository
-	repo.ClassesFn = func(ctx context.Context, filters aggregating.ClassesFilters,
+	repo.ClassesFn = func(ctx context.Context, filters aggregating.ClassFilters,
 		classesSorting, eventsSorting sorting.By, amount, skip int) ([]*aggregating.Class, int, error) {
 
 		if filters.Letter == repoError {
@@ -32,7 +32,7 @@ func Test_service_Classes(t *testing.T) {
 	s := aggregating.NewService(&repo)
 
 	type args struct {
-		filters        aggregating.ClassesFilters
+		filters        aggregating.ClassFilters
 		classesSorting sorting.By
 		eventsSorting  sorting.By
 		amount, skip   int
@@ -47,7 +47,7 @@ func Test_service_Classes(t *testing.T) {
 		{
 			name: "repo's error",
 			args: args{
-				aggregating.ClassesFilters{Letter: repoError},
+				aggregating.ClassFilters{Letter: repoError},
 				sorting.NameAsc,
 				sorting.DateDes,
 				25,
@@ -60,7 +60,7 @@ func Test_service_Classes(t *testing.T) {
 		{
 			name: "negative amount",
 			args: args{
-				aggregating.ClassesFilters{},
+				aggregating.ClassFilters{},
 				sorting.NameAsc,
 				sorting.DateDes,
 				-10,
@@ -73,7 +73,7 @@ func Test_service_Classes(t *testing.T) {
 		{
 			name: "negative skip",
 			args: args{
-				aggregating.ClassesFilters{},
+				aggregating.ClassFilters{},
 				sorting.NameAsc,
 				sorting.DateDes,
 				25,
@@ -86,7 +86,7 @@ func Test_service_Classes(t *testing.T) {
 		{
 			name: "invalid classes sorting",
 			args: args{
-				aggregating.ClassesFilters{},
+				aggregating.ClassFilters{},
 				"invalid sorting",
 				sorting.DateDes,
 				25,
@@ -99,7 +99,7 @@ func Test_service_Classes(t *testing.T) {
 		{
 			name: "invalid events sorting",
 			args: args{
-				aggregating.ClassesFilters{},
+				aggregating.ClassFilters{},
 				sorting.DateDes,
 				"invalid sorting",
 				25,
@@ -112,7 +112,7 @@ func Test_service_Classes(t *testing.T) {
 		{
 			name: "ok args",
 			args: args{
-				aggregating.ClassesFilters{},
+				aggregating.ClassFilters{},
 				sorting.NameAsc,
 				sorting.DateDes,
 				25,
@@ -153,7 +153,7 @@ func Test_service_Events(t *testing.T) {
 	ctx := context.Background()
 
 	var repository mock.AggregatingRepository
-	repository.EventsFn = func(ctx context.Context, filters aggregating.EventsFilters, sortBy sorting.By, amount,
+	repository.EventsFn = func(ctx context.Context, filters aggregating.EventFilters, sortBy sorting.By, amount,
 		skip int) ([]*aggregating.Event, int, error) {
 
 		if filters.Name == repoError {
@@ -166,7 +166,7 @@ func Test_service_Events(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		filters aggregating.EventsFilters
+		filters aggregating.EventFilters
 		sortBy  sorting.By
 		amount  int
 		skip    int
@@ -182,7 +182,7 @@ func Test_service_Events(t *testing.T) {
 			name: "negative amount",
 			args: args{
 				ctx:     ctx,
-				filters: aggregating.EventsFilters{},
+				filters: aggregating.EventFilters{},
 				sortBy:  sortBy,
 				amount:  -55,
 				skip:    skip,
@@ -195,7 +195,7 @@ func Test_service_Events(t *testing.T) {
 			name: "negative skip",
 			args: args{
 				ctx:     ctx,
-				filters: aggregating.EventsFilters{},
+				filters: aggregating.EventFilters{},
 				sortBy:  sortBy,
 				amount:  amount,
 				skip:    -55,
@@ -208,7 +208,7 @@ func Test_service_Events(t *testing.T) {
 			name: "invalid sortBy",
 			args: args{
 				ctx:     ctx,
-				filters: aggregating.EventsFilters{},
+				filters: aggregating.EventFilters{},
 				sortBy:  "invalid",
 				amount:  amount,
 				skip:    skip,
@@ -221,7 +221,7 @@ func Test_service_Events(t *testing.T) {
 			name: "ok args",
 			args: args{
 				ctx:     ctx,
-				filters: aggregating.EventsFilters{},
+				filters: aggregating.EventFilters{},
 				sortBy:  sortBy,
 				amount:  amount,
 				skip:    skip,
@@ -234,7 +234,7 @@ func Test_service_Events(t *testing.T) {
 			name: "repo's internal error",
 			args: args{
 				ctx:     ctx,
-				filters: aggregating.EventsFilters{Name: repoError},
+				filters: aggregating.EventFilters{Name: repoError},
 				sortBy:  sortBy,
 				amount:  amount,
 				skip:    skip,
@@ -271,10 +271,10 @@ func Test_service_Pupils(t *testing.T) {
 	ctx := context.Background()
 
 	var repo mock.AggregatingRepository
-	repo.PupilsFn = func(ctx context.Context, filters aggregating.PupilsFilters,
+	repo.PupilsFn = func(ctx context.Context, filters aggregating.PupilFilters,
 		pupilsSorting, eventsSorting sorting.By, amount, skip int) ([]*aggregating.Pupil, int, error) {
 
-		if filters.Name == repoError {
+		if filters.NameAndClass == repoError {
 			return nil, 0, errors.New("some error")
 		}
 		return classes, totalPupils, nil
@@ -282,7 +282,7 @@ func Test_service_Pupils(t *testing.T) {
 	s := aggregating.NewService(&repo)
 
 	type args struct {
-		filters       aggregating.PupilsFilters
+		filters       aggregating.PupilFilters
 		pupilsSorting sorting.By
 		eventsSorting sorting.By
 		amount, skip  int
@@ -297,7 +297,7 @@ func Test_service_Pupils(t *testing.T) {
 		{
 			name: "repo's error",
 			args: args{
-				aggregating.PupilsFilters{Name: repoError},
+				aggregating.PupilFilters{NameAndClass: repoError},
 				sorting.NameAsc,
 				sorting.DateDes,
 				25,
@@ -310,7 +310,7 @@ func Test_service_Pupils(t *testing.T) {
 		{
 			name: "negative amount",
 			args: args{
-				aggregating.PupilsFilters{},
+				aggregating.PupilFilters{},
 				sorting.NameAsc,
 				sorting.DateDes,
 				-10,
@@ -323,7 +323,7 @@ func Test_service_Pupils(t *testing.T) {
 		{
 			name: "negative skip",
 			args: args{
-				aggregating.PupilsFilters{},
+				aggregating.PupilFilters{},
 				sorting.NameAsc,
 				sorting.DateDes,
 				25,
@@ -336,7 +336,7 @@ func Test_service_Pupils(t *testing.T) {
 		{
 			name: "invalid pupils sorting",
 			args: args{
-				aggregating.PupilsFilters{},
+				aggregating.PupilFilters{},
 				"invalid sorting",
 				sorting.DateDes,
 				25,
@@ -349,7 +349,7 @@ func Test_service_Pupils(t *testing.T) {
 		{
 			name: "invalid events sorting",
 			args: args{
-				aggregating.PupilsFilters{},
+				aggregating.PupilFilters{},
 				sorting.DateDes,
 				"invalid sorting",
 				25,
@@ -362,7 +362,7 @@ func Test_service_Pupils(t *testing.T) {
 		{
 			name: "ok args",
 			args: args{
-				aggregating.PupilsFilters{},
+				aggregating.PupilFilters{},
 				sorting.NameAsc,
 				sorting.DateDes,
 				25,
@@ -399,7 +399,7 @@ func Test_service_PupilByID(t *testing.T) {
 	ctx := context.Background()
 
 	var repo mock.AggregatingRepository
-	repo.PupilByIDFn = func(ctx context.Context, id garbage.PupilID, filters aggregating.EventsByDateFilter,
+	repo.PupilByIDFn = func(ctx context.Context, id garbage.PupilID, filters aggregating.EventDateFilters,
 		eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
 		if id == repoError {
@@ -411,7 +411,7 @@ func Test_service_PupilByID(t *testing.T) {
 
 	type args struct {
 		id            garbage.PupilID
-		filters       aggregating.EventsByDateFilter
+		filters       aggregating.EventDateFilters
 		eventsSorting sorting.By
 	}
 	tests := []struct {
@@ -424,7 +424,7 @@ func Test_service_PupilByID(t *testing.T) {
 			name: "repo's error",
 			args: args{
 				repoError,
-				aggregating.EventsByDateFilter{},
+				aggregating.EventDateFilters{},
 				repoError,
 			},
 			want:    nil,
@@ -434,7 +434,7 @@ func Test_service_PupilByID(t *testing.T) {
 			name: "no pupilID",
 			args: args{
 				"",
-				aggregating.EventsByDateFilter{},
+				aggregating.EventDateFilters{},
 				repoError,
 			},
 			want:    nil,
@@ -444,7 +444,7 @@ func Test_service_PupilByID(t *testing.T) {
 			name: "invalid events sorting",
 			args: args{
 				"id",
-				aggregating.EventsByDateFilter{},
+				aggregating.EventDateFilters{},
 				"invalid sorting",
 			},
 			want:    pupil,
@@ -454,7 +454,7 @@ func Test_service_PupilByID(t *testing.T) {
 			name: "ok args",
 			args: args{
 				"id",
-				aggregating.EventsByDateFilter{},
+				aggregating.EventDateFilters{},
 				sorting.DateDes,
 			},
 			want:    pupil,

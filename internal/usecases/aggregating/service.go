@@ -16,30 +16,30 @@ import (
 type Service interface {
 	// Classes returns a list of sorted classes with a list of resources they brought to events that passed the given
 	// filters
-	Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By, amount,
+	Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
 	// Pupils returns a list of sorted pupils with a list of resources they brought to events that passed the given
 	// filters
-	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
+	Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
 	// PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
 	// passed the provided filter
-	PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter, eventsSorting sorting.By) (*Pupil,
+	PupilByID(ctx context.Context, id garbage.PupilID, filters EventDateFilters, eventsSorting sorting.By) (*Pupil,
 		error)
 	// Events returns a list of sorted events that passed the provided filters
-	Events(ctx context.Context, filters EventsFilters, sortBy sorting.By, amount, skip int) (events []*Event,
+	Events(ctx context.Context, filters EventFilters, sortBy sorting.By, amount, skip int) (events []*Event,
 		total int, err error)
 }
 
 // Repository provides methods to work with entities persistence
 type Repository interface {
-	Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By, amount,
+	Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
-	Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
+	Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
-	PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter, eventsSorting sorting.By) (*Pupil,
+	PupilByID(ctx context.Context, id garbage.PupilID, filters EventDateFilters, eventsSorting sorting.By) (*Pupil,
 		error)
-	Events(ctx context.Context, filters EventsFilters, sortBy sorting.By, amount, skip int) (events []*Event,
+	Events(ctx context.Context, filters EventFilters, sortBy sorting.By, amount, skip int) (events []*Event,
 		total int, err error)
 }
 
@@ -59,7 +59,7 @@ func NewService(repo Repository) Service {
 }
 
 // Classes returns a list of sorted classes with resources they brought to events that passed given filters
-func (s *service) Classes(ctx context.Context, filters ClassesFilters, classesSorting, eventsSorting sorting.By,
+func (s *service) Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By,
 	amount, skip int) (classes []*Class, total int, err error) {
 
 	// if provided values are incorrect, use default ones instead
@@ -75,7 +75,7 @@ func (s *service) Classes(ctx context.Context, filters ClassesFilters, classesSo
 }
 
 // Events returns a list of sorted events that passed the provided filters
-func (s *service) Events(ctx context.Context, filters EventsFilters, sortBy sorting.By, amount,
+func (s *service) Events(ctx context.Context, filters EventFilters, sortBy sorting.By, amount,
 	skip int) (events []*Event, total int, err error) {
 
 	// if provided values are incorrect, use default ones instead
@@ -88,7 +88,7 @@ func (s *service) Events(ctx context.Context, filters EventsFilters, sortBy sort
 
 // Pupils returns a list of sorted pupils with a list of resources they brought to events that passed the given
 // filters
-func (s *service) Pupils(ctx context.Context, filters PupilsFilters, pupilsSorting, eventsSorting sorting.By, amount,
+func (s *service) Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 	skip int) (pupils []*Pupil, total int, err error) {
 
 	// if provided values are incorrect, use default ones instead
@@ -106,7 +106,7 @@ func (s *service) Pupils(ctx context.Context, filters PupilsFilters, pupilsSorti
 
 // PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
 // passed the provided filter. Events are sorted
-func (s *service) PupilByID(ctx context.Context, id garbage.PupilID, filters EventsByDateFilter,
+func (s *service) PupilByID(ctx context.Context, id garbage.PupilID, filters EventDateFilters,
 	eventsSorting sorting.By) (*Pupil, error) {
 
 	// check if pupilID is provided
@@ -159,37 +159,38 @@ type Event struct {
 type Pupil struct {
 	garbage.Pupil
 	garbage.Class
+	// all the resources the pupil brought to the events
+	ResourcesBrought garbage.Resources
 	// list of events with resources brought by the pupil to each of them
 	Events []Event
 }
 
-// ClassesFilters are used to filter classes and events in which they participated
-type ClassesFilters struct {
-	EventsByDateFilter
+// ClassFilters are used to filter classes and events in which they participated
+type ClassFilters struct {
+	EventDateFilters
 	// Letter of the class
 	Letter string
 	// Year the class was formed in
 	YearFormed string
 }
 
-// EventsFilters are used to filter events
-type EventsFilters struct {
-	EventsByDateFilter
+// EventFilters are used to filter events
+type EventFilters struct {
+	EventDateFilters
 	// Name of the event
 	Name string
 	// Recyclables permitted to be brought to this event
 	ResourcesAllowed []garbage.Resource
 }
 
-// PupilsFilters are used to filter pupils and events in which they participated
-type PupilsFilters struct {
-	EventsByDateFilter
-	// Name of the pupil
-	Name string
+// PupilFilters are used to filter pupils and events in which they participated
+type PupilFilters struct {
+	EventFilters
+	NameAndClass string
 }
 
-// EventsByDateFilter is used to filter events by date
-type EventsByDateFilter struct {
+// EventDateFilters are used to filter events by date
+type EventDateFilters struct {
 	// include events occurred since this date
 	From time.Time
 	// include events occurred up to this date

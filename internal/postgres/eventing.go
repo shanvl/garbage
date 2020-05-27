@@ -125,23 +125,14 @@ const eventClassesQuery = `
              left join (select id from event where id = ?) as d(event_id) on true;
 `
 
-// a map needed to transform a sorting value to the "order by" part of the EventClasses query
-var eventClassesOrderMap = map[sorting.By]string{
-	sorting.NameAsc: "class_date_formed desc, class_letter asc",
-	sorting.NameDes: "class_date_formed asc, class_letter desc",
-	sorting.Gadgets: "gadgets desc",
-	sorting.Paper:   "paper desc",
-	sorting.Plastic: "plastic desc",
-}
-
 // EventClasses returns a sorted and paginated list of classes that match the passed filters
 func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID,
-	filters eventing.EventClassesFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
+	filters eventing.EventClassFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
 	total int, err error) {
 
 	var q string
 	// derive the "order by" query part from the sortBy passed
-	orderBy := eventClassesOrderMap[sortBy]
+	orderBy := classOrderMap[sortBy]
 	// create a slice of the query arguments
 	args := []interface{}{eventID}
 	// if there're no filters passed, create a simple query. Otherwise, create a query w/ a conditional "where" part
@@ -189,8 +180,7 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID garbage.EventID
 	}
 	defer rows.Close()
 
-	// next types are only needed in case the offset is >= total rows found or no classes have been found.
-	// Then all the columns except 'total' will be null
+	// "total" column will always be returned, so other columns might be null
 	var (
 		classLetter pgtype.Varchar
 		classDate   pgtype.Date
@@ -250,8 +240,7 @@ const eventPupilsQuery = `
     from pupil p
              cross join event e
              left join resources r on r.pupil_id = p.id and r.event_id = e.id
-    where e.id = ?
-      %s
+    where e.id = ? %s
       and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
 	),
 	pagination as (
@@ -266,22 +255,13 @@ const eventPupilsQuery = `
 	left join (select id from event where id = ?) as d(event_id) on true;
 `
 
-// a map needed to transform a sorting value to the "order by" part of the EventPupils query
-var eventPupilsOrderMap = map[sorting.By]string{
-	sorting.NameAsc: "class_date_formed desc, class_letter asc, last_name asc, first_name asc",
-	sorting.NameDes: "class_date_formed asc, class_letter desc, last_name desc, first_name desc",
-	sorting.Gadgets: "gadgets desc",
-	sorting.Paper:   "paper desc",
-	sorting.Plastic: "plastic desc",
-}
-
 // EventPupils returns a paginated and sorted list of the pupils who have participated in the specified event
-func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilsFilters,
+func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID, filters eventing.EventPupilFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil, total int, err error) {
 
 	var q string
 	// derive the "order by" query part from the sortBy passed
-	orderBy := eventPupilsOrderMap[sortBy]
+	orderBy := pupilOrderMap[sortBy]
 	// create a slice of the query arguments
 	args := []interface{}{eventID}
 	// if there're no filters passed, create a simple query. Otherwise, create a query w/ the text search
@@ -313,8 +293,7 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID garbage.EventID,
 		return nil, 0, err
 	}
 	defer rows.Close()
-	// next types are only needed in case the offset is >= total rows found or no pupils have been found.
-	// Then all the columns except 'total' will be null
+	// "total" column will always be returned, so other columns might be null
 	var (
 		id          pgtype.Varchar
 		firstName   pgtype.Varchar

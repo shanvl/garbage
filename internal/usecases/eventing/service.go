@@ -25,10 +25,10 @@ type Service interface {
 	// EventByID returns an event by its ID
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
 	// EventClasses returns an array of sorted classes for the specified event
-	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
+	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassFilters, sortBy sorting.By,
 		amount, skip int) (classes []*Class, total int, err error)
 	// EventPupils returns an array of sorted pupils for the specified event
-	EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters, sortBy sorting.By,
+	EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilFilters, sortBy sorting.By,
 		amount int, skip int) (pupils []*Pupil, total int, err error)
 	// PupilByID returns a pupil with a given id w/ resources for the specified event
 	PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error)
@@ -40,9 +40,9 @@ type Repository interface {
 		resources garbage.ResourceMap) error
 	DeleteEvent(ctx context.Context, eventID garbage.EventID) error
 	EventByID(ctx context.Context, eventID garbage.EventID) (*Event, error)
-	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters, sortBy sorting.By,
+	EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassFilters, sortBy sorting.By,
 		amount int, skip int) (classes []*Class, total int, err error)
-	EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters, sortBy sorting.By,
+	EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilFilters, sortBy sorting.By,
 		amount int, skip int) (pupils []*Pupil, total int, err error)
 	PupilByID(ctx context.Context, pupilID garbage.PupilID, eventID garbage.EventID) (*Pupil, error)
 	StoreEvent(ctx context.Context, event *garbage.Event) (garbage.EventID, error)
@@ -167,7 +167,7 @@ func (s *service) EventByID(ctx context.Context, eventID garbage.EventID) (*Even
 }
 
 // EventClasses returns an array of sorted classes for the specified event
-func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassesFilters,
+func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, filters EventClassFilters,
 	sortBy sorting.By, amount, skip int) (classes []*Class, total int, err error) {
 
 	// check if eventID was provided
@@ -190,7 +190,7 @@ func (s *service) EventClasses(ctx context.Context, eventID garbage.EventID, fil
 }
 
 // EventPupils returns an array of sorted pupils for the specified event
-func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilsFilters,
+func (s *service) EventPupils(ctx context.Context, eventID garbage.EventID, filters EventPupilFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*Pupil, total int, err error) {
 
 	// check if eventID was provided
@@ -267,12 +267,12 @@ type Pupil struct {
 	ResourcesBrought garbage.Resources
 }
 
-// EventClassesFilters are used to filter classes participating in an event
-type EventClassesFilters struct {
+// EventClassFilters are used to filter classes participating in an event
+type EventClassFilters struct {
 	Name string
 }
 
-// EventPupilsFilters are used to filter pupils participating in an event
-type EventPupilsFilters struct {
+// EventPupilFilters are used to filter pupils participating in an event
+type EventPupilFilters struct {
 	NameAndClass string
 }
