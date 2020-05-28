@@ -18,7 +18,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 
 	type args struct {
 		id            garbage.PupilID
-		filters       aggregating.EventDateFilters
+		filters       aggregating.EventFilters
 		eventsSorting sorting.By
 	}
 	tests := []struct {
@@ -30,7 +30,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 			name: "no dates",
 			args: args{
 				id:            pID,
-				filters:       aggregating.EventDateFilters{},
+				filters:       aggregating.EventFilters{},
 				eventsSorting: sorting.Plastic,
 			},
 			wantErr: false,
@@ -39,7 +39,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 			name: "from is set",
 			args: args{
 				id: pID,
-				filters: aggregating.EventDateFilters{
+				filters: aggregating.EventFilters{
 					From: newDate(2018, 12, 12),
 					To:   time.Time{},
 				},
@@ -51,7 +51,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 			name: "to is set",
 			args: args{
 				id: pID,
-				filters: aggregating.EventDateFilters{
+				filters: aggregating.EventFilters{
 					From: time.Time{},
 					To:   newDate(2018, 12, 12),
 				},
@@ -63,7 +63,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 			name: "dates are set",
 			args: args{
 				id: pID,
-				filters: aggregating.EventDateFilters{
+				filters: aggregating.EventFilters{
 					From: newDate(2018, 12, 12),
 					To:   newDate(2020, 12, 12),
 				},
@@ -75,7 +75,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 			name: "dates are in the future",
 			args: args{
 				id: pID,
-				filters: aggregating.EventDateFilters{
+				filters: aggregating.EventFilters{
 					From: time.Now().AddDate(50, 50, 50),
 					To:   time.Now().AddDate(51, 51, 51),
 				},
@@ -84,10 +84,46 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "event name is set",
+			args: args{
+				id: pID,
+				filters: aggregating.EventFilters{
+					Name: "p",
+				},
+				eventsSorting: sorting.Plastic,
+			},
+			wantErr: false,
+		},
+		{
+			name: "resources allowed are set",
+			args: args{
+				id: pID,
+				filters: aggregating.EventFilters{
+					ResourcesAllowed: []garbage.Resource{garbage.Gadgets, garbage.Paper, garbage.Plastic},
+				},
+				eventsSorting: sorting.Plastic,
+			},
+			wantErr: false,
+		},
+		{
+			name: "all filters are set",
+			args: args{
+				id: pID,
+				filters: aggregating.EventFilters{
+					From:             newDate(2010, 1, 1),
+					To:               newDate(2017, 1, 1),
+					Name:             "p",
+					ResourcesAllowed: []garbage.Resource{garbage.Gadgets, garbage.Paper, garbage.Plastic},
+				},
+				eventsSorting: sorting.Gadgets,
+			},
+			wantErr: false,
+		},
+		{
 			name: "invalid pupil id",
 			args: args{
 				id:            "wrongid",
-				filters:       aggregating.EventDateFilters{},
+				filters:       aggregating.EventFilters{},
 				eventsSorting: sorting.Plastic,
 			},
 			wantErr: true,
@@ -96,6 +132,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := r.PupilByID(ctx, tt.args.id, tt.args.filters, tt.args.eventsSorting)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PupilByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -157,9 +194,7 @@ func TestAggregatingRepo_Events(t *testing.T) {
 			name: "from is set",
 			args: args{
 				filters: aggregating.EventFilters{
-					EventDateFilters: aggregating.EventDateFilters{
-						From: newDate(2018, 1, 1),
-					},
+					From: newDate(2018, 1, 1),
 				},
 				sortBy: sorting.Plastic,
 				amount: 150,
@@ -171,9 +206,7 @@ func TestAggregatingRepo_Events(t *testing.T) {
 			name: "to is set",
 			args: args{
 				filters: aggregating.EventFilters{
-					EventDateFilters: aggregating.EventDateFilters{
-						To: newDate(2020, 1, 1),
-					},
+					To: newDate(2020, 1, 1),
 				},
 				sortBy: sorting.Plastic,
 				amount: 150,
@@ -185,10 +218,8 @@ func TestAggregatingRepo_Events(t *testing.T) {
 			name: "dates are set",
 			args: args{
 				filters: aggregating.EventFilters{
-					EventDateFilters: aggregating.EventDateFilters{
-						From: newDate(2018, 1, 1),
-						To:   newDate(2020, 1, 1),
-					},
+					From: newDate(2018, 1, 1),
+					To:   newDate(2020, 1, 1),
 				},
 				sortBy: sorting.Plastic,
 				amount: 150,
@@ -250,10 +281,8 @@ func TestAggregatingRepo_Pupils(t *testing.T) {
 			args: args{
 				filters: aggregating.PupilFilters{
 					EventFilters: aggregating.EventFilters{
-						EventDateFilters: aggregating.EventDateFilters{
-							From: newDate(2010, 1, 1),
-							To:   newDate(2025, 5, 5),
-						},
+						From:             newDate(2010, 1, 1),
+						To:               newDate(2025, 5, 5),
 						Name:             "p",
 						ResourcesAllowed: []garbage.Resource{garbage.Gadgets},
 					},
@@ -351,10 +380,8 @@ func TestAggregatingRepo_Classes(t *testing.T) {
 			args: args{
 				filters: aggregating.ClassFilters{
 					EventFilters: aggregating.EventFilters{
-						EventDateFilters: aggregating.EventDateFilters{
-							From: newDate(2010, 1, 1),
-							To:   newDate(2025, 5, 5),
-						},
+						From:             newDate(2010, 1, 1),
+						To:               newDate(2025, 5, 5),
 						Name:             "p",
 						ResourcesAllowed: []garbage.Resource{garbage.Gadgets},
 					},

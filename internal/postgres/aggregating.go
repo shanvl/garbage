@@ -147,6 +147,8 @@ func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.Class
 			&eResAllowed, &gadgets, &paper, &plastic, &total); err != nil {
 			return nil, 0, err
 		}
+		// next will happen if the offset >= total rows found or no classes matching the provided criteria have been
+		// found. In that case we simply return total w/o additional work
 		if cDate.Status != pgtype.Present {
 			return nil, total, nil
 		}
@@ -331,6 +333,8 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 		if err != nil {
 			return nil, 0, err
 		}
+		// next will happen if the offset >= total rows found or no pupils matching the provided criteria have been
+		// found. In that case we simply return total w/o additional work
 		if pID.Status != pgtype.Present {
 			return nil, total, nil
 		}
@@ -387,42 +391,61 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 }
 
 const pupilByIDQueryA = `
-	select e.id                 as event_id,
-       e.name,
-       e.date,
-	   e.resources_allowed::text[],
-       p.id,
-       p.first_name,
-       p.last_name,
-       p.class_letter,
-       p.class_date_formed,
-       coalesce(gadgets, 0) as gadgets,
-       coalesce(paper, 0)   as paper,
-       coalesce(plastic, 0) as plastic
+	select e.id                              as event_id,
+		   e.date,
+		   e.name,
+		   e.resources_allowed::text[],
+		   coalesce(gadgets, 0)              as gadgets,
+		   coalesce(paper, 0)                as paper,
+		   coalesce(plastic, 0)              as plastic,
+		   p.id,
+		   p.first_name,
+		   p.last_name,
+		   p.class_date_formed,
+		   p.class_letter,
+		   sum(coalesce(gadgets, 0)) over () as gadgets_aggr,
+		   sum(coalesce(paper, 0)) over ()   as paper_aggr,
+		   sum(coalesce(plastic, 0)) over () as plastic_aggr
 	from pupil p
-			 left join event e on e.date between symmetric greatest(p.class_date_formed, $1)
-		and least(p.class_date_formed + (365.25 * 11)::integer, $2)
+			 left join event e on e.date between symmetric greatest(p.class_date_formed, ?) and least(
+				p.class_date_formed + (365.25 * 11)::integer, ?) %s
 			 left join resources r on p.id = r.pupil_id and e.id = r.event_id
-	where p.id = $3
+	where p.id = ?
 	order by %s;
 `
 
 // PupilByID returns a pupil with the given ID, with a list of all the resources they has brought to every event that
 // passed the provided filter
-func (a *AggregatingRepo) PupilByID(ctx context.Context, id garbage.PupilID, filters aggregating.EventDateFilters,
+func (a *AggregatingRepo) PupilByID(ctx context.Context, id garbage.PupilID, filters aggregating.EventFilters,
 	eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
-	// get and add "order by" to the query
-	orderBy := eventOrderMap[eventsSorting]
-	q := fmt.Sprintf(pupilByIDQueryA, orderBy)
-
-	// the query selects the lesser date from "p.class_date_formed + (365.25 * 11)" and "filters.To". So if filters.
-	// To is not set, set it to some date in the distant future
+	// create the "left join event e on" part of the query
+	joinOn := strings.Builder{}
+	var args []interface{}
+	// if filters.To is not set, set it to some date in the distant future
 	if filters.To.IsZero() {
 		filters.To = filters.To.AddDate(2222, 0, 0)
 	}
+	args = append(args, filters.From, filters.To)
+	if len(filters.ResourcesAllowed) > 0 {
+		joinOn.WriteString("and e.resources_allowed @> ?::text[]::resource[] ")
+		args = append(args, garbage.ResourceSliceToStringSlice(filters.ResourcesAllowed))
+	}
+	if filters.Name != "" {
+		eventTextSearch := prepareTextSearch(filters.Name)
+		joinOn.WriteString("and e.text_search @@ to_tsquery('simple', ?) ")
+		args = append(args, eventTextSearch)
+	}
+	args = append(args, id)
 
-	rows, err := a.db.Query(ctx, q, filters.From, filters.To, id)
+	// get and add "order by" to the query
+	orderBy := eventOrderMap[eventsSorting]
+	// create the query
+	q := fmt.Sprintf(pupilByIDQueryA, joinOn.String(), orderBy)
+	// change all the "?" in the query to "$"
+	q = sqlx.Rebind(sqlx.BindType("pgx"), q)
+
+	rows, err := a.db.Query(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -439,9 +462,10 @@ func (a *AggregatingRepo) PupilByID(ctx context.Context, id garbage.PupilID, fil
 	p := &aggregating.Pupil{}
 	for rows.Next() {
 		e := aggregating.Event{}
-		if err := rows.Scan(&eID, &eName, &eDate, &eResourcesAllowed, &p.ID, &p.FirstName, &p.LastName, &p.Letter,
-			&p.DateFormed, &e.ResourcesBrought.Gadgets, &e.ResourcesBrought.Paper,
-			&e.ResourcesBrought.Plastic); err != nil {
+		if err := rows.Scan(&eID, &eDate, &eName, &eResourcesAllowed, &e.ResourcesBrought.Gadgets,
+			&e.ResourcesBrought.Paper, &e.ResourcesBrought.Plastic, &p.ID, &p.FirstName, &p.LastName,
+			&p.Class.DateFormed, &p.Class.Letter, &p.ResourcesBrought.Gadgets, &p.ResourcesBrought.Paper,
+			&p.ResourcesBrought.Plastic); err != nil {
 			return nil, err
 		}
 		// if event id is null, then no events have been found for the dates passed.

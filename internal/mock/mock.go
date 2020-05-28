@@ -24,7 +24,7 @@ type AggregatingRepository struct {
 		skip int) (pupils []*aggregating.Pupil, total int, err error)
 	PupilsInvoked bool
 
-	PupilByIDFn func(ctx context.Context, id garbage.PupilID, filters aggregating.EventDateFilters,
+	PupilByIDFn func(ctx context.Context, id garbage.PupilID, filters aggregating.EventFilters,
 		eventsSorting sorting.By) (*aggregating.Pupil, error)
 	PupilByIDInvoked bool
 }
@@ -55,7 +55,7 @@ func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.
 
 // PupilByID calls PupilByIDFn
 func (r *AggregatingRepository) PupilByID(ctx context.Context, id garbage.PupilID,
-	filters aggregating.EventDateFilters, eventsSorting sorting.By) (*aggregating.Pupil, error) {
+	filters aggregating.EventFilters, eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
 	r.PupilByIDInvoked = true
 	return r.PupilByIDFn(ctx, id, filters, eventsSorting)

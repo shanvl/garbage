@@ -33,7 +33,6 @@ type Resources struct {
 // ResourceMap is a map of resources in kg
 type ResourceMap map[Resource]float32
 
-// TODO: move next 2 to infra level?
 // ResourceSliceToStringSlice converts a slice of resources to a slice of strings
 func ResourceSliceToStringSlice(rr []Resource) []string {
 	ss := make([]string, len(rr))
