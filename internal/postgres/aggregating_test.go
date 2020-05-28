@@ -330,6 +330,108 @@ func TestAggregatingRepo_Pupils(t *testing.T) {
 	}
 }
 
+func TestAggregatingRepo_Classes(t *testing.T) {
+	r := postgres.NewAggregatingRepo(db)
+	ctx := context.Background()
+
+	type args struct {
+		filters        aggregating.ClassFilters
+		classesSorting sorting.By
+		eventsSorting  sorting.By
+		amount         int
+		skip           int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "all filters",
+			args: args{
+				filters: aggregating.ClassFilters{
+					EventFilters: aggregating.EventFilters{
+						EventDateFilters: aggregating.EventDateFilters{
+							From: newDate(2010, 1, 1),
+							To:   newDate(2025, 5, 5),
+						},
+						Name:             "p",
+						ResourcesAllowed: []garbage.Resource{garbage.Gadgets},
+					},
+					DateFormed: newDate(2009, 9, 1),
+					Letter:     "a",
+				},
+				classesSorting: sorting.NameDes,
+				eventsSorting:  sorting.Gadgets,
+				amount:         15,
+				skip:           0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "no filters",
+			args: args{
+				filters:        aggregating.ClassFilters{},
+				classesSorting: sorting.NameDes,
+				eventsSorting:  sorting.Gadgets,
+				amount:         15,
+				skip:           0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "no classes",
+			args: args{
+				filters: aggregating.ClassFilters{
+					DateFormed: time.Now().AddDate(50, 1, 1),
+				},
+				classesSorting: sorting.NameDes,
+				eventsSorting:  sorting.Gadgets,
+				amount:         15,
+				skip:           0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "no events",
+			args: args{
+				filters: aggregating.ClassFilters{
+					EventFilters: aggregating.EventFilters{
+						Name: "zzzzzzznoevents",
+					},
+				},
+				classesSorting: sorting.NameDes,
+				eventsSorting:  sorting.Gadgets,
+				amount:         15,
+				skip:           0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "offset > rows",
+			args: args{
+				filters:        aggregating.ClassFilters{},
+				classesSorting: sorting.NameDes,
+				eventsSorting:  sorting.Gadgets,
+				amount:         15,
+				skip:           999,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := r.Classes(ctx, tt.args.filters, tt.args.classesSorting, tt.args.eventsSorting,
+				tt.args.amount, tt.args.skip)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Classes() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func newDate(year int, month int, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }

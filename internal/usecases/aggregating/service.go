@@ -144,6 +144,8 @@ func validateAmountSkip(a, s int) (int, int) {
 // Class is a model of the class, adapted for this use case
 type Class struct {
 	garbage.Class
+	// all the resources the class brought to the events
+	ResourcesBrought garbage.Resources
 	// list of events with resources brought by the class to each of them
 	Events []Event
 }
@@ -167,11 +169,11 @@ type Pupil struct {
 
 // ClassFilters are used to filter classes and events in which they participated
 type ClassFilters struct {
-	EventDateFilters
+	EventFilters
 	// Letter of the class
 	Letter string
-	// Year the class was formed in
-	YearFormed string
+	// Date the class was formed at
+	DateFormed time.Time
 }
 
 // EventFilters are used to filter events

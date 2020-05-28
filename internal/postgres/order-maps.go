@@ -35,3 +35,11 @@ var pupilAggrOrderMap = map[sorting.By]string{
 	sorting.Paper:   "paper_aggr desc",
 	sorting.Plastic: "plastic_aggr desc",
 }
+
+var classAggrOrderMap = map[sorting.By]string{
+	sorting.NameAsc: "class_date_formed desc, class_letter asc",
+	sorting.NameDes: "class_date_formed asc, class_letter desc",
+	sorting.Gadgets: "gadgets_aggr desc",
+	sorting.Paper:   "paper_aggr desc",
+	sorting.Plastic: "plastic_aggr desc",
+}
