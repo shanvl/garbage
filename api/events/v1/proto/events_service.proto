@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package shanvl.garbage.events;
+
+import "events.proto";
+import "third_party/google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = ".;eventsv1pb";
+
+service EventsService {
+    rpc FindClasses (FindClassesRequest) returns (FindClassesResponse) {
+    }
+}
+
+message FindClassesRequest {
+    string letter = 1;
+    google.protobuf.Timestamp date_formed = 2;
+    EventFilters event_filters = 3;
+    string sorting = 4;
+    string event_sorting = 5;
+    uint32 amount = 6;
+    uint32 skip = 7;
+}
+
+message FindClassesResponse {
+    repeated ClassAggr classes = 1;
+}

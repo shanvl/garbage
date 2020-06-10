@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package shanvl.garbage.events;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = ".;eventsv1pb";
+
+message ClassAggr {
+    string letter = 1;
+    google.protobuf.Timestamp date_formed = 2;
+    ResourcesBrought resources_brought = 3;
+    repeated Event events = 4;
+}
+
+message Event {
+    string id = 1;
+    google.protobuf.Timestamp date = 2;
+    string name = 3;
+    repeated Resource resources_allowed = 4;
+    ResourcesBrought resources_brought = 5;
+}
+
+message EventFilters {
+    google.protobuf.Timestamp from = 1;
+    google.protobuf.Timestamp to = 2;
+    string name = 3;
+    repeated Resource resources_allowed = 4;
+}
+
+enum Resource {
+    RESOURCE_UNKNOWN = 0;
+    GADGETS = 1;
+    PAPER = 2;
+    PLASTIC = 3;
+}
+
+message ResourcesBrought {
+    uint32 gadgets = 1;
+    uint32 paper = 2;
+    uint32 plastic = 3;
+}
