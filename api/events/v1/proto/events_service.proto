@@ -3,13 +3,16 @@ syntax = "proto3";
 package shanvl.garbage.events;
 
 import "events.proto";
-import "third_party/google/api/annotations.proto";
+import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = ".;eventsv1pb";
 
 service EventsService {
     rpc FindClasses (FindClassesRequest) returns (FindClassesResponse) {
+        option (google.api.http) = {
+            get: "/v1/classes"
+        };
     }
 }
 

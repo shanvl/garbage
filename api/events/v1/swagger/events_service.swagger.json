@@ -1,0 +1,251 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "events_service.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/classes": {
+      "get": {
+        "operationId": "EventsService_FindClasses",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/eventsFindClassesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "letter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateFormed",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "eventFilters.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "eventFilters.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "eventFilters.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "eventFilters.resourcesAllowed",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "RESOURCE_UNKNOWN",
+                "GADGETS",
+                "PAPER",
+                "PLASTIC"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "eventSorting",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "EventsService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "eventsClassAggr": {
+      "type": "object",
+      "properties": {
+        "letter": {
+          "type": "string"
+        },
+        "dateFormed": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/eventsResourcesBrought"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/eventsEvent"
+          }
+        }
+      }
+    },
+    "eventsEvent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "name": {
+          "type": "string"
+        },
+        "resourcesAllowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/eventsResource"
+          }
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/eventsResourcesBrought"
+        }
+      }
+    },
+    "eventsEventFilters": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "to": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "name": {
+          "type": "string"
+        },
+        "resourcesAllowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/eventsResource"
+          }
+        }
+      }
+    },
+    "eventsFindClassesResponse": {
+      "type": "object",
+      "properties": {
+        "classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/eventsClassAggr"
+          }
+        }
+      }
+    },
+    "eventsResource": {
+      "type": "string",
+      "enum": [
+        "RESOURCE_UNKNOWN",
+        "GADGETS",
+        "PAPER",
+        "PLASTIC"
+      ],
+      "default": "RESOURCE_UNKNOWN"
+    },
+    "eventsResourcesBrought": {
+      "type": "object",
+      "properties": {
+        "gadgets": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "paper": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plastic": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
