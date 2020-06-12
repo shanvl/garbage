@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -27,7 +28,15 @@ func (s *Server) Run(port int) error {
 		return err
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(grpcMiddleware.ChainUnaryServer(
+			NewPanicInterceptor().Unary(),
+		)),
+		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(
+			NewPanicInterceptor().Stream(),
+		)),
+	)
+
 	eventsv1pb.RegisterEventsServiceServer(grpcServer, s)
 
 	// graceful shutdown on signals
@@ -47,7 +56,7 @@ func (s *Server) FindClasses(ctx context.Context, req *eventsv1pb.FindClassesReq
 	FindClassesResponse, error) {
 
 	fmt.Println(req.Letter, req.DateFormed, req.Amount, req.EventFilters, req.EventSorting, req.Sorting, req.Skip)
-	fmt.Printf("%+v", req.EventFilters)
+	fmt.Printf("%T", req.GetAmount())
 
 	return &eventsv1pb.FindClassesResponse{
 		Classes: nil,
