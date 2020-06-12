@@ -19,7 +19,8 @@ func RunServer(ctx context.Context, port int, grpcAddress string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	mux := runtime.NewServeMux()
+	customErrorsOption := runtime.WithErrorHandler(customHTTPError)
+	mux := runtime.NewServeMux(customErrorsOption)
 	dialOptions := []grpc.DialOption{grpc.WithInsecure()}
 	err := eventsv1pb.RegisterEventsServiceHandlerFromEndpoint(ctx, mux, grpcAddress, dialOptions)
 	if err != nil {

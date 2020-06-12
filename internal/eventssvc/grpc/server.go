@@ -7,20 +7,16 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
 type Server struct {
-	// aggr aggregating.Service
 }
 
 func NewServer() *Server {
-	// server := &Server{aggrSvc}
 	server := &Server{}
 	return server
 }
@@ -33,7 +29,6 @@ func (s *Server) Run(port int) error {
 
 	grpcServer := grpc.NewServer()
 	eventsv1pb.RegisterEventsServiceServer(grpcServer, s)
-	runtime.DefaultContextTimeout = 10 * time.Second
 
 	// graceful shutdown on signals
 	sigCh := make(chan os.Signal, 1)
@@ -52,6 +47,7 @@ func (s *Server) FindClasses(ctx context.Context, req *eventsv1pb.FindClassesReq
 	FindClassesResponse, error) {
 
 	fmt.Println(req.Letter, req.DateFormed, req.Amount, req.EventFilters, req.EventSorting, req.Sorting, req.Skip)
+	fmt.Printf("%+v", req.EventFilters)
 
 	return &eventsv1pb.FindClassesResponse{
 		Classes: nil,
