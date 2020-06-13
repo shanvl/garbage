@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package shanvl.garbage.events;
+package shanvl.garbage.events.v1;
 
 import "events.proto";
 import "google/api/annotations.proto";
@@ -14,18 +14,70 @@ service EventsService {
             get: "/v1/classes"
         };
     }
+    rpc FindEvents (FindEventsRequest) returns (FindEventsResponse) {
+        option (google.api.http) = {
+            get: "/v1/events"
+        };
+    }
+    rpc FindPupils (FindPupilsRequest) returns (FindPupilsResponse) {
+        option (google.api.http) = {
+            get: "/v1/pupils"
+        };
+    }
+    rpc FindPupil (FindPupilRequest) returns (FindPupilResponse) {
+        option (google.api.http) = {
+            get: "/v1/pupils/{id}"
+        };
+    }
 }
 
 message FindClassesRequest {
     string letter = 1;
     google.protobuf.Timestamp date_formed = 2;
     EventFilters event_filters = 3;
-    string sorting = 4;
-    string event_sorting = 5;
+    Sorting sorting = 4;
+    Sorting event_sorting = 5;
     uint32 amount = 6;
     uint32 skip = 7;
 }
 
 message FindClassesResponse {
     repeated ClassAggr classes = 1;
+    uint32 total = 2;
+}
+
+message FindEventsRequest {
+    EventFilters filters = 1;
+    Sorting sorting = 2;
+    uint32 amount = 3;
+    uint32 skip = 4;
+}
+
+message FindEventsResponse {
+    repeated Event events = 1;
+    uint32 total = 2;
+}
+
+message FindPupilRequest {
+    string id = 1;
+    EventFilters event_filters = 2;
+    Sorting event_sorting = 3;
+}
+
+message FindPupilResponse {
+    PupilAggr pupil = 1;
+}
+
+message FindPupilsRequest {
+    string name_and_class = 1;
+    EventFilters event_filters = 2;
+    Sorting sorting = 3;
+    Sorting event_sorting = 4;
+    uint32 amount = 5;
+    uint32 skip = 6;
+}
+
+message FindPupilsResponse {
+    repeated PupilAggr pupils = 1;
+    uint32 total = 2;
 }

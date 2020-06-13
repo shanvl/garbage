@@ -18,7 +18,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/eventsFindClassesResponse"
+              "$ref": "#/definitions/v1FindClassesResponse"
             }
           },
           "default": {
@@ -71,9 +71,9 @@
               "type": "string",
               "enum": [
                 "RESOURCE_UNKNOWN",
-                "GADGETS",
-                "PAPER",
-                "PLASTIC"
+                "RESOURCE_GADGETS",
+                "RESOURCE_PAPER",
+                "RESOURCE_PLASTIC"
               ]
             },
             "collectionFormat": "multi"
@@ -82,13 +82,35 @@
             "name": "sorting",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "SORTING_UNKNOWN",
+              "SORTING_DATE_ASC",
+              "SORTING_DATE_DESC",
+              "SORTING_GADGETS",
+              "SORTING_NAME_ASC",
+              "SORTING_NAME_DESC",
+              "SORTING_PAPER",
+              "SORTING_PLASTIC"
+            ],
+            "default": "SORTING_UNKNOWN"
           },
           {
             "name": "eventSorting",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "SORTING_UNKNOWN",
+              "SORTING_DATE_ASC",
+              "SORTING_DATE_DESC",
+              "SORTING_GADGETS",
+              "SORTING_NAME_ASC",
+              "SORTING_NAME_DESC",
+              "SORTING_PAPER",
+              "SORTING_PLASTIC"
+            ],
+            "default": "SORTING_UNKNOWN"
           },
           {
             "name": "amount",
@@ -109,114 +131,297 @@
           "EventsService"
         ]
       }
+    },
+    "/v1/events": {
+      "get": {
+        "operationId": "EventsService_FindEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "filters.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "filters.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "filters.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filters.resourcesAllowed",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "RESOURCE_UNKNOWN",
+                "RESOURCE_GADGETS",
+                "RESOURCE_PAPER",
+                "RESOURCE_PLASTIC"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORTING_UNKNOWN",
+              "SORTING_DATE_ASC",
+              "SORTING_DATE_DESC",
+              "SORTING_GADGETS",
+              "SORTING_NAME_ASC",
+              "SORTING_NAME_DESC",
+              "SORTING_PAPER",
+              "SORTING_PLASTIC"
+            ],
+            "default": "SORTING_UNKNOWN"
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "EventsService"
+        ]
+      }
+    },
+    "/v1/pupils": {
+      "get": {
+        "operationId": "EventsService_FindPupils",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindPupilsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nameAndClass",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "eventFilters.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "eventFilters.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "eventFilters.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "eventFilters.resourcesAllowed",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "RESOURCE_UNKNOWN",
+                "RESOURCE_GADGETS",
+                "RESOURCE_PAPER",
+                "RESOURCE_PLASTIC"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORTING_UNKNOWN",
+              "SORTING_DATE_ASC",
+              "SORTING_DATE_DESC",
+              "SORTING_GADGETS",
+              "SORTING_NAME_ASC",
+              "SORTING_NAME_DESC",
+              "SORTING_PAPER",
+              "SORTING_PLASTIC"
+            ],
+            "default": "SORTING_UNKNOWN"
+          },
+          {
+            "name": "eventSorting",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORTING_UNKNOWN",
+              "SORTING_DATE_ASC",
+              "SORTING_DATE_DESC",
+              "SORTING_GADGETS",
+              "SORTING_NAME_ASC",
+              "SORTING_NAME_DESC",
+              "SORTING_PAPER",
+              "SORTING_PLASTIC"
+            ],
+            "default": "SORTING_UNKNOWN"
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "EventsService"
+        ]
+      }
+    },
+    "/v1/pupils/{id}": {
+      "get": {
+        "operationId": "EventsService_FindPupil",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindPupilResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "eventFilters.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "eventFilters.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "eventFilters.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "eventFilters.resourcesAllowed",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "RESOURCE_UNKNOWN",
+                "RESOURCE_GADGETS",
+                "RESOURCE_PAPER",
+                "RESOURCE_PLASTIC"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "eventSorting",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORTING_UNKNOWN",
+              "SORTING_DATE_ASC",
+              "SORTING_DATE_DESC",
+              "SORTING_GADGETS",
+              "SORTING_NAME_ASC",
+              "SORTING_NAME_DESC",
+              "SORTING_PAPER",
+              "SORTING_PLASTIC"
+            ],
+            "default": "SORTING_UNKNOWN"
+          }
+        ],
+        "tags": [
+          "EventsService"
+        ]
+      }
     }
   },
   "definitions": {
-    "eventsClassAggr": {
-      "type": "object",
-      "properties": {
-        "letter": {
-          "type": "string"
-        },
-        "dateFormed": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "resourcesBrought": {
-          "$ref": "#/definitions/eventsResourcesBrought"
-        },
-        "events": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/eventsEvent"
-          }
-        }
-      }
-    },
-    "eventsEvent": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "date": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "name": {
-          "type": "string"
-        },
-        "resourcesAllowed": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/eventsResource"
-          }
-        },
-        "resourcesBrought": {
-          "$ref": "#/definitions/eventsResourcesBrought"
-        }
-      }
-    },
-    "eventsEventFilters": {
-      "type": "object",
-      "properties": {
-        "from": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "to": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "name": {
-          "type": "string"
-        },
-        "resourcesAllowed": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/eventsResource"
-          }
-        }
-      }
-    },
-    "eventsFindClassesResponse": {
-      "type": "object",
-      "properties": {
-        "classes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/eventsClassAggr"
-          }
-        }
-      }
-    },
-    "eventsResource": {
-      "type": "string",
-      "enum": [
-        "RESOURCE_UNKNOWN",
-        "GADGETS",
-        "PAPER",
-        "PLASTIC"
-      ],
-      "default": "RESOURCE_UNKNOWN"
-    },
-    "eventsResourcesBrought": {
-      "type": "object",
-      "properties": {
-        "gadgets": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "paper": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plastic": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -246,6 +451,197 @@
           }
         }
       }
+    },
+    "v1ClassAggr": {
+      "type": "object",
+      "properties": {
+        "letter": {
+          "type": "string"
+        },
+        "dateFormed": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
+    "v1Event": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "name": {
+          "type": "string"
+        },
+        "resourcesAllowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Resource"
+          }
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        }
+      }
+    },
+    "v1EventFilters": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "to": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "name": {
+          "type": "string"
+        },
+        "resourcesAllowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Resource"
+          }
+        }
+      }
+    },
+    "v1FindClassesResponse": {
+      "type": "object",
+      "properties": {
+        "classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClassAggr"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v1FindEventsResponse": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Event"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v1FindPupilResponse": {
+      "type": "object",
+      "properties": {
+        "pupil": {
+          "$ref": "#/definitions/v1PupilAggr"
+        }
+      }
+    },
+    "v1FindPupilsResponse": {
+      "type": "object",
+      "properties": {
+        "pupils": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PupilAggr"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v1PupilAggr": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "classLetter": {
+          "type": "string"
+        },
+        "classDateFormed": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
+    "v1Resource": {
+      "type": "string",
+      "enum": [
+        "RESOURCE_UNKNOWN",
+        "RESOURCE_GADGETS",
+        "RESOURCE_PAPER",
+        "RESOURCE_PLASTIC"
+      ],
+      "default": "RESOURCE_UNKNOWN"
+    },
+    "v1ResourcesBrought": {
+      "type": "object",
+      "properties": {
+        "gadgets": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "paper": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plastic": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v1Sorting": {
+      "type": "string",
+      "enum": [
+        "SORTING_UNKNOWN",
+        "SORTING_DATE_ASC",
+        "SORTING_DATE_DESC",
+        "SORTING_GADGETS",
+        "SORTING_NAME_ASC",
+        "SORTING_NAME_DESC",
+        "SORTING_PAPER",
+        "SORTING_PLASTIC"
+      ],
+      "default": "SORTING_UNKNOWN"
     }
   }
 }

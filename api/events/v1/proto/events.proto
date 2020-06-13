@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package shanvl.garbage.events;
+package shanvl.garbage.events.v1;
 
 import "google/protobuf/timestamp.proto";
 
@@ -28,15 +28,36 @@ message EventFilters {
     repeated Resource resources_allowed = 4;
 }
 
+message PupilAggr {
+    string id = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string class_letter = 4;
+    google.protobuf.Timestamp class_date_formed = 5;
+    ResourcesBrought resources_brought = 6;
+    repeated Event events = 7;
+}
+
 enum Resource {
     RESOURCE_UNKNOWN = 0;
-    GADGETS = 1;
-    PAPER = 2;
-    PLASTIC = 3;
+    RESOURCE_GADGETS = 1;
+    RESOURCE_PAPER = 2;
+    RESOURCE_PLASTIC = 3;
 }
 
 message ResourcesBrought {
     uint32 gadgets = 1;
     uint32 paper = 2;
     uint32 plastic = 3;
+}
+
+enum Sorting {
+    SORTING_UNKNOWN = 0;
+    SORTING_DATE_ASC = 1;
+    SORTING_DATE_DESC = 2;
+    SORTING_GADGETS = 3;
+    SORTING_NAME_ASC= 4;
+    SORTING_NAME_DESC = 5;
+    SORTING_PAPER = 6;
+    SORTING_PLASTIC = 7;
 }
