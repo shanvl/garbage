@@ -7,6 +7,19 @@ import (
 	"time"
 )
 
+// Bool parses env as an bool. If env is empty or not a valid bool, Bool returns a fallback
+func Bool(name string, fallback bool) bool {
+	env := os.Getenv(name)
+	if env == "" {
+		return fallback
+	}
+	envBool, err := strconv.ParseBool(env)
+	if err != nil {
+		return fallback
+	}
+	return envBool
+}
+
 // Int parses env as an integer. If env is empty or not a valid int, Int returns a fallback
 func Int(name string, fallback int) int {
 	env := os.Getenv(name)

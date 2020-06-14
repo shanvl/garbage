@@ -207,3 +207,51 @@ func TestSeconds(t *testing.T) {
 		})
 	}
 }
+
+func TestBool(t *testing.T) {
+	type args struct {
+		env      string
+		fallback bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "no env",
+			args: args{
+				env:      "",
+				fallback: false,
+			},
+			want: false,
+		},
+		{
+			name: "true",
+			args: args{
+				env:      "true",
+				fallback: false,
+			},
+			want: true,
+		},
+		{
+			name: "false",
+			args: args{
+				env:      "false",
+				fallback: false,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := os.Setenv(envName, tt.args.env)
+			if err != nil {
+				t.Error("wasn't able to set an env variable")
+			}
+			if got := Bool(envName, tt.args.fallback); got != tt.want {
+				t.Errorf("Bool() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
