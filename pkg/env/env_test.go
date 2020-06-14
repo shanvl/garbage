@@ -125,10 +125,10 @@ func Test_duration(t *testing.T) {
 		{
 			name: "valid duration",
 			args: args{
-				env:      "522",
+				env:      "522s",
 				fallback: time.Duration(25),
 			},
-			want: time.Duration(522),
+			want: 522 * time.Second,
 		},
 	}
 	for _, tt := range tests {
@@ -137,71 +137,7 @@ func Test_duration(t *testing.T) {
 			if err != nil {
 				t.Error("wasn't able to set an env variable")
 			}
-			if got := duration(envName, tt.args.fallback); got != tt.want {
-				t.Errorf("Int() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestMinutes(t *testing.T) {
-	type args struct {
-		env      string
-		fallback time.Duration
-	}
-	tests := []struct {
-		name string
-		args args
-		want time.Duration
-	}{
-		{
-			name: "in minutes",
-			args: args{
-				env:      "522",
-				fallback: time.Duration(25),
-			},
-			want: time.Minute * time.Duration(522),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := os.Setenv(envName, tt.args.env)
-			if err != nil {
-				t.Error("wasn't able to set an env variable")
-			}
-			if got := Minutes(envName, tt.args.fallback); got != tt.want {
-				t.Errorf("Int() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestSeconds(t *testing.T) {
-	type args struct {
-		env      string
-		fallback time.Duration
-	}
-	tests := []struct {
-		name string
-		args args
-		want time.Duration
-	}{
-		{
-			name: "in seconds",
-			args: args{
-				env:      "522",
-				fallback: time.Duration(25),
-			},
-			want: time.Second * time.Duration(522),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := os.Setenv(envName, tt.args.env)
-			if err != nil {
-				t.Error("wasn't able to set an env variable")
-			}
-			if got := Seconds(envName, tt.args.fallback); got != tt.want {
+			if got := Duration(envName, tt.args.fallback); got != tt.want {
 				t.Errorf("Int() = %v, want %v", got, tt.want)
 			}
 		})

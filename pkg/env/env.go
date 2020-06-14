@@ -33,14 +33,17 @@ func Int(name string, fallback int) int {
 	return envInt
 }
 
-// Minutes parses env as minutes. If env is empty or not a valid time.Duration, Minutes returns a fallback
-func Minutes(name string, fallback time.Duration) time.Duration {
-	return time.Minute * duration(name, fallback)
-}
-
-// Seconds parses env as minutes. If env is empty or not a valid time.Duration, Seconds returns a fallback
-func Seconds(name string, fallback time.Duration) time.Duration {
-	return time.Second * duration(name, fallback)
+// Duration parses env as duration. If env is empty or not a valid time.Duration, Duration returns a fallback
+func Duration(name string, fallback time.Duration) time.Duration {
+	env := os.Getenv(name)
+	if env == "" {
+		return fallback
+	}
+	duration, err := time.ParseDuration(env)
+	if err != nil {
+		return fallback
+	}
+	return duration
 }
 
 // String parses env as a string. If env is empty, String returns a fallback
@@ -50,17 +53,4 @@ func String(name string, fallback string) string {
 		return fallback
 	}
 	return env
-}
-
-// duration parses env as time.Duration. If env is empty or not a valid time.Duration, duration returns a fallback
-func duration(name string, fallback time.Duration) time.Duration {
-	env := os.Getenv(name)
-	if env == "" {
-		return fallback
-	}
-	envInt, err := strconv.Atoi(env)
-	if err != nil {
-		return fallback
-	}
-	return time.Duration(envInt)
 }
