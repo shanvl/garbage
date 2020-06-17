@@ -15,13 +15,11 @@ import (
 // events scattered in time, with various filters applied
 type Service interface {
 	// Classes returns a list of sorted classes with a list of resources they brought to the events that passed the
-	// given
-	// filters
+	// given filters
 	Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
 	// Pupils returns a list of sorted pupils with a list of resources they brought to the events that passed the
-	// given
-	// filters
+	// given filters
 	Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
 	// PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
@@ -147,7 +145,7 @@ func validateAmountSkip(a, s int) (int, int) {
 type Class struct {
 	eventssvc.Class
 	// all the resources the class brought to the events
-	ResourcesBrought eventssvc.Resources
+	ResourcesBrought eventssvc.ResourceMap
 	// list of events with resources brought by the class to each of them
 	Events []Event
 }
@@ -156,7 +154,7 @@ type Class struct {
 type Event struct {
 	eventssvc.Event
 	// resources collected at this event OR resources brought by the parent entity to this event
-	ResourcesBrought eventssvc.Resources
+	ResourcesBrought eventssvc.ResourceMap
 }
 
 // Pupil is a model of the pupil, adapted for this use case
@@ -164,7 +162,7 @@ type Pupil struct {
 	eventssvc.Pupil
 	eventssvc.Class
 	// all the resources the pupil brought to the events
-	ResourcesBrought eventssvc.Resources
+	ResourcesBrought eventssvc.ResourceMap
 	// list of events with resources brought by the pupil to each of them
 	Events []Event
 }

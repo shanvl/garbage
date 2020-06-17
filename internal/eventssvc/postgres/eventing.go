@@ -80,10 +80,15 @@ const eventByIDQuery = `
 func (e *EventingRepo) EventByID(ctx context.Context, eventID eventssvc.EventID) (*eventing.Event, error) {
 	ev := &eventing.Event{}
 	// need this one in order to scan resources_allowed into it
-	var resAllowedStr []string
+	var (
+		resAllowedStr []string
+		gadgets       float32
+		paper         float32
+		plastic       float32
+	)
 	// query db
 	err := e.db.QueryRow(ctx, eventByIDQuery, eventID).Scan(&ev.ID, &ev.Name, &ev.Date,
-		&resAllowedStr, &ev.ResourcesBrought.Gadgets, &ev.ResourcesBrought.Paper, &ev.ResourcesBrought.Plastic)
+		&resAllowedStr, &gadgets, &paper, &plastic)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, eventssvc.ErrUnknownEvent
@@ -96,6 +101,7 @@ func (e *EventingRepo) EventByID(ctx context.Context, eventID eventssvc.EventID)
 		return nil, err
 	}
 	ev.ResourcesAllowed = resAllowed
+	ev.ResourcesBrought = newResourceMap(resAllowed, gadgets, paper, plastic)
 	return ev, nil
 }
 
@@ -104,6 +110,7 @@ const eventClassesQuery = `
 		select p.class_letter,
 			   p.class_date_formed,
 			   e.date,
+               e.resources_allowed::text[],
 			   coalesce(sum(gadgets), 0) as gadgets,
 			   coalesce(sum(paper), 0)   as paper,
 			   coalesce(sum(plastic), 0) as plastic
@@ -112,7 +119,7 @@ const eventClassesQuery = `
 				 left join resources r on r.pupil_id = p.id and r.event_id = e.id
 		where e.id = ? %s
 		  and e.date between symmetric p.class_date_formed and p.class_date_formed + (365.25 * 11)::integer
-		group by p.class_date_formed, p.class_letter, e.date
+		group by p.class_date_formed, p.class_letter, e.date, e.resources_allowed
 	),  pagination as (
 			 select *
 			 from query
@@ -191,7 +198,8 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID eventssvc.Event
 		eID         pgtype.Varchar
 	)
 	for rows.Next() {
-		if err := rows.Scan(&classLetter, &classDate, &eventDate, &gadgets, &paper, &plastic, &total,
+		var resAllowedStr []string
+		if err := rows.Scan(&classLetter, &classDate, &eventDate, &resAllowedStr, &gadgets, &paper, &plastic, &total,
 			&eID); err != nil {
 			return nil, 0, err
 		}
@@ -210,14 +218,17 @@ func (e *EventingRepo) EventClasses(ctx context.Context, eventID eventssvc.Event
 		if err != nil {
 			return nil, 0, err
 		}
+		// convert []string to []eventssvc.Resource
+		resAllowed, err := eventssvc.StringSliceToResourceSlice(resAllowedStr)
+		// create a map of the resources brought to the event
+		resBrought := newResourceMap(resAllowed, gadgets.Float, paper.Float, plastic.Float)
+		if err != nil {
+			return nil, 0, err
+		}
 		// append the class to other classes
 		classes = append(classes, &eventing.Class{
-			Name: className,
-			ResourcesBrought: eventssvc.Resources{
-				Gadgets: gadgets.Float,
-				Paper:   paper.Float,
-				Plastic: plastic.Float,
-			},
+			Name:             className,
+			ResourcesBrought: resBrought,
 		})
 	}
 	if err := rows.Err(); err != nil {
@@ -234,6 +245,7 @@ const eventPupilsQuery = `
            p.class_letter,
            p.class_date_formed,
 		   e.date,
+		   e.resources_allowed::text[],
            coalesce(r.gadgets, 0) as gadgets,
            coalesce(r.paper, 0)   as paper,
            coalesce(r.plastic, 0) as plastic
@@ -308,8 +320,9 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID eventssvc.EventI
 	)
 
 	for rows.Next() {
-		err := rows.Scan(&id, &firstName, &lastName, &classLetter, &classDate, &eventDate, &gadgets, &paper, &plastic,
-			&total, &eID)
+		var resAllowedStr []string
+		err := rows.Scan(&id, &firstName, &lastName, &classLetter, &classDate, &eventDate, &resAllowedStr, &gadgets,
+			&paper, &plastic, &total, &eID)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -321,17 +334,20 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID eventssvc.EventI
 		if id.Status != pgtype.Present {
 			return nil, total, nil
 		}
+		// convert []string to []eventssvc.Resource
+		resAllowed, err := eventssvc.StringSliceToResourceSlice(resAllowedStr)
+		// create a map of the resources brought to the event
+		resBrought := newResourceMap(resAllowed, gadgets.Float, paper.Float, plastic.Float)
+		if err != nil {
+			return nil, 0, err
+		}
 		p := &eventing.Pupil{
 			Pupil: eventssvc.Pupil{
 				ID:        eventssvc.PupilID(id.String),
 				FirstName: firstName.String,
 				LastName:  lastName.String,
 			},
-			ResourcesBrought: eventssvc.Resources{
-				Gadgets: gadgets.Float,
-				Paper:   paper.Float,
-				Plastic: plastic.Float,
-			},
+			ResourcesBrought: resBrought,
 		}
 		c := eventssvc.Class{Letter: classLetter.String, DateFormed: classDate.Time}
 		// derive a class name from its letter and a year it was formed in
@@ -357,6 +373,7 @@ func (e *EventingRepo) EventPupils(ctx context.Context, eventID eventssvc.EventI
 const evPupilByIDQuery = `
 	select e.id,
            e.date,
+		   e.resources_allowed::text[],
 		   p.id,
 		   p.first_name,
 		   p.last_name,
@@ -374,25 +391,24 @@ const evPupilByIDQuery = `
 func (e *EventingRepo) PupilByID(ctx context.Context, pupilID eventssvc.PupilID,
 	eventID eventssvc.EventID) (*eventing.Pupil, error) {
 
-	p := &eventing.Pupil{
-		Pupil: eventssvc.Pupil{
-			ID:        "",
-			FirstName: "",
-			LastName:  "",
-		},
-		Class:            "",
-		ResourcesBrought: eventssvc.Resources{},
-	}
+	p := &eventing.Pupil{}
 
-	// if there's no e.id has been returned, then there's no event with such an event_id
-	var eID pgtype.Varchar
-	// class name is always relative to the date of the event, not to the current date
-	var eDate pgtype.Date
+	var (
+		// if there's no e.id has been returned, then there's no event with such an event_id
+		eID pgtype.Varchar
+		// class name is always relative to the date of the event, not to the current date
+		eDate          pgtype.Date
+		eResAllowedStr []string
+		gadgets        float32
+		paper          float32
+		plastic        float32
+	)
+
 	// class instance to derive a class name from
 	c := eventssvc.Class{}
 
-	err := e.db.QueryRow(ctx, evPupilByIDQuery, eventID, pupilID).Scan(&eID, &eDate, &p.ID, &p.FirstName, &p.LastName,
-		&c.Letter, &c.DateFormed, &p.ResourcesBrought.Gadgets, &p.ResourcesBrought.Paper, &p.ResourcesBrought.Plastic)
+	err := e.db.QueryRow(ctx, evPupilByIDQuery, eventID, pupilID).Scan(&eID, &eDate, &eResAllowedStr, &p.ID,
+		&p.FirstName, &p.LastName, &c.Letter, &c.DateFormed, &gadgets, &paper, &plastic)
 
 	if err != nil {
 		// if no rows have been returned, there's no such a pupil
@@ -416,6 +432,15 @@ func (e *EventingRepo) PupilByID(ctx context.Context, pupilID eventssvc.PupilID,
 		return nil, err
 	}
 	p.Class = class
+
+	// convert []string to []eventssvc.Resource
+	resAllowed, err := eventssvc.StringSliceToResourceSlice(eResAllowedStr)
+	// create a map of the resources brought to the event
+	resBrought := newResourceMap(resAllowed, gadgets, paper, plastic)
+	if err != nil {
+		return nil, err
+	}
+	p.ResourcesBrought = resBrought
 
 	return p, nil
 }

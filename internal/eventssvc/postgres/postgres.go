@@ -25,7 +25,7 @@ type Config struct {
 }
 
 // Connect establishes a connection to the db server using a provided config
-func Connect(ctx context.Context, c Config) (*pgxpool.Pool, error) {
+func Connect(c Config) (*pgxpool.Pool, error) {
 	// if we decide to use SimpleProtocol, the driver will have to escape params because statements won't be prepared
 	escapeParams := "off"
 	if c.PreferSimpleProtocol {
@@ -48,6 +48,8 @@ func Connect(ctx context.Context, c Config) (*pgxpool.Pool, error) {
 	conf.ConnConfig.PreferSimpleProtocol = c.PreferSimpleProtocol
 	conf.ConnConfig.RuntimeParams = map[string]string{"standard_conforming_strings": escapeParams}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	// create the pool and ping the db
 	return pgxpool.ConnectConfig(ctx, conf)
 }

@@ -1,8 +1,7 @@
 package postgres_test
 
 import (
-	"context"
-	"fmt"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -23,7 +22,7 @@ func TestMain(m *testing.M) {
 func testMain(m *testing.M) int {
 	// connect to the test db. Config values are hardcoded in order not to corrupt production db in case the wrong
 	// compose file is used
-	d, err := postgres.Connect(context.Background(), postgres.Config{
+	d, err := postgres.Connect(postgres.Config{
 		Host:            "db",
 		Database:        "testdb",
 		User:            "root",
@@ -33,7 +32,7 @@ func testMain(m *testing.M) int {
 		MaxConnLifetime: 5 * time.Minute,
 	})
 	if err != nil {
-		fmt.Printf("couldn't connect to testdb: %s\n", err)
+		log.Printf("couldn't connect to testdb: %s\n", err)
 		return 1
 	}
 	defer d.Close()

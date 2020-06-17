@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-func RunServer(ctx context.Context, port int, grpcAddress string) error {
-	ctx, cancel := context.WithCancel(ctx)
+func RunServer(port int, grpcAddress string) error {
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	customErrorsOption := runtime.WithErrorHandler(customHTTPError)

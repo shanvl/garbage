@@ -25,11 +25,6 @@ func (r Resource) IsKnown() bool {
 
 var ErrUnknownResource = errors.New("unknown resource")
 
-// Resources in kg
-type Resources struct {
-	Gadgets, Paper, Plastic float32
-}
-
 // ResourceMap is a map of resources in kg
 type ResourceMap map[Resource]float32
 

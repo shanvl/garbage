@@ -246,7 +246,7 @@ type Class struct {
 	// Name of the class as it was on the date of the event
 	Name string
 	// Resources brought by the class to the event
-	ResourcesBrought eventssvc.Resources
+	ResourcesBrought eventssvc.ResourceMap
 }
 
 // Event is a model of the event, adapted for this use case.
@@ -254,7 +254,7 @@ type Class struct {
 type Event struct {
 	eventssvc.Event
 	// resources brought by pupils to this event
-	ResourcesBrought eventssvc.Resources
+	ResourcesBrought eventssvc.ResourceMap
 }
 
 // Pupil is a model of the pupil, adapted for this use case.
@@ -264,7 +264,7 @@ type Pupil struct {
 	// It is the name of the class as it was on the date of the event
 	Class string
 	// Resources brought by the pupil to the event
-	ResourcesBrought eventssvc.Resources
+	ResourcesBrought eventssvc.ResourceMap
 }
 
 // EventClassFilters are used to filter classes participating in an event

@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -8,11 +9,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/golang/protobuf/ptypes/timestamp"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	healthv1pb "github.com/shanvl/garbage/api/health/v1/pb"
-	"golang.org/x/net/context"
+	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -20,9 +20,10 @@ import (
 )
 
 type Server struct {
+	aggrSvc aggregating.Service
 }
 
-func NewServer() *Server {
+func NewServer(aggrSvc aggregating.Service) *Server {
 	server := &Server{}
 	return server
 }
@@ -60,55 +61,20 @@ func (s *Server) Run(port int) error {
 	return grpcServer.Serve(listener)
 }
 
-// Check is used for health checks
-func (s *Server) Check(ctx context.Context, request *healthv1pb.HealthCheckRequest) (*healthv1pb.HealthCheckResponse, error) {
-	return &healthv1pb.HealthCheckResponse{Status: healthv1pb.HealthCheckResponse_SERVING}, nil
+func handleContextError(ctx context.Context) error {
+	switch ctx.Err() {
+	case context.Canceled:
+		return status.Error(codes.Canceled, "request is canceled")
+	case context.DeadlineExceeded:
+		return status.Error(codes.DeadlineExceeded, "deadline exceeded")
+	default:
+		return nil
+	}
 }
 
-// Watch is used for stream health checks. Not implemented but required by gRPC Health Checking Protocol
-func (s *Server) Watch(request *healthv1pb.HealthCheckRequest, server healthv1pb.Health_WatchServer) error {
-	return status.Errorf(codes.Unimplemented, "no stream health check")
-}
-
-func (s *Server) FindClasses(ctx context.Context, req *eventsv1pb.FindClassesRequest) (*eventsv1pb.
-	FindClassesResponse, error) {
-
-	return &eventsv1pb.FindClassesResponse{
-		Classes: nil,
-	}, nil
-}
-
-func (s *Server) FindEvents(ctx context.Context, request *eventsv1pb.FindEventsRequest) (*eventsv1pb.
-	FindEventsResponse, error) {
-
-	panic("implement me")
-}
-
-func (s *Server) FindPupils(ctx context.Context, request *eventsv1pb.FindPupilsRequest) (*eventsv1pb.
-	FindPupilsResponse, error) {
-
-	panic("implement me")
-}
-
-func (s *Server) FindPupil(ctx context.Context, request *eventsv1pb.FindPupilRequest) (*eventsv1pb.FindPupilResponse,
-	error) {
-
-	return &eventsv1pb.FindPupilResponse{
-		Pupil: &eventsv1pb.PupilAggr{
-			Id:          "",
-			FirstName:   "",
-			LastName:    "",
-			ClassLetter: "",
-			ClassDateFormed: &timestamp.Timestamp{
-				Seconds: 0,
-				Nanos:   0,
-			},
-			ResourcesBrought: &eventsv1pb.ResourcesBrought{
-				Gadgets: 0,
-				Paper:   0,
-				Plastic: 0,
-			},
-			Events: nil,
-		},
-	}, nil
+func logError(err error) error {
+	if err != nil {
+		log.Print(err)
+	}
+	return err
 }

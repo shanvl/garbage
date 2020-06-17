@@ -164,10 +164,10 @@ func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.Class
 					Letter:     cLetter.String,
 					DateFormed: cDate.Time,
 				},
-				ResourcesBrought: eventssvc.Resources{
-					Gadgets: gadgetsAggr.Float,
-					Paper:   paperAggr.Float,
-					Plastic: plasticAggr.Float,
+				ResourcesBrought: eventssvc.ResourceMap{
+					eventssvc.Gadgets: gadgetsAggr.Float,
+					eventssvc.Paper:   paperAggr.Float,
+					eventssvc.Plastic: plasticAggr.Float,
 				},
 			}
 			// append the class to the slice and put its index to the map
@@ -178,6 +178,8 @@ func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.Class
 		if err != nil {
 			return nil, 0, err
 		}
+		// create a map of the resources brought by the class to the event
+		resBrought := newResourceMap(resAllowed, gadgets.Float, paper.Float, plastic.Float)
 		// create an event and append it to the pupil's slice of events
 		e := aggregating.Event{
 			Event: eventssvc.Event{
@@ -186,11 +188,7 @@ func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.Class
 				Name:             eName.String,
 				ResourcesAllowed: resAllowed,
 			},
-			ResourcesBrought: eventssvc.Resources{
-				Gadgets: gadgets.Float,
-				Paper:   paper.Float,
-				Plastic: plastic.Float,
-			},
+			ResourcesBrought: resBrought,
 		}
 		c.Events = append(c.Events, e)
 	}
@@ -354,10 +352,10 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 					Letter:     cLetter.String,
 					DateFormed: cDate.Time,
 				},
-				ResourcesBrought: eventssvc.Resources{
-					Gadgets: gadgetsAggr.Float,
-					Paper:   paperAggr.Float,
-					Plastic: plasticAggr.Float,
+				ResourcesBrought: eventssvc.ResourceMap{
+					eventssvc.Gadgets: gadgetsAggr.Float,
+					eventssvc.Paper:   paperAggr.Float,
+					eventssvc.Plastic: plasticAggr.Float,
 				},
 			}
 			// append the pupil to the slice and put its index to the map
@@ -368,6 +366,8 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 		if err != nil {
 			return nil, 0, err
 		}
+		// create a map of the resources brought by the pupil to the event
+		resBrought := newResourceMap(resAllowed, gadgets.Float, paper.Float, plastic.Float)
 		// create an event and append it to the pupil's slice of events
 		e := aggregating.Event{
 			Event: eventssvc.Event{
@@ -376,11 +376,7 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 				Name:             eName.String,
 				ResourcesAllowed: resAllowed,
 			},
-			ResourcesBrought: eventssvc.Resources{
-				Gadgets: gadgets.Float,
-				Paper:   paper.Float,
-				Plastic: plastic.Float,
-			},
+			ResourcesBrought: resBrought,
 		}
 		p.Events = append(p.Events, e)
 	}
@@ -458,14 +454,20 @@ func (a *AggregatingRepo) PupilByID(ctx context.Context, id eventssvc.PupilID, f
 		eDate             pgtype.Date
 		eName             pgtype.Varchar
 		eResourcesAllowed []string
+		eGadgets          pgtype.Float4
+		ePaper            pgtype.Float4
+		ePlastic          pgtype.Float4
+		pGadgets          pgtype.Float4
+		pPaper            pgtype.Float4
+		pPlastic          pgtype.Float4
 	)
 	p := &aggregating.Pupil{}
 	for rows.Next() {
 		e := aggregating.Event{}
-		if err := rows.Scan(&eID, &eDate, &eName, &eResourcesAllowed, &e.ResourcesBrought.Gadgets,
-			&e.ResourcesBrought.Paper, &e.ResourcesBrought.Plastic, &p.ID, &p.FirstName, &p.LastName,
-			&p.Class.DateFormed, &p.Class.Letter, &p.ResourcesBrought.Gadgets, &p.ResourcesBrought.Paper,
-			&p.ResourcesBrought.Plastic); err != nil {
+		if err := rows.Scan(&eID, &eDate, &eName, &eResourcesAllowed, &eGadgets, &ePaper, &ePlastic, &p.ID,
+			&p.FirstName, &p.LastName, &p.Class.DateFormed, &p.Class.Letter, &pGadgets, &pPaper,
+			&pPlastic); err != nil {
+
 			return nil, err
 		}
 		// if event id is null, then no events have been found for the dates passed.
@@ -478,10 +480,12 @@ func (a *AggregatingRepo) PupilByID(ctx context.Context, id eventssvc.PupilID, f
 		e.Date = eDate.Time
 		e.Name = eName.String
 		resAllowed, err := eventssvc.StringSliceToResourceSlice(eResourcesAllowed)
+		resBrought := newResourceMap(resAllowed, eGadgets.Float, ePaper.Float, ePlastic.Float)
 		if err != nil {
 			return nil, err
 		}
 		e.ResourcesAllowed = resAllowed
+		e.ResourcesBrought = resBrought
 		// append the event to the pupil's slice of events
 		p.Events = append(p.Events, e)
 	}
@@ -492,6 +496,9 @@ func (a *AggregatingRepo) PupilByID(ctx context.Context, id eventssvc.PupilID, f
 	if p.ID == "" {
 		return nil, eventssvc.ErrUnknownPupil
 	}
+	// add the resources the pupil brought to the event
+	p.ResourcesBrought = eventssvc.ResourceMap{eventssvc.Gadgets: pGadgets.Float, eventssvc.Paper: pPaper.Float,
+		eventssvc.Plastic: pPlastic.Float}
 	return p, nil
 }
 
@@ -578,6 +585,7 @@ func (a *AggregatingRepo) Events(ctx context.Context, filters aggregating.EventF
 		}
 		// convert []string to []eventssvc.Resource
 		resAllowed, err := eventssvc.StringSliceToResourceSlice(resAllowedStr)
+		resBrought := newResourceMap(resAllowed, gadgets.Float, paper.Float, plastic.Float)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -588,11 +596,7 @@ func (a *AggregatingRepo) Events(ctx context.Context, filters aggregating.EventF
 				Name:             name.String,
 				ResourcesAllowed: resAllowed,
 			},
-			ResourcesBrought: eventssvc.Resources{
-				Gadgets: gadgets.Float,
-				Paper:   paper.Float,
-				Plastic: plastic.Float,
-			},
+			ResourcesBrought: resBrought,
 		}
 		events = append(events, e)
 	}
@@ -604,4 +608,21 @@ func (a *AggregatingRepo) Events(ctx context.Context, filters aggregating.EventF
 
 func createClassID(date time.Time, letter string) string {
 	return fmt.Sprintf("%d%s", date.Year(), letter)
+}
+
+func newResourceMap(resAllowed []eventssvc.Resource, gadgets float32, paper float32,
+	plastic float32) eventssvc.ResourceMap {
+
+	resBrought := eventssvc.ResourceMap{}
+	for _, res := range resAllowed {
+		switch res {
+		case eventssvc.Gadgets:
+			resBrought[res] = gadgets
+		case eventssvc.Paper:
+			resBrought[res] = paper
+		case eventssvc.Plastic:
+			resBrought[res] = plastic
+		}
+	}
+	return resBrought
 }

@@ -1,32 +1,42 @@
 version: '3'
 
 networks:
-  garbage-example:
+  garbage:
     driver: bridge
 
 services:
-  restsvc:
+  eventssvc:
     build:
       context: ../
       dockerfile: ./docker/Dockerfile
     depends_on:
       - db
+    environment:
+      - GRPC_PORT=3000
+      - REST_PORT=4000
+      - POSTGRES_DB=garbage
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_MAX_CONN=20
+      - POSTGRES_CONN_LIFE=5m
+      - POSTGRES_SIMPLE_PROTOCOL=false
     networks:
-      - garbage-example
+      - garbage
     ports:
       - "3000:3000"
+      - "4000:4000"
     restart: on-failure
 
   db:
     image: postgres:12.2
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: garbage
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=garbage
     networks:
-      - garbage-example
-    ports:
-      - "5433:5432"
-    restart: always
+      - garbage
+    restart: on-failure
     volumes:
       - ./postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
