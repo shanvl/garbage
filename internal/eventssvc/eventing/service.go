@@ -88,10 +88,13 @@ func (s *service) ChangePupilResources(ctx context.Context, eventID eventssvc.Ev
 	if err != nil {
 		return err
 	}
-	// check that provided resources are allowed at this event
-	for res := range resources {
-		if !event.IsResourceAllowed(res) {
-			return valid.NewError("resources", fmt.Sprintf("%s is not allowed", res))
+	// check that provided resources are valid and allowed for this event
+	for res, amount := range resources {
+		if amount < 0 {
+			return valid.NewError("resources", fmt.Sprintf("%s cannot be less than 0", res.String()))
+		}
+		if amount > 0 && !event.IsResourceAllowed(res) {
+			return valid.NewError("resources", fmt.Sprintf("%s is not allowed", res.String()))
 		}
 	}
 	err = s.repo.ChangePupilResources(ctx, eventID, pupilID, resources)

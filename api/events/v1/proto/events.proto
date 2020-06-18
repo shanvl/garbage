@@ -46,9 +46,9 @@ enum Resource {
 }
 
 message ResourcesBrought {
-    uint32 gadgets = 1;
-    uint32 paper = 2;
-    uint32 plastic = 3;
+    float gadgets = 1;
+    float paper = 2;
+    float plastic = 3;
 }
 
 enum Sorting {

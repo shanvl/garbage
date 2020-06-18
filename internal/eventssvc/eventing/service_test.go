@@ -317,6 +317,16 @@ func Test_service_ChangePupilResources(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "one of the resources is less than 0",
+			args: args{
+				ctx:       ctx,
+				eventID:   eventID,
+				pupilID:   pupilID,
+				resources: eventssvc.ResourceMap{eventssvc.Paper: -15, eventssvc.Plastic: 33},
+			},
+			wantErr: true,
+		},
+		{
 			name: "ErrNoEventPupil",
 			args: args{
 				ctx:       ctx,
@@ -333,16 +343,6 @@ func Test_service_ChangePupilResources(t *testing.T) {
 				eventID:   eventID,
 				pupilID:   pupilID,
 				resources: eventssvc.ResourceMap{eventssvc.Plastic: 11, eventssvc.Gadgets: 33},
-			},
-			wantErr: false,
-		},
-		{
-			name: "subtract one resource, add another",
-			args: args{
-				ctx:       ctx,
-				eventID:   eventID,
-				pupilID:   pupilID,
-				resources: eventssvc.ResourceMap{eventssvc.Plastic: -55, eventssvc.Gadgets: 33},
 			},
 			wantErr: false,
 		},
