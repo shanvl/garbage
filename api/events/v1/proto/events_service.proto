@@ -19,14 +19,14 @@ service EventsService {
             get: "/v1/events"
         };
     }
+    rpc FindPupilByID (FindPupilByIDRequest) returns (FindPupilByIDResponse) {
+        option (google.api.http) = {
+            get: "/v1/pupils/{id}"
+        };
+    }
     rpc FindPupils (FindPupilsRequest) returns (FindPupilsResponse) {
         option (google.api.http) = {
             get: "/v1/pupils"
-        };
-    }
-    rpc FindPupil (FindPupilRequest) returns (FindPupilResponse) {
-        option (google.api.http) = {
-            get: "/v1/pupils/{id}"
         };
     }
 }
@@ -35,8 +35,8 @@ message FindClassesRequest {
     string letter = 1;
     google.protobuf.Timestamp date_formed = 2;
     EventFilters event_filters = 3;
-    Sorting sorting = 4;
-    Sorting event_sorting = 5;
+    ClassSorting sorting = 4;
+    EventSorting event_sorting = 5;
     uint32 amount = 6;
     uint32 skip = 7;
 }
@@ -48,7 +48,7 @@ message FindClassesResponse {
 
 message FindEventsRequest {
     EventFilters filters = 1;
-    Sorting sorting = 2;
+    EventSorting sorting = 2;
     uint32 amount = 3;
     uint32 skip = 4;
 }
@@ -58,21 +58,21 @@ message FindEventsResponse {
     uint32 total = 2;
 }
 
-message FindPupilRequest {
+message FindPupilByIDRequest {
     string id = 1;
     EventFilters event_filters = 2;
-    Sorting event_sorting = 3;
+    EventSorting event_sorting = 3;
 }
 
-message FindPupilResponse {
+message FindPupilByIDResponse {
     PupilAggr pupil = 1;
 }
 
 message FindPupilsRequest {
     string name_and_class = 1;
     EventFilters event_filters = 2;
-    Sorting sorting = 3;
-    Sorting event_sorting = 4;
+    PupilSorting sorting = 3;
+    EventSorting event_sorting = 4;
     uint32 amount = 5;
     uint32 skip = 6;
 }

@@ -84,16 +84,14 @@
             "required": false,
             "type": "string",
             "enum": [
-              "SORTING_UNKNOWN",
-              "SORTING_DATE_ASC",
-              "SORTING_DATE_DESC",
-              "SORTING_GADGETS",
-              "SORTING_NAME_ASC",
-              "SORTING_NAME_DESC",
-              "SORTING_PAPER",
-              "SORTING_PLASTIC"
+              "CLASS_SORTING_UNKNOWN",
+              "CLASS_SORTING_GADGETS",
+              "CLASS_SORTING_NAME_ASC",
+              "CLASS_SORTING_NAME_DESC",
+              "CLASS_SORTING_PAPER",
+              "CLASS_SORTING_PLASTIC"
             ],
-            "default": "SORTING_UNKNOWN"
+            "default": "CLASS_SORTING_UNKNOWN"
           },
           {
             "name": "eventSorting",
@@ -101,16 +99,16 @@
             "required": false,
             "type": "string",
             "enum": [
-              "SORTING_UNKNOWN",
-              "SORTING_DATE_ASC",
-              "SORTING_DATE_DESC",
-              "SORTING_GADGETS",
-              "SORTING_NAME_ASC",
-              "SORTING_NAME_DESC",
-              "SORTING_PAPER",
-              "SORTING_PLASTIC"
+              "EVENT_SORTING_UNKNOWN",
+              "EVENT_SORTING_DATE_ASC",
+              "EVENT_SORTING_DATE_DESC",
+              "EVENT_SORTING_GADGETS",
+              "EVENT_SORTING_NAME_ASC",
+              "EVENT_SORTING_NAME_DESC",
+              "EVENT_SORTING_PAPER",
+              "EVENT_SORTING_PLASTIC"
             ],
-            "default": "SORTING_UNKNOWN"
+            "default": "EVENT_SORTING_UNKNOWN"
           },
           {
             "name": "amount",
@@ -192,16 +190,16 @@
             "required": false,
             "type": "string",
             "enum": [
-              "SORTING_UNKNOWN",
-              "SORTING_DATE_ASC",
-              "SORTING_DATE_DESC",
-              "SORTING_GADGETS",
-              "SORTING_NAME_ASC",
-              "SORTING_NAME_DESC",
-              "SORTING_PAPER",
-              "SORTING_PLASTIC"
+              "EVENT_SORTING_UNKNOWN",
+              "EVENT_SORTING_DATE_ASC",
+              "EVENT_SORTING_DATE_DESC",
+              "EVENT_SORTING_GADGETS",
+              "EVENT_SORTING_NAME_ASC",
+              "EVENT_SORTING_NAME_DESC",
+              "EVENT_SORTING_PAPER",
+              "EVENT_SORTING_PLASTIC"
             ],
-            "default": "SORTING_UNKNOWN"
+            "default": "EVENT_SORTING_UNKNOWN"
           },
           {
             "name": "amount",
@@ -289,16 +287,14 @@
             "required": false,
             "type": "string",
             "enum": [
-              "SORTING_UNKNOWN",
-              "SORTING_DATE_ASC",
-              "SORTING_DATE_DESC",
-              "SORTING_GADGETS",
-              "SORTING_NAME_ASC",
-              "SORTING_NAME_DESC",
-              "SORTING_PAPER",
-              "SORTING_PLASTIC"
+              "PUPIL_SORTING_UNKNOWN",
+              "PUPIL_SORTING_GADGETS",
+              "PUPIL_SORTING_NAME_ASC",
+              "PUPIL_SORTING_NAME_DESC",
+              "PUPIL_SORTING_PAPER",
+              "PUPIL_SORTING_PLASTIC"
             ],
-            "default": "SORTING_UNKNOWN"
+            "default": "PUPIL_SORTING_UNKNOWN"
           },
           {
             "name": "eventSorting",
@@ -306,16 +302,16 @@
             "required": false,
             "type": "string",
             "enum": [
-              "SORTING_UNKNOWN",
-              "SORTING_DATE_ASC",
-              "SORTING_DATE_DESC",
-              "SORTING_GADGETS",
-              "SORTING_NAME_ASC",
-              "SORTING_NAME_DESC",
-              "SORTING_PAPER",
-              "SORTING_PLASTIC"
+              "EVENT_SORTING_UNKNOWN",
+              "EVENT_SORTING_DATE_ASC",
+              "EVENT_SORTING_DATE_DESC",
+              "EVENT_SORTING_GADGETS",
+              "EVENT_SORTING_NAME_ASC",
+              "EVENT_SORTING_NAME_DESC",
+              "EVENT_SORTING_PAPER",
+              "EVENT_SORTING_PLASTIC"
             ],
-            "default": "SORTING_UNKNOWN"
+            "default": "EVENT_SORTING_UNKNOWN"
           },
           {
             "name": "amount",
@@ -339,12 +335,12 @@
     },
     "/v1/pupils/{id}": {
       "get": {
-        "operationId": "EventsService_FindPupil",
+        "operationId": "EventsService_FindPupilByID",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1FindPupilResponse"
+              "$ref": "#/definitions/v1FindPupilByIDResponse"
             }
           },
           "default": {
@@ -403,16 +399,16 @@
             "required": false,
             "type": "string",
             "enum": [
-              "SORTING_UNKNOWN",
-              "SORTING_DATE_ASC",
-              "SORTING_DATE_DESC",
-              "SORTING_GADGETS",
-              "SORTING_NAME_ASC",
-              "SORTING_NAME_DESC",
-              "SORTING_PAPER",
-              "SORTING_PLASTIC"
+              "EVENT_SORTING_UNKNOWN",
+              "EVENT_SORTING_DATE_ASC",
+              "EVENT_SORTING_DATE_DESC",
+              "EVENT_SORTING_GADGETS",
+              "EVENT_SORTING_NAME_ASC",
+              "EVENT_SORTING_NAME_DESC",
+              "EVENT_SORTING_PAPER",
+              "EVENT_SORTING_PLASTIC"
             ],
-            "default": "SORTING_UNKNOWN"
+            "default": "EVENT_SORTING_UNKNOWN"
           }
         ],
         "tags": [
@@ -473,6 +469,18 @@
         }
       }
     },
+    "v1ClassSorting": {
+      "type": "string",
+      "enum": [
+        "CLASS_SORTING_UNKNOWN",
+        "CLASS_SORTING_GADGETS",
+        "CLASS_SORTING_NAME_ASC",
+        "CLASS_SORTING_NAME_DESC",
+        "CLASS_SORTING_PAPER",
+        "CLASS_SORTING_PLASTIC"
+      ],
+      "default": "CLASS_SORTING_UNKNOWN"
+    },
     "v1Event": {
       "type": "object",
       "properties": {
@@ -519,6 +527,20 @@
         }
       }
     },
+    "v1EventSorting": {
+      "type": "string",
+      "enum": [
+        "EVENT_SORTING_UNKNOWN",
+        "EVENT_SORTING_DATE_ASC",
+        "EVENT_SORTING_DATE_DESC",
+        "EVENT_SORTING_GADGETS",
+        "EVENT_SORTING_NAME_ASC",
+        "EVENT_SORTING_NAME_DESC",
+        "EVENT_SORTING_PAPER",
+        "EVENT_SORTING_PLASTIC"
+      ],
+      "default": "EVENT_SORTING_UNKNOWN"
+    },
     "v1FindClassesResponse": {
       "type": "object",
       "properties": {
@@ -549,7 +571,7 @@
         }
       }
     },
-    "v1FindPupilResponse": {
+    "v1FindPupilByIDResponse": {
       "type": "object",
       "properties": {
         "pupil": {
@@ -602,6 +624,18 @@
         }
       }
     },
+    "v1PupilSorting": {
+      "type": "string",
+      "enum": [
+        "PUPIL_SORTING_UNKNOWN",
+        "PUPIL_SORTING_GADGETS",
+        "PUPIL_SORTING_NAME_ASC",
+        "PUPIL_SORTING_NAME_DESC",
+        "PUPIL_SORTING_PAPER",
+        "PUPIL_SORTING_PLASTIC"
+      ],
+      "default": "PUPIL_SORTING_UNKNOWN"
+    },
     "v1Resource": {
       "type": "string",
       "enum": [
@@ -616,32 +650,18 @@
       "type": "object",
       "properties": {
         "gadgets": {
-          "type": "integer",
-          "format": "int64"
+          "type": "number",
+          "format": "float"
         },
         "paper": {
-          "type": "integer",
-          "format": "int64"
+          "type": "number",
+          "format": "float"
         },
         "plastic": {
-          "type": "integer",
-          "format": "int64"
+          "type": "number",
+          "format": "float"
         }
       }
-    },
-    "v1Sorting": {
-      "type": "string",
-      "enum": [
-        "SORTING_UNKNOWN",
-        "SORTING_DATE_ASC",
-        "SORTING_DATE_DESC",
-        "SORTING_GADGETS",
-        "SORTING_NAME_ASC",
-        "SORTING_NAME_DESC",
-        "SORTING_PAPER",
-        "SORTING_PLASTIC"
-      ],
-      "default": "SORTING_UNKNOWN"
     }
   }
 }

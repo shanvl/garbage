@@ -451,7 +451,7 @@ func Test_service_EventPupils(t *testing.T) {
 			args: args{
 				ctx:     ctx,
 				eventID: eventID,
-				sortBy:  "invalid",
+				sortBy:  sorting.DateDes,
 				amount:  amount,
 				skip:    skip,
 			},
@@ -607,7 +607,7 @@ func Test_service_EventClasses(t *testing.T) {
 			args: args{
 				ctx:     ctx,
 				eventID: eventID,
-				sortBy:  "invalid",
+				sortBy:  sorting.DateDes,
 				amount:  amount,
 				skip:    skip,
 			},

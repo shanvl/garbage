@@ -4,37 +4,6 @@ import (
 	"testing"
 )
 
-func TestSort_IsValid(t *testing.T) {
-	tests := []struct {
-		name string
-		s    By
-		want bool
-	}{
-		{
-			name: "valid input",
-			s:    Plastic,
-			want: true,
-		},
-		{
-			name: "empty string",
-			s:    "",
-			want: false,
-		},
-		{
-			name: "invalid input",
-			s:    "invalid",
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.s.IsValid(); got != tt.want {
-				t.Errorf("IsValid() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestSort_IsDate(t *testing.T) {
 	tests := []struct {
 		name string
@@ -54,16 +23,6 @@ func TestSort_IsDate(t *testing.T) {
 		{
 			name: "by name",
 			s:    NameAsc,
-			want: false,
-		},
-		{
-			name: "empty string",
-			s:    "",
-			want: false,
-		},
-		{
-			name: "invalid input",
-			s:    "invalid",
 			want: false,
 		},
 	}
@@ -97,16 +56,6 @@ func TestSort_IsName(t *testing.T) {
 			s:    DateAsc,
 			want: false,
 		},
-		{
-			name: "empty string",
-			s:    "",
-			want: false,
-		},
-		{
-			name: "invalid input",
-			s:    "invalid",
-			want: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -136,16 +85,6 @@ func TestSort_IsResources(t *testing.T) {
 		{
 			name: "by name",
 			s:    NameAsc,
-			want: false,
-		},
-		{
-			name: "empty string",
-			s:    "",
-			want: false,
-		},
-		{
-			name: "invalid input",
-			s:    "invalid",
 			want: false,
 		},
 	}

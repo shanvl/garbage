@@ -2,26 +2,17 @@
 package sorting
 
 // By is a type indicating how things can be sorted
-type By string
+type By int
 
 const (
-	DateAsc By = "dateAsc"
-	DateDes By = "dateDes"
-	Gadgets By = "gadgets"
-	NameAsc By = "nameAsc"
-	NameDes By = "nameDes"
-	Paper   By = "paper"
-	Plastic By = "plastic"
+	DateAsc By = iota
+	DateDes
+	Gadgets
+	NameAsc
+	NameDes
+	Paper
+	Plastic
 )
-
-// IsValid checks if a provided string can be used for sorting
-func (b By) IsValid() bool {
-	switch b {
-	case DateAsc, DateDes, Gadgets, Paper, Plastic, NameAsc, NameDes:
-		return true
-	}
-	return false
-}
 
 // IsDate checks if a provided string can be used as a sorting by date
 func (b By) IsDate() bool {
