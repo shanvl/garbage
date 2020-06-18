@@ -13,20 +13,20 @@ func TestEvent_IsResourceAllowed(t *testing.T) {
 	}{
 		{
 			name:             "no resources allowed",
-			resource:         "plastic",
+			resource:         Plastic,
 			resourcesAllowed: nil,
 			want:             false,
 		},
 		{
 			name:             "given resources is not allowed",
-			resource:         "plastic",
-			resourcesAllowed: []Resource{"gadgets", "paper"},
+			resource:         Plastic,
+			resourcesAllowed: []Resource{Gadgets, Paper},
 			want:             false,
 		},
 		{
 			name:             "resource is allowed",
-			resource:         "plastic",
-			resourcesAllowed: []Resource{"plastic", "paper"},
+			resource:         Plastic,
+			resourcesAllowed: []Resource{Plastic, Paper},
 			want:             true,
 		},
 	}

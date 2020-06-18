@@ -174,18 +174,6 @@ func TestEventingRepo_StoreEvent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid resource",
-			args: args{
-				&eventssvc.Event{
-					ID:               "someid",
-					Date:             time.Now().AddDate(0, 0, 5),
-					Name:             "some name",
-					ResourcesAllowed: []eventssvc.Resource{eventssvc.Gadgets, "invalid resource"},
-				},
-			},
-			wantErr: true,
-		},
-		{
 			name: "ok",
 			args: args{
 				event,

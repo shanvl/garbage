@@ -116,12 +116,6 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 	if len(resourcesAllowed) == 0 {
 		errVld.Add("resourcesAllowed", "at least one resource must be specified")
 	}
-	for i, resource := range resourcesAllowed {
-		if !resource.IsKnown() {
-			errVld.Add(fmt.Sprintf("resourcesAllowed[%d]", i), fmt.Sprintf("unknown resource: %s", resource))
-			break
-		}
-	}
 	// if there are validation errors, return them
 	if !errVld.IsEmpty() {
 		return "", errVld

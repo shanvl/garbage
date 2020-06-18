@@ -5,37 +5,6 @@ import (
 	"testing"
 )
 
-func TestResource_IsValid(t *testing.T) {
-	tests := []struct {
-		name string
-		r    Resource
-		want bool
-	}{
-		{
-			name: "known resource",
-			r:    "plastic",
-			want: true,
-		},
-		{
-			name: "unknown resource",
-			r:    "unknown",
-			want: false,
-		},
-		{
-			name: "empty string",
-			r:    "",
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.r.IsKnown(); got != tt.want {
-				t.Errorf("IsKnown() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestStringSliceToResourceSlice(t *testing.T) {
 	type args struct {
 		ss []string
@@ -49,15 +18,23 @@ func TestStringSliceToResourceSlice(t *testing.T) {
 		{
 			name: "invalid resource",
 			args: args{
-				ss: []string{string(Plastic), "invalid resource"},
+				ss: []string{"invalid resource"},
 			},
 			want:    nil,
 			wantErr: true,
 		},
 		{
+			name: "in upper case",
+			args: args{
+				ss: []string{"PLASTIC"},
+			},
+			want:    []Resource{Plastic},
+			wantErr: false,
+		},
+		{
 			name: "ok",
 			args: args{
-				[]string{string(Plastic), string(Gadgets)},
+				[]string{"plastic", "gadgets"},
 			},
 			want:    []Resource{Plastic, Gadgets},
 			wantErr: false,
@@ -72,6 +49,35 @@ func TestStringSliceToResourceSlice(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("StringSliceToResourceSlice() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestResourceSliceToStringSlice(t *testing.T) {
+	type args struct {
+		rr []Resource
+	}
+	tests := []struct {
+		name      string
+		resources []Resource
+		want      []string
+	}{
+		{
+			name:      "no values",
+			resources: []Resource{},
+			want:      []string{},
+		},
+		{
+			name:      "ok case",
+			resources: []Resource{Plastic, Paper},
+			want:      []string{"plastic", "paper"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ResourceSliceToStringSlice(tt.resources); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ResourceSliceToStringSlice() = %v, want %v", got, tt.want)
 			}
 		})
 	}
