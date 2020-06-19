@@ -1,0 +1,537 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "eventing_service.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/events": {
+      "post": {
+        "operationId": "EventingService_CreateEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateEventResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateEventRequest"
+            }
+          }
+        ],
+        "tags": [
+          "EventingService"
+        ]
+      }
+    },
+    "/v1/events/{eventId}/classes": {
+      "get": {
+        "operationId": "EventingService_FindEventClasses",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindEventClassesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "className",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "CLASS_SORTING_UNKNOWN",
+              "CLASS_SORTING_GADGETS",
+              "CLASS_SORTING_NAME_ASC",
+              "CLASS_SORTING_NAME_DESC",
+              "CLASS_SORTING_PAPER",
+              "CLASS_SORTING_PLASTIC"
+            ],
+            "default": "CLASS_SORTING_UNKNOWN"
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "EventingService"
+        ]
+      }
+    },
+    "/v1/events/{eventId}/pupils": {
+      "get": {
+        "operationId": "EventingService_FindEventPupils",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindEventPupilsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "nameAndClass",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "PUPIL_SORTING_UNKNOWN",
+              "PUPIL_SORTING_GADGETS",
+              "PUPIL_SORTING_NAME_ASC",
+              "PUPIL_SORTING_NAME_DESC",
+              "PUPIL_SORTING_PAPER",
+              "PUPIL_SORTING_PLASTIC"
+            ],
+            "default": "PUPIL_SORTING_UNKNOWN"
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "EventingService"
+        ]
+      }
+    },
+    "/v1/events/{eventId}/pupils/{pupilId}": {
+      "get": {
+        "operationId": "EventingService_FindEventPupilByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindEventPupilByIDResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pupilId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EventingService"
+        ]
+      },
+      "put": {
+        "operationId": "EventingService_ChangePupilResources",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pupilId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ChangePupilResourcesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "EventingService"
+        ]
+      }
+    },
+    "/v1/events/{id}": {
+      "get": {
+        "operationId": "EventingService_FindEventByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindEventByIDResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EventingService"
+        ]
+      },
+      "delete": {
+        "operationId": "EventingService_DeleteEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EventingService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ChangePupilResourcesRequest": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string"
+        },
+        "pupilId": {
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        }
+      }
+    },
+    "v1Class": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        }
+      }
+    },
+    "v1ClassSorting": {
+      "type": "string",
+      "enum": [
+        "CLASS_SORTING_UNKNOWN",
+        "CLASS_SORTING_GADGETS",
+        "CLASS_SORTING_NAME_ASC",
+        "CLASS_SORTING_NAME_DESC",
+        "CLASS_SORTING_PAPER",
+        "CLASS_SORTING_PLASTIC"
+      ],
+      "default": "CLASS_SORTING_UNKNOWN"
+    },
+    "v1CreateEventRequest": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "name": {
+          "type": "string"
+        },
+        "resourcesAllowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Resource"
+          }
+        }
+      }
+    },
+    "v1CreateEventResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Event": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "name": {
+          "type": "string"
+        },
+        "resourcesAllowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Resource"
+          }
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        }
+      }
+    },
+    "v1FindEventByIDResponse": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "$ref": "#/definitions/v1Event"
+        }
+      }
+    },
+    "v1FindEventClassesResponse": {
+      "type": "object",
+      "properties": {
+        "classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Class"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v1FindEventPupilByIDResponse": {
+      "type": "object",
+      "properties": {
+        "pupil": {
+          "$ref": "#/definitions/v1Pupil"
+        }
+      }
+    },
+    "v1FindEventPupilsResponse": {
+      "type": "object",
+      "properties": {
+        "pupils": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Pupil"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v1Pupil": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        }
+      }
+    },
+    "v1PupilSorting": {
+      "type": "string",
+      "enum": [
+        "PUPIL_SORTING_UNKNOWN",
+        "PUPIL_SORTING_GADGETS",
+        "PUPIL_SORTING_NAME_ASC",
+        "PUPIL_SORTING_NAME_DESC",
+        "PUPIL_SORTING_PAPER",
+        "PUPIL_SORTING_PLASTIC"
+      ],
+      "default": "PUPIL_SORTING_UNKNOWN"
+    },
+    "v1Resource": {
+      "type": "string",
+      "enum": [
+        "RESOURCE_UNKNOWN",
+        "RESOURCE_GADGETS",
+        "RESOURCE_PAPER",
+        "RESOURCE_PLASTIC"
+      ],
+      "default": "RESOURCE_UNKNOWN"
+    },
+    "v1ResourcesBrought": {
+      "type": "object",
+      "properties": {
+        "gadgets": {
+          "type": "number",
+          "format": "float"
+        },
+        "paper": {
+          "type": "number",
+          "format": "float"
+        },
+        "plastic": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    }
+  }
+}

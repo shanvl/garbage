@@ -8,7 +8,7 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = ".;eventsv1pb";
 
-service EventsService {
+service AggregatingService {
     rpc FindClasses (FindClassesRequest) returns (FindClassesResponse) {
         option (google.api.http) = {
             get: "/v1/classes"

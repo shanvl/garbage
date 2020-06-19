@@ -6,6 +6,11 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = ".;eventsv1pb";
 
+message Class {
+    string name = 1;
+    ResourcesBrought resources_brought = 2;
+}
+
 message ClassAggr {
     string letter = 1;
     google.protobuf.Timestamp date_formed = 2;
@@ -26,6 +31,14 @@ message EventFilters {
     google.protobuf.Timestamp to = 2;
     string name = 3;
     repeated Resource resources_allowed = 4;
+}
+
+message Pupil {
+    string id = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string class = 4;
+    ResourcesBrought resources_brought = 5;
 }
 
 message PupilAggr {

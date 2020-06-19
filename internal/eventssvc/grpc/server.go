@@ -45,7 +45,8 @@ func (s *Server) Run(port int) error {
 
 	reflection.Register(grpcServer)
 
-	eventsv1pb.RegisterEventsServiceServer(grpcServer, s)
+	eventsv1pb.RegisterAggregatingServiceServer(grpcServer, s)
+	eventsv1pb.RegisterEventingServiceServer(grpcServer, s)
 	healthv1pb.RegisterHealthServer(grpcServer, s)
 
 	// graceful shutdown on signals

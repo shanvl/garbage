@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package shanvl.garbage.events.v1;
+
+import "events.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = ".;eventsv1pb";
+
+service EventingService {
+    rpc ChangePupilResources (ChangePupilResourcesRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/events/{event_id}/pupils/{pupil_id}"
+            body: "*"
+        };
+    }
+    rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
+        option (google.api.http) = {
+            post: "/v1/events"
+            body: "*"
+        };
+    }
+    rpc DeleteEvent (DeleteEventRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/events/{id}"
+        };
+    }
+    rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{id}"
+        };
+    }
+    rpc FindEventClasses (FindEventClassesRequest) returns (FindEventClassesResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{event_id}/classes"
+        };
+    }
+    rpc FindEventPupils (FindEventPupilsRequest) returns (FindEventPupilsResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{event_id}/pupils"
+        };
+    }
+    rpc FindEventPupilByID (FindEventPupilByIDRequest) returns (FindEventPupilByIDResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{event_id}/pupils/{pupil_id}"
+        };
+    }
+}
+
+message ChangePupilResourcesRequest {
+    string event_id = 1;
+    string pupil_id = 2;
+    ResourcesBrought resources = 3;
+}
+
+message CreateEventRequest {
+    google.protobuf.Timestamp date = 1;
+    string name = 2;
+    repeated Resource resources_allowed = 3;
+}
+
+message CreateEventResponse {
+    string id = 1;
+}
+
+message DeleteEventRequest {
+    string id = 1;
+}
+
+message FindEventByIDRequest {
+    string id = 1;
+}
+
+message FindEventByIDResponse {
+    Event event = 1;
+}
+
+message FindEventClassesRequest {
+    string event_id = 1;
+    string class_name = 2;
+    ClassSorting sorting = 3;
+    uint32 amount = 4;
+    uint32 skip = 5;
+}
+
+message FindEventClassesResponse {
+    repeated Class classes = 1;
+    uint32 total = 2;
+}
+
+message FindEventPupilsRequest {
+    string event_id = 1;
+    string name_and_class = 2;
+    PupilSorting sorting = 3;
+    uint32 amount = 4;
+    uint32 skip = 5;
+}
+
+message FindEventPupilsResponse {
+    repeated Pupil pupils = 1;
+    uint32 total = 2;
+}
+
+message FindEventPupilByIDRequest {
+    string event_id = 1;
+    string pupil_id = 2;
+}
+
+message FindEventPupilByIDResponse {
+    Pupil pupil = 1;
+}

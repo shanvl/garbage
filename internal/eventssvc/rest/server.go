@@ -22,7 +22,11 @@ func RunServer(port int, grpcAddress string) error {
 	customErrorsOption := runtime.WithErrorHandler(customHTTPError)
 	mux := runtime.NewServeMux(customErrorsOption)
 	dialOptions := []grpc.DialOption{grpc.WithInsecure()}
-	err := eventsv1pb.RegisterEventsServiceHandlerFromEndpoint(ctx, mux, grpcAddress, dialOptions)
+	err := eventsv1pb.RegisterAggregatingServiceHandlerFromEndpoint(ctx, mux, grpcAddress, dialOptions)
+	if err != nil {
+		return err
+	}
+	err = eventsv1pb.RegisterEventingServiceHandlerFromEndpoint(ctx, mux, grpcAddress, dialOptions)
 	if err != nil {
 		return err
 	}
