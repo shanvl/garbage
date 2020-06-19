@@ -1,3 +1,4 @@
+// Package eventing is responsible for management of a single event
 package eventing
 
 import (
@@ -15,22 +16,22 @@ import (
 // Service is an interface providing methods to manage an event.
 // Note that all methods and entities are used in the context of one event.
 type Service interface {
-	// ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
+	// ChangePupilResources changes the amount of resources brought by the pupil to the event
 	ChangePupilResources(ctx context.Context, eventID eventssvc.EventID, pupilID eventssvc.PupilID,
 		resources eventssvc.ResourceMap) error
-	// CreateEvent creates and stores an event
+	// CreateEvent creates and stores the event
 	CreateEvent(ctx context.Context, date time.Time, name string, resources []eventssvc.Resource) (eventssvc.EventID, error)
-	// DeleteEvent deletes an event with the id passed
+	// DeleteEvent deletes the event
 	DeleteEvent(ctx context.Context, eventID eventssvc.EventID) error
-	// EventByID returns an event by its ID
+	// EventByID returns an event with the given id and all its resources
 	EventByID(ctx context.Context, eventID eventssvc.EventID) (*Event, error)
-	// EventClasses returns an array of sorted classes for the specified event
+	// EventClasses returns an array of sorted classes with the resources they brought to the specified event
 	EventClasses(ctx context.Context, eventID eventssvc.EventID, filters EventClassFilters, sortBy sorting.By,
 		amount, skip int) (classes []*Class, total int, err error)
-	// EventPupils returns an array of sorted pupils for the specified event
+	// EventPupils returns an array of sorted pupils with the resources they brought to the specified event
 	EventPupils(ctx context.Context, eventID eventssvc.EventID, filters EventPupilFilters, sortBy sorting.By,
 		amount int, skip int) (pupils []*Pupil, total int, err error)
-	// PupilByID returns a pupil with a given id w/ resources for the specified event
+	// PupilByID returns a pupil with the given id with the resources they brought to that event
 	PupilByID(ctx context.Context, pupilID eventssvc.PupilID, eventID eventssvc.EventID) (*Pupil, error)
 }
 

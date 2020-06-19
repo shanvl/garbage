@@ -1,5 +1,5 @@
 // Package aggregating is responsible for providing aggregated info on how classes and pupils performed at
-// events scattered in time, with various filters applied
+// events, with various filters applied
 package aggregating
 
 import (
@@ -12,18 +12,18 @@ import (
 )
 
 // Service is an interface providing methods for obtaining aggregated info on how classes and pupils performed at
-// events scattered in time, with various filters applied
+// events, with various filters applied
 type Service interface {
-	// Classes returns a list of sorted classes with a list of resources they brought to the events that passed the
-	// given filters
+	// Classes returns a list of sorted classes with the list of resources they have brought to the events that passed
+	// the given filters
 	Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
-	// Pupils returns a list of sorted pupils with a list of resources they brought to the events that passed the
-	// given filters
+	// Pupils returns a list of sorted pupils with the list of resources they have brought to the events that passed
+	// the given filters
 	Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
-	// PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
-	// passed the provided filter
+	// PupilByID returns a pupil with the given ID with the list of all resources they has brought to every event
+	// that passed the provided filter
 	PupilByID(ctx context.Context, id eventssvc.PupilID, filters EventFilters, eventsSorting sorting.By) (*Pupil,
 		error)
 	// Events returns a list of sorted events that passed the provided filters

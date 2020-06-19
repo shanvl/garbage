@@ -1,5 +1,5 @@
-// Package schooling is responsible for school management.
-// There are no concepts like events or resources, only pupils and classes
+// Package schooling is responsible for the school management such as adding or deleting pupils or changing their
+// classes
 package schooling
 
 import (
@@ -14,7 +14,7 @@ import (
 
 // Service is an interface providing methods to manage pupils and classes w/o concepts like events or resources
 type Service interface {
-	// AddPupils adds pupils returning ids of added
+	// AddPupils adds the given pupils and returns ids of the added
 	AddPupils(ctx context.Context, pupilInfo []PupilBio) ([]eventssvc.PupilID, error)
 	// ChangePupilClass changes the class of the pupil if such a class exists
 	ChangePupilClass(ctx context.Context, pupilID eventssvc.PupilID, className string) error

@@ -6,51 +6,81 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = ".;eventsv1pb";
 
+// Class is a school class consisting of pupils. This message is used in the context of a single event
 message Class {
+    // name of the class as it was on the date of the event
     string name = 1;
+    // amount of the resources the class brought to the event
     ResourcesBrought resources_brought = 2;
 }
 
+// ClassAggr is used in the context of many events the class has participated in.
+// Note, that the name of the class changes depending on the date of a particular event. Hence, we send its
+// letter and the date it was formed on instead of its name
 message ClassAggr {
+    // letter is the letter of the class
     string letter = 1;
+    // date the class was formed on
     google.protobuf.Timestamp date_formed = 2;
+    // resources the class has brought to all the events that passed the filters
     ResourcesBrought resources_brought = 3;
+    // array of events with their names and the amount of resources brought by the class
     repeated Event events = 4;
 }
 
+// Event is a meeting of pupils who bring in recyclables
+// The goal of the event is to gather as many recyclable materials (resources) as possible
 message Event {
     string id = 1;
+    // date on which the event will take place
     google.protobuf.Timestamp date = 2;
     string name = 3;
+    // types of resources allowed to be brought to this event
     repeated Resource resources_allowed = 4;
+    // amount of the resources gathered at the event
     ResourcesBrought resources_brought = 5;
 }
 
+// EventFilters is used to filter the events
 message EventFilters {
+    // include events occurred since this date
     google.protobuf.Timestamp from = 1;
+    // include events occurred up to this date
     google.protobuf.Timestamp to = 2;
+    // name of the event
     string name = 3;
+    // resources permitted to be brought to this event
     repeated Resource resources_allowed = 4;
 }
 
+// Pupils bring recyclable materials (resources) to the events.
+// This message is used in the context of a single event
 message Pupil {
     string id = 1;
     string first_name = 2;
     string last_name = 3;
+    // name of the class as it was on the date of the event
     string class = 4;
+    // amount of the resources the pupil brought to the event
     ResourcesBrought resources_brought = 5;
 }
 
+// PupilAggr is used in the context of many events the pupil has participated in.
+// Note, that the name of the class changes depending on the date of a particular event. Hence, we send its
+// letter and the date it was formed on instead of its name
 message PupilAggr {
     string id = 1;
     string first_name = 2;
     string last_name = 3;
     string class_letter = 4;
     google.protobuf.Timestamp class_date_formed = 5;
+    // resources that the pupil has brought to all the events that passed the filters
     ResourcesBrought resources_brought = 6;
+    // array of events with their names and the amount of resources brought by the pupil
     repeated Event events = 7;
 }
 
+// Resource is a concrete type of recyclables brought by the pupils to the events
 enum Resource {
     RESOURCE_UNKNOWN = 0;
     RESOURCE_GADGETS = 1;
@@ -58,12 +88,15 @@ enum Resource {
     RESOURCE_PLASTIC = 3;
 }
 
+// ResourceBrought message shows how many resources a pupil/class has brought to an event or how many resources were
+// collected on an event
 message ResourcesBrought {
     float gadgets = 1;
     float paper = 2;
     float plastic = 3;
 }
 
+// PupilSorting shows how pupils can be sorted
 enum PupilSorting {
     PUPIL_SORTING_UNKNOWN = 0;
     PUPIL_SORTING_GADGETS = 1;
@@ -73,6 +106,7 @@ enum PupilSorting {
     PUPIL_SORTING_PLASTIC = 5;
 }
 
+// ClassSorting shows how classes can be sorted
 enum ClassSorting {
     CLASS_SORTING_UNKNOWN = 0;
     CLASS_SORTING_GADGETS = 1;
@@ -82,6 +116,7 @@ enum ClassSorting {
     CLASS_SORTING_PLASTIC = 5;
 }
 
+// EventSorting shows how events can be sorted
 enum EventSorting {
     EVENT_SORTING_UNKNOWN = 0;
     EVENT_SORTING_DATE_ASC = 1;

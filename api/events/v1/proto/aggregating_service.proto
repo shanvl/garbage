@@ -8,22 +8,31 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = ".;eventsv1pb";
 
+// AggregatingService is responsible for providing aggregated info on how classes and pupils have performed at
+// events scattered in time, with various filters applied
 service AggregatingService {
+    // FindClasses returns a list of sorted classes with the list of resources they have brought to the events
+    // that passed the given filters
     rpc FindClasses (FindClassesRequest) returns (FindClassesResponse) {
         option (google.api.http) = {
             get: "/v1/classes"
         };
     }
+    // FindEvents returns a list of sorted events that passed the provided filters
     rpc FindEvents (FindEventsRequest) returns (FindEventsResponse) {
         option (google.api.http) = {
             get: "/v1/events"
         };
     }
+    // FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
+    // that passed the provided filters
     rpc FindPupilByID (FindPupilByIDRequest) returns (FindPupilByIDResponse) {
         option (google.api.http) = {
             get: "/v1/pupils/{id}"
         };
     }
+    // FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
+    // passed the given filters
     rpc FindPupils (FindPupilsRequest) returns (FindPupilsResponse) {
         option (google.api.http) = {
             get: "/v1/pupils"
@@ -31,8 +40,12 @@ service AggregatingService {
     }
 }
 
+// Note, that we can't use the class name here because it changes depending on the event's date. So the class' letter
+// the date it was formed on used instead
 message FindClassesRequest {
+    // letter of the class
     string letter = 1;
+    // date the class was formed on
     google.protobuf.Timestamp date_formed = 2;
     EventFilters event_filters = 3;
     ClassSorting sorting = 4;
@@ -42,7 +55,10 @@ message FindClassesRequest {
 }
 
 message FindClassesResponse {
+    // list of classes with aggregated info about the resources a class has brought to every event that
+    // passed the filters and a list of those events for each class
     repeated ClassAggr classes = 1;
+    // total classes found
     uint32 total = 2;
 }
 
@@ -54,7 +70,9 @@ message FindEventsRequest {
 }
 
 message FindEventsResponse {
+    // list of the events that passed the provided filters
     repeated Event events = 1;
+    // total events found
     uint32 total = 2;
 }
 
@@ -65,10 +83,13 @@ message FindPupilByIDRequest {
 }
 
 message FindPupilByIDResponse {
+    // pupil with aggregated info about the resources the pupil brought to every event that
+    // passed the filters and a list of those events
     PupilAggr pupil = 1;
 }
 
 message FindPupilsRequest {
+    // text search field that can be a combination of the name of a pupil and the name of their class
     string name_and_class = 1;
     EventFilters event_filters = 2;
     PupilSorting sorting = 3;
@@ -78,6 +99,9 @@ message FindPupilsRequest {
 }
 
 message FindPupilsResponse {
+    // list of pupils with aggregated info about the resources a pupil has brought to every event that
+    // passed the filters and a list of those events for each pupil
     repeated PupilAggr pupils = 1;
+    // total pupils found
     uint32 total = 2;
 }

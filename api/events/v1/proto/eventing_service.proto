@@ -9,39 +9,47 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = ".;eventsv1pb";
 
+// EventingService is responsible for management of a single event
 service EventingService {
+    // ChangePupilResources changes the amount of resources brought by the pupil to the event
     rpc ChangePupilResources (ChangePupilResourcesRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             put: "/v1/events/{event_id}/pupils/{pupil_id}"
             body: "*"
         };
     }
+    // CreateEvent creates and stores the event
     rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
         option (google.api.http) = {
             post: "/v1/events"
             body: "*"
         };
     }
+    // DeleteEvent deletes the event
     rpc DeleteEvent (DeleteEventRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/v1/events/{id}"
         };
     }
+    // FindEventByID returns an event with the given id and all its resources
     rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {
         option (google.api.http) = {
             get: "/v1/events/{id}"
         };
     }
+    // FindEventClasses returns an array of sorted classes with the resources they brought to the specified event
     rpc FindEventClasses (FindEventClassesRequest) returns (FindEventClassesResponse) {
         option (google.api.http) = {
             get: "/v1/events/{event_id}/classes"
         };
     }
+    // FindEventPupils returns an array of sorted pupils with the resources they brought to the specified event
     rpc FindEventPupils (FindEventPupilsRequest) returns (FindEventPupilsResponse) {
         option (google.api.http) = {
             get: "/v1/events/{event_id}/pupils"
         };
     }
+    // FindPupilByID returns a pupil with the given id with the resources they brought to that event
     rpc FindEventPupilByID (FindEventPupilByIDRequest) returns (FindEventPupilByIDResponse) {
         option (google.api.http) = {
             get: "/v1/events/{event_id}/pupils/{pupil_id}"
@@ -52,12 +60,15 @@ service EventingService {
 message ChangePupilResourcesRequest {
     string event_id = 1;
     string pupil_id = 2;
-    ResourcesBrought resources = 3;
+    // amount of resources brought by the pupil to the event
+    ResourcesBrought resources_brought = 3;
 }
 
 message CreateEventRequest {
+    // event date
     google.protobuf.Timestamp date = 1;
     string name = 2;
+    // resources permitted on the event
     repeated Resource resources_allowed = 3;
 }
 
@@ -74,11 +85,14 @@ message FindEventByIDRequest {
 }
 
 message FindEventByIDResponse {
+    // event's info with the resources collected on that event
     Event event = 1;
 }
 
 message FindEventClassesRequest {
     string event_id = 1;
+    // text search field with a class name as it was on the date of the event (class name changes depending on the
+    // event's date)
     string class_name = 2;
     ClassSorting sorting = 3;
     uint32 amount = 4;
@@ -86,12 +100,16 @@ message FindEventClassesRequest {
 }
 
 message FindEventClassesResponse {
+    // list of found classes with the resources each class brought to the event
     repeated Class classes = 1;
+    // total classes found
     uint32 total = 2;
 }
 
 message FindEventPupilsRequest {
     string event_id = 1;
+    // text search field with the combination of pupils names and classes names as they were on the date of the event
+    // (class name changes depending on the event's date)
     string name_and_class = 2;
     PupilSorting sorting = 3;
     uint32 amount = 4;
@@ -99,7 +117,9 @@ message FindEventPupilsRequest {
 }
 
 message FindEventPupilsResponse {
+    // list of found pupils with the resources each pupil brought to the event
     repeated Pupil pupils = 1;
+    // total pupils found
     uint32 total = 2;
 }
 
@@ -109,5 +129,6 @@ message FindEventPupilByIDRequest {
 }
 
 message FindEventPupilByIDResponse {
+    // pupil info with the resources they brought to the event
     Pupil pupil = 1;
 }

@@ -21,7 +21,7 @@ var ErrNoClassOnDate = errors.New("there was no such class on that date")
 // ErrInvalidClassName is used when something wrong with extracting a class info from a string
 var ErrInvalidClassName = errors.New("invalid class name")
 
-// Class is a school class consisting of pupils, which changes its name depending on a given date
+// Class is a school class consisting of pupils, which changes its name depending on the given date
 // relative to the time when it was formed.
 // This type is often used by various use cases as a carcass for their own Class types
 type Class struct {
