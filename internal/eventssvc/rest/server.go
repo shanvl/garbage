@@ -30,6 +30,10 @@ func RunServer(port int, grpcAddress string) error {
 	if err != nil {
 		return err
 	}
+	err = eventsv1pb.RegisterSchoolingServiceHandlerFromEndpoint(ctx, mux, grpcAddress, dialOptions)
+	if err != nil {
+		return err
+	}
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

@@ -311,6 +311,26 @@
     }
   },
   "definitions": {
+    "eventsv1Pupil": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        },
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -455,7 +475,7 @@
       "type": "object",
       "properties": {
         "pupil": {
-          "$ref": "#/definitions/v1Pupil"
+          "$ref": "#/definitions/eventsv1Pupil"
         }
       }
     },
@@ -465,32 +485,12 @@
         "pupils": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Pupil"
+            "$ref": "#/definitions/eventsv1Pupil"
           }
         },
         "total": {
           "type": "integer",
           "format": "int64"
-        }
-      }
-    },
-    "v1Pupil": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "firstName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        },
-        "class": {
-          "type": "string"
-        },
-        "resourcesBrought": {
-          "$ref": "#/definitions/v1ResourcesBrought"
         }
       }
     },
