@@ -15,8 +15,8 @@ import (
 
 func Test_service_CreateEvent(t *testing.T) {
 	var repository mock.EventingRepository
-	repository.StoreEventFn = func(ctx context.Context, e *eventssvc.Event) (id eventssvc.EventID, err error) {
-		return e.ID, nil
+	repository.StoreEventFn = func(ctx context.Context, e *eventssvc.Event) error {
+		return nil
 	}
 	s := eventing.NewService(&repository)
 
@@ -98,7 +98,7 @@ func Test_service_CreateEvent(t *testing.T) {
 func Test_service_DeleteEvent(t *testing.T) {
 	const repoErrorEventID = "error"
 	var repository mock.EventingRepository
-	repository.DeleteEventFn = func(ctx context.Context, eventID eventssvc.EventID) error {
+	repository.DeleteEventFn = func(ctx context.Context, eventID string) error {
 		if eventID == repoErrorEventID {
 			return eventssvc.ErrUnknownEvent
 		}
@@ -110,7 +110,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		eventID eventssvc.EventID
+		eventID string
 	}
 	tests := []struct {
 		name    string
@@ -155,7 +155,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 
 func Test_service_EventByID(t *testing.T) {
 	var repository mock.EventingRepository
-	repository.EventByIDFn = func(ctx context.Context, id eventssvc.EventID) (event *eventing.Event, err error) {
+	repository.EventByIDFn = func(ctx context.Context, id string) (event *eventing.Event, err error) {
 		if id == "not_found" {
 			return nil, errors.New("not found")
 		}
@@ -170,7 +170,7 @@ func Test_service_EventByID(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		eventID eventssvc.EventID
+		eventID string
 	}
 	tests := []struct {
 		name    string
@@ -240,14 +240,14 @@ func Test_service_ChangePupilResources(t *testing.T) {
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.ChangePupilResourcesFn = func(ctx context.Context, eventID eventssvc.EventID, pupilID eventssvc.PupilID,
+	repository.ChangePupilResourcesFn = func(ctx context.Context, eventID string, pupilID string,
 		resources eventssvc.ResourceMap) error {
 		if eventID == eventIDErrNoEventPupil {
 			return eventing.ErrNoEventPupil
 		}
 		return nil
 	}
-	repository.EventByIDFn = func(ctx context.Context, id eventssvc.EventID) (event *eventing.Event, err error) {
+	repository.EventByIDFn = func(ctx context.Context, id string) (event *eventing.Event, err error) {
 		return &eventing.Event{
 				Event: eventssvc.Event{ID: id, ResourcesAllowed: resourcesAllowed},
 			},
@@ -257,8 +257,8 @@ func Test_service_ChangePupilResources(t *testing.T) {
 
 	type args struct {
 		ctx       context.Context
-		eventID   eventssvc.EventID
-		pupilID   eventssvc.PupilID
+		eventID   string
+		pupilID   string
 		resources eventssvc.ResourceMap
 	}
 	tests := []struct {
@@ -374,7 +374,7 @@ func Test_service_EventPupils(t *testing.T) {
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.EventPupilsFn = func(ctx context.Context, eventID eventssvc.EventID,
+	repository.EventPupilsFn = func(ctx context.Context, eventID string,
 		filters eventing.EventPupilFilters, sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil,
 		total int, err error) {
 
@@ -394,7 +394,7 @@ func Test_service_EventPupils(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		eventID eventssvc.EventID
+		eventID string
 		filters eventing.EventPupilFilters
 		sortBy  sorting.By
 		amount  int
@@ -530,7 +530,7 @@ func Test_service_EventClasses(t *testing.T) {
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.EventClassesFn = func(ctx context.Context, eventID eventssvc.EventID,
+	repository.EventClassesFn = func(ctx context.Context, eventID string,
 		filters eventing.EventClassFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
 		total int, err error) {
 
@@ -550,7 +550,7 @@ func Test_service_EventClasses(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		eventID eventssvc.EventID
+		eventID string
 		filters eventing.EventClassFilters
 		sortBy  sorting.By
 		amount  int
@@ -688,8 +688,8 @@ func Test_service_PupilByID(t *testing.T) {
 	ctx := context.Background()
 
 	var repository mock.EventingRepository
-	repository.PupilByIDFn = func(ctx context.Context, pupilID eventssvc.PupilID,
-		eventID eventssvc.EventID) (event *eventing.Pupil, err error) {
+	repository.PupilByIDFn = func(ctx context.Context, pupilID string,
+		eventID string) (event *eventing.Pupil, err error) {
 
 		if pupilID == pupilIDPupilNotFound {
 			return nil, errors.New("not found")
@@ -699,8 +699,8 @@ func Test_service_PupilByID(t *testing.T) {
 	s := eventing.NewService(&repository)
 
 	type args struct {
-		pupilID eventssvc.PupilID
-		eventID eventssvc.EventID
+		pupilID string
+		eventID string
 	}
 	tests := []struct {
 		name    string

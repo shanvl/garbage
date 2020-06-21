@@ -8,9 +8,11 @@ import (
 	"time"
 
 	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
+	"github.com/shanvl/garbage/internal/eventssvc/eventing"
 	"github.com/shanvl/garbage/internal/eventssvc/grpc"
 	"github.com/shanvl/garbage/internal/eventssvc/postgres"
 	"github.com/shanvl/garbage/internal/eventssvc/rest"
+	"github.com/shanvl/garbage/internal/eventssvc/schooling"
 	"github.com/shanvl/garbage/pkg/env"
 )
 
@@ -33,14 +35,18 @@ func main() {
 
 	// create repos
 	aggregatingRepo := postgres.NewAggregatingRepo(postgresPool)
+	eventingRepo := postgres.NewEventingRepo(postgresPool)
+	schoolingRepo := postgres.NewSchoolingRepo(postgresPool)
 
 	// create services
 	aggregatingService := aggregating.NewService(aggregatingRepo)
+	eventingService := eventing.NewService(eventingRepo)
+	schoolingService := schooling.NewService(schoolingRepo)
 
 	grpcPort, restPort := env.Int("GRPC_PORT", 3000), env.Int("REST_PORT", 4000)
 	// run gRPC server
 	go func() {
-		if err := grpc.NewServer(aggregatingService).Run(grpcPort); err != nil {
+		if err := grpc.NewServer(aggregatingService, eventingService, schoolingService).Run(grpcPort); err != nil {
 			log.Fatalf("gRPC server error: %v", err)
 		}
 	}()

@@ -24,7 +24,7 @@ type Service interface {
 		skip int) (pupils []*Pupil, total int, err error)
 	// PupilByID returns a pupil with the given ID with the list of all resources they has brought to every event
 	// that passed the provided filter
-	PupilByID(ctx context.Context, id eventssvc.PupilID, filters EventFilters, eventsSorting sorting.By) (*Pupil,
+	PupilByID(ctx context.Context, id string, filters EventFilters, eventsSorting sorting.By) (*Pupil,
 		error)
 	// Events returns a list of sorted events that passed the provided filters
 	Events(ctx context.Context, filters EventFilters, sortBy sorting.By, amount, skip int) (events []*Event,
@@ -37,7 +37,7 @@ type Repository interface {
 		skip int) (classes []*Class, total int, err error)
 	Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 		skip int) (pupils []*Pupil, total int, err error)
-	PupilByID(ctx context.Context, id eventssvc.PupilID, filters EventFilters, eventsSorting sorting.By) (*Pupil,
+	PupilByID(ctx context.Context, id string, filters EventFilters, eventsSorting sorting.By) (*Pupil,
 		error)
 	Events(ctx context.Context, filters EventFilters, sortBy sorting.By, amount, skip int) (events []*Event,
 		total int, err error)
@@ -106,7 +106,7 @@ func (s *service) Pupils(ctx context.Context, filters PupilFilters, pupilsSortin
 
 // PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
 // passed the provided filter. Events are sorted
-func (s *service) PupilByID(ctx context.Context, id eventssvc.PupilID, filters EventFilters,
+func (s *service) PupilByID(ctx context.Context, id string, filters EventFilters,
 	eventsSorting sorting.By) (*Pupil, error) {
 
 	// check if pupilID is provided

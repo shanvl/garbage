@@ -11,9 +11,10 @@ import (
 	"github.com/shanvl/garbage/internal/eventssvc/schooling"
 )
 
-func TestSchoolingRepo_StorePupil(t *testing.T) {
+func TestSchoolingRepo_UpdatePupil(t *testing.T) {
 	r := postgres.NewSchoolingRepo(db)
 	ctx := context.Background()
+	pupilID := getPupilID(t)
 	type args struct {
 		pupil *schooling.Pupil
 	}
@@ -27,9 +28,9 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 			args: args{
 				pupil: &schooling.Pupil{
 					Pupil: eventssvc.Pupil{
-						ID:        "111",
-						FirstName: "fname",
-						LastName:  "lname",
+						ID:        pupilID,
+						FirstName: "diffFName",
+						LastName:  "diffLName",
 					},
 					Class: eventssvc.Class{
 						Letter:     "A",
@@ -39,16 +40,30 @@ func TestSchoolingRepo_StorePupil(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "no pupil found",
+			args: args{
+				pupil: &schooling.Pupil{
+					Pupil: eventssvc.Pupil{
+						ID:        "nosuchid",
+						FirstName: "diffFName",
+						LastName:  "diffLName",
+					},
+					Class: eventssvc.Class{
+						Letter:     "A",
+						DateFormed: classDateFromYear(2015),
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := r.StorePupil(ctx, tt.args.pupil)
+			err := r.UpdatePupil(ctx, tt.args.pupil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StorePupil() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if err := r.RemovePupils(ctx, []eventssvc.PupilID{tt.args.pupil.ID}); err != nil {
-				t.Fatalf("wasn't able to clean the db after StorePupil(): %v", err)
 			}
 		})
 	}
@@ -60,7 +75,7 @@ func TestSchoolingRepo_PupilByID(t *testing.T) {
 	pp, cleanDB := seedPupils(t)
 	defer cleanDB()
 	type args struct {
-		pupilID eventssvc.PupilID
+		pupilID string
 	}
 	tests := []struct {
 		name    string
@@ -147,7 +162,7 @@ func TestSchoolingRepo_StorePupils(t *testing.T) {
 				t.Errorf("StorePupils() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if err := r.RemovePupils(ctx, []eventssvc.PupilID{tt.pupils[0].ID, tt.pupils[1].ID,
+			if err := r.RemovePupils(ctx, []string{tt.pupils[0].ID, tt.pupils[1].ID,
 				tt.pupils[2].ID}); err != nil {
 				t.Fatalf("wasn't able to clean db after StorePupils(): %v", err)
 			}
@@ -160,13 +175,13 @@ func TestSchoolingRepo_RemovePupils(t *testing.T) {
 	ctx := context.Background()
 	pupils, cleanDB := seedPupils(t)
 	defer cleanDB()
-	ppIDs := make([]eventssvc.PupilID, len(pupils))
+	ppIDs := make([]string, len(pupils))
 	for i, p := range pupils {
 		ppIDs[i] = p.ID
 	}
 	tests := []struct {
 		name     string
-		pupilIDs []eventssvc.PupilID
+		pupilIDs []string
 		wantErr  bool
 	}{
 		{

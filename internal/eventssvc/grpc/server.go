@@ -13,6 +13,8 @@ import (
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	healthv1pb "github.com/shanvl/garbage/api/health/v1/pb"
 	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
+	"github.com/shanvl/garbage/internal/eventssvc/eventing"
+	"github.com/shanvl/garbage/internal/eventssvc/schooling"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -20,11 +22,17 @@ import (
 )
 
 type Server struct {
-	aggrSvc aggregating.Service
+	agSvc aggregating.Service
+	evSvc eventing.Service
+	scSvc schooling.Service
 }
 
-func NewServer(aggrSvc aggregating.Service) *Server {
-	server := &Server{}
+func NewServer(agSvc aggregating.Service, evSvc eventing.Service, scSvc schooling.Service) *Server {
+	server := &Server{
+		agSvc: agSvc,
+		evSvc: evSvc,
+		scSvc: scSvc,
+	}
 	return server
 }
 

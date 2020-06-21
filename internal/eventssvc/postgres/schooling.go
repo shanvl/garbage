@@ -28,7 +28,7 @@ const pupilByIDQuery = `
 `
 
 // returns pupils with the given id
-func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID eventssvc.PupilID) (*schooling.Pupil, error) {
+func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID string) (*schooling.Pupil, error) {
 	p := &schooling.Pupil{}
 	err := s.db.QueryRow(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
 		&p.Class.DateFormed)
@@ -45,7 +45,7 @@ func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID eventssvc.PupilID
 const removePupilsQuery = `delete from pupil where id in(?)`
 
 // removes pupils with the given ids
-func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []eventssvc.PupilID) error {
+func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []string) error {
 	// create the query with some magic of sqlx
 	q, args, err := sqlx.In(removePupilsQuery, pupilIDs)
 	if err != nil {
@@ -60,18 +60,6 @@ func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []eventssvc.P
 	return nil
 }
 
-const storePupilQuery = `
-	insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
-	values ($1, $2, $3, $4, $5);
-`
-
-// saves the given pupil
-func (s *SchoolingRepo) StorePupil(ctx context.Context, pupil *schooling.Pupil) error {
-	_, err := s.db.Exec(ctx, storePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
-		pupil.Class.DateFormed)
-	return err
-}
-
 const storePupilsQuery = `insert into pupil (id, first_name, last_name, class_letter, class_date_formed) values`
 
 // saves the given pupils
@@ -82,7 +70,7 @@ func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pup
 	// values to pass to the query
 	queryValues := make([]interface{}, 0, pupilsLen*5)
 	// ids of the saved pupils
-	ids := make([]eventssvc.PupilID, pupilsLen)
+	ids := make([]string, pupilsLen)
 	for i, p := range pupils {
 		n := i * 5
 		// create query params placeholders for the pupil
@@ -97,4 +85,26 @@ func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pup
 	q := fmt.Sprintf("%s %s;", storePupilsQuery, strings.Join(queryParams, ","))
 	_, err := s.db.Exec(ctx, q, queryValues...)
 	return err
+}
+
+const updatePupilQuery = `
+	update pupil 
+	set (first_name, last_name, class_letter, class_date_formed) = ($2, $3, $4, $5)
+	where id = $1
+	returning id;
+`
+
+// updates the given pupil
+func (s *SchoolingRepo) UpdatePupil(ctx context.Context, pupil *schooling.Pupil) error {
+	var id string
+	err := s.db.QueryRow(ctx, updatePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
+		pupil.Class.DateFormed).Scan(&id)
+	if err != nil {
+		return err
+	}
+	// no pupil has been found
+	if id == "" {
+		return eventssvc.ErrUnknownPupil
+	}
+	return nil
 }

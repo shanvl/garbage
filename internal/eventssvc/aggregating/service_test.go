@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/shanvl/garbage/internal/eventssvc"
 	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
 	"github.com/shanvl/garbage/internal/eventssvc/mock"
 	"github.com/shanvl/garbage/internal/eventssvc/sorting"
@@ -360,7 +359,7 @@ func Test_service_PupilByID(t *testing.T) {
 	ctx := context.Background()
 
 	var repo mock.AggregatingRepository
-	repo.PupilByIDFn = func(ctx context.Context, id eventssvc.PupilID, filters aggregating.EventFilters,
+	repo.PupilByIDFn = func(ctx context.Context, id string, filters aggregating.EventFilters,
 		eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
 		if id == repoError {
@@ -371,7 +370,7 @@ func Test_service_PupilByID(t *testing.T) {
 	s := aggregating.NewService(&repo)
 
 	type args struct {
-		id            eventssvc.PupilID
+		id            string
 		filters       aggregating.EventFilters
 		eventsSorting sorting.By
 	}

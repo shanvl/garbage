@@ -9,14 +9,14 @@ option go_package = ".;eventsv1pb";
 
 // SchoolingService is responsible for the school management such as adding or deleting pupils or changing their classes
 service SchoolingService {
-    // AddPupils adds the given pupils and returns ids of the added
+    // AddPupils adds the given pupils and returns the ids of the added
     rpc AddPupils (AddPupilsRequest) returns (AddPupilsResponse) {
         option (google.api.http) = {
             post: "/v1/pupils"
             body: "*"
         };
     }
-    // ChangePupilClass changes the class of the pupil if such a class exists
+    // ChangePupilClass changes the class of the pupil
     rpc ChangePupilClass (ChangePupilClassRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             put: "/v1/pupils/{pupil_id}"

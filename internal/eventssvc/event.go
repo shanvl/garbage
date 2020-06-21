@@ -5,9 +5,6 @@ import (
 	"time"
 )
 
-// EventID uniquely identifies an event
-type EventID string
-
 // ErrUnknownPupil is used when the pupil wasn't found
 var ErrUnknownEvent = errors.New("unknown event")
 
@@ -15,7 +12,7 @@ var ErrUnknownEvent = errors.New("unknown event")
 // The goal of the event is to gather as many recyclable materials (resources) as possible
 // This type is often used by various use cases as a carcass for their own Event type
 type Event struct {
-	ID   EventID
+	ID   string
 	Date time.Time
 	Name string
 	// Recyclables permitted to be brought to this event

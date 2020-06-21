@@ -24,7 +24,7 @@ type AggregatingRepository struct {
 		skip int) (pupils []*aggregating.Pupil, total int, err error)
 	PupilsInvoked bool
 
-	PupilByIDFn func(ctx context.Context, id eventssvc.PupilID, filters aggregating.EventFilters,
+	PupilByIDFn func(ctx context.Context, id string, filters aggregating.EventFilters,
 		eventsSorting sorting.By) (*aggregating.Pupil, error)
 	PupilByIDInvoked bool
 }
@@ -54,7 +54,7 @@ func (r *AggregatingRepository) Pupils(ctx context.Context, filters aggregating.
 }
 
 // PupilByID calls PupilByIDFn
-func (r *AggregatingRepository) PupilByID(ctx context.Context, id eventssvc.PupilID,
+func (r *AggregatingRepository) PupilByID(ctx context.Context, id string,
 	filters aggregating.EventFilters, eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
 	r.PupilByIDInvoked = true
@@ -63,87 +63,87 @@ func (r *AggregatingRepository) PupilByID(ctx context.Context, id eventssvc.Pupi
 
 // EventingRepository is a mock repository for eventing use case
 type EventingRepository struct {
-	ChangePupilResourcesFn func(ctx context.Context, eventID eventssvc.EventID,
-		pupilID eventssvc.PupilID, resources eventssvc.ResourceMap) error
+	ChangePupilResourcesFn func(ctx context.Context, eventID string,
+		pupilID string, resources eventssvc.ResourceMap) error
 	ChangePupilResourcesInvoked bool
 
-	DeleteEventFn      func(ctx context.Context, id eventssvc.EventID) error
+	DeleteEventFn      func(ctx context.Context, id string) error
 	DeleteEventInvoked bool
 
-	EventByIDFn      func(ctx context.Context, id eventssvc.EventID) (*eventing.Event, error)
+	EventByIDFn      func(ctx context.Context, id string) (*eventing.Event, error)
 	EventByIDInvoked bool
 
-	EventPupilsFn func(ctx context.Context, eventID eventssvc.EventID, filters eventing.EventPupilFilters,
+	EventPupilsFn func(ctx context.Context, eventID string, filters eventing.EventPupilFilters,
 		sortBy sorting.By, amount int, skip int) ([]*eventing.Pupil, int, error)
 	EventPupilsInvoked bool
 
-	EventClassesFn func(ctx context.Context, eventID eventssvc.EventID, filters eventing.EventClassFilters,
+	EventClassesFn func(ctx context.Context, eventID string, filters eventing.EventClassFilters,
 		sortBy sorting.By, amount int, skip int) ([]*eventing.Class, int, error)
 	EventClassesInvoked bool
 
-	PupilByIDFn      func(ctx context.Context, pupilID eventssvc.PupilID, eventID eventssvc.EventID) (*eventing.Pupil, error)
+	PupilByIDFn      func(ctx context.Context, pupilID string, eventID string) (*eventing.Pupil, error)
 	PupilByIDInvoked bool
 
-	StoreEventFn      func(ctx context.Context, e *eventssvc.Event) (eventssvc.EventID, error)
+	StoreEventFn      func(ctx context.Context, e *eventssvc.Event) error
 	StoreEventInvoked bool
 }
 
 // ChangePupilResources calls ChangeEventResourcesFn
-func (r *EventingRepository) ChangePupilResources(ctx context.Context, eventID eventssvc.EventID,
-	pupilID eventssvc.PupilID, resources eventssvc.ResourceMap) error {
+func (r *EventingRepository) ChangePupilResources(ctx context.Context, eventID string,
+	pupilID string, resources eventssvc.ResourceMap) error {
 	r.ChangePupilResourcesInvoked = true
 	return r.ChangePupilResourcesFn(ctx, eventID, pupilID, resources)
 }
 
 // DeleteEvent calls DeleteEventFn
-func (r *EventingRepository) DeleteEvent(ctx context.Context, id eventssvc.EventID) error {
+func (r *EventingRepository) DeleteEvent(ctx context.Context, id string) error {
 	r.StoreEventInvoked = true
 	return r.DeleteEventFn(ctx, id)
 }
 
 // EventByID calls EventByIDFn
-func (r *EventingRepository) EventByID(ctx context.Context, id eventssvc.EventID) (*eventing.Event, error) {
+func (r *EventingRepository) EventByID(ctx context.Context, id string) (*eventing.Event, error) {
 	r.EventByIDInvoked = true
 	return r.EventByIDFn(ctx, id)
 }
 
 // EventClasses calls EventClassesFn
-func (r *EventingRepository) EventClasses(ctx context.Context, eventID eventssvc.EventID,
+func (r *EventingRepository) EventClasses(ctx context.Context, eventID string,
 	filters eventing.EventClassFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Class, int, error) {
 	r.EventClassesInvoked = true
 	return r.EventClassesFn(ctx, eventID, filters, sortBy, amount, skip)
 }
 
 // EventPupils calls EventPupilsFn
-func (r *EventingRepository) EventPupils(ctx context.Context, eventID eventssvc.EventID,
+func (r *EventingRepository) EventPupils(ctx context.Context, eventID string,
 	filters eventing.EventPupilFilters, sortBy sorting.By, amount int, skip int) ([]*eventing.Pupil, int, error) {
 	r.EventPupilsInvoked = true
 	return r.EventPupilsFn(ctx, eventID, filters, sortBy, amount, skip)
 }
 
 // PupilByID calls PupilByIDFn
-func (r *EventingRepository) PupilByID(ctx context.Context, pupilID eventssvc.PupilID,
-	eventID eventssvc.EventID) (*eventing.Pupil, error) {
+func (r *EventingRepository) PupilByID(ctx context.Context, pupilID string,
+	eventID string) (*eventing.Pupil, error) {
 
 	r.PupilByIDInvoked = true
 	return r.PupilByIDFn(ctx, pupilID, eventID)
 }
 
 // StoreEvent calls StoreEventFn
-func (r *EventingRepository) StoreEvent(ctx context.Context, e *eventssvc.Event) (eventssvc.EventID, error) {
+func (r *EventingRepository) StoreEvent(ctx context.Context, e *eventssvc.Event) error {
 	r.StoreEventInvoked = true
 	return r.StoreEventFn(ctx, e)
 }
 
 // SchoolingRepository is mock repository for schooling use case
 type SchoolingRepository struct {
-	PupilByIDFn      func(ctx context.Context, pupilID eventssvc.PupilID) (*schooling.Pupil, error)
+	PupilByIDFn      func(ctx context.Context, pupilID string) (*schooling.Pupil, error)
 	PupilByIDInvoked bool
 
-	RemovePupilsFn      func(ctx context.Context, pupilIDs []eventssvc.PupilID) error
+	RemovePupilsFn      func(ctx context.Context, pupilIDs []string) error
 	RemovePupilsInvoked bool
 
-	StorePupilFn      func(ctx context.Context, pupils *schooling.Pupil) error
+	UpdatePupilFn     func(ctx context.Context, pupils *schooling.Pupil) error
 	StorePupilInvoked bool
 
 	StorePupilsFn      func(ctx context.Context, pupils []*schooling.Pupil) error
@@ -151,21 +151,21 @@ type SchoolingRepository struct {
 }
 
 // PupilByID calls PupilByIDFn
-func (r *SchoolingRepository) PupilByID(ctx context.Context, pupilID eventssvc.PupilID) (*schooling.Pupil, error) {
+func (r *SchoolingRepository) PupilByID(ctx context.Context, pupilID string) (*schooling.Pupil, error) {
 	r.PupilByIDInvoked = true
 	return r.PupilByIDFn(ctx, pupilID)
 }
 
 // RemovePupils calls RemovePupilsFn
-func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []eventssvc.PupilID) error {
+func (r *SchoolingRepository) RemovePupils(ctx context.Context, pupilIDs []string) error {
 	r.RemovePupilsInvoked = true
 	return r.RemovePupilsFn(ctx, pupilIDs)
 }
 
 // StorePupil calls StorePupilFn
-func (r *SchoolingRepository) StorePupil(ctx context.Context, pupil *schooling.Pupil) error {
+func (r *SchoolingRepository) UpdatePupil(ctx context.Context, pupil *schooling.Pupil) error {
 	r.StorePupilInvoked = true
-	return r.StorePupilFn(ctx, pupil)
+	return r.UpdatePupilFn(ctx, pupil)
 }
 
 // StorePupils calls StorePupilsFn

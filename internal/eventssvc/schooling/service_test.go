@@ -13,10 +13,10 @@ import (
 
 func Test_service_RemovePupils(t *testing.T) {
 	ctx := context.Background()
-	ids := []eventssvc.PupilID{"000", "001", "002"}
+	ids := []string{"000", "001", "002"}
 
 	var repo mock.SchoolingRepository
-	repo.RemovePupilsFn = func(ctx context.Context, pupilIDs []eventssvc.PupilID) error {
+	repo.RemovePupilsFn = func(ctx context.Context, pupilIDs []string) error {
 		if len(pupilIDs) > 0 && pupilIDs[0] == "error" {
 			return errors.New("some error")
 		}
@@ -25,7 +25,7 @@ func Test_service_RemovePupils(t *testing.T) {
 	s := schooling.NewService(&repo)
 
 	type args struct {
-		pupilIDs []eventssvc.PupilID
+		pupilIDs []string
 	}
 	tests := []struct {
 		name    string
@@ -42,21 +42,21 @@ func Test_service_RemovePupils(t *testing.T) {
 		{
 			name: "too much pupil ids",
 			args: args{
-				pupilIDs: make([]eventssvc.PupilID, schooling.MaxRemovePupils+1),
+				pupilIDs: make([]string, schooling.MaxRemovePupils+1),
 			},
 			wantErr: true,
 		},
 		{
 			name: "one id is empty",
 			args: args{
-				pupilIDs: []eventssvc.PupilID{"123", ""},
+				pupilIDs: []string{"123", ""},
 			},
 			wantErr: true,
 		},
 		{
 			name: "repo's error",
 			args: args{
-				pupilIDs: []eventssvc.PupilID{"error"},
+				pupilIDs: []string{"error"},
 			},
 			wantErr: true,
 		},
@@ -200,13 +200,13 @@ func Test_service_ChangePupilClass(t *testing.T) {
 	ctx := context.Background()
 
 	var repo mock.SchoolingRepository
-	repo.StorePupilFn = func(ctx context.Context, pupil *schooling.Pupil) error {
+	repo.UpdatePupilFn = func(ctx context.Context, pupil *schooling.Pupil) error {
 		if pupil.ID == pupilIDStoreError {
 			return errors.New("repo's error")
 		}
 		return nil
 	}
-	repo.PupilByIDFn = func(ctx context.Context, pupilID eventssvc.PupilID) (pupil *schooling.Pupil, err error) {
+	repo.PupilByIDFn = func(ctx context.Context, pupilID string) (pupil *schooling.Pupil, err error) {
 		if pupilID == pupilIDPupilNotFound {
 			return nil, errors.New("pupil not found error")
 		}
@@ -225,7 +225,7 @@ func Test_service_ChangePupilClass(t *testing.T) {
 	s := schooling.NewService(&repo)
 
 	type args struct {
-		pupilID   eventssvc.PupilID
+		pupilID   string
 		className string
 	}
 	tests := []struct {

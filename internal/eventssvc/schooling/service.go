@@ -15,18 +15,18 @@ import (
 // Service is an interface providing methods to manage pupils and classes w/o concepts like events or resources
 type Service interface {
 	// AddPupils adds the given pupils and returns ids of the added
-	AddPupils(ctx context.Context, pupilInfo []PupilBio) ([]eventssvc.PupilID, error)
+	AddPupils(ctx context.Context, pupilInfo []PupilBio) ([]string, error)
 	// ChangePupilClass changes the class of the pupil if such a class exists
-	ChangePupilClass(ctx context.Context, pupilID eventssvc.PupilID, className string) error
+	ChangePupilClass(ctx context.Context, pupilID string, className string) error
 	// RemovePupils removes pupils with provided IDs
-	RemovePupils(ctx context.Context, pupilIDs []eventssvc.PupilID) error
+	RemovePupils(ctx context.Context, pupilIDs []string) error
 }
 
 type Repository interface {
-	PupilByID(ctx context.Context, pupilID eventssvc.PupilID) (*Pupil, error)
-	RemovePupils(ctx context.Context, pupilIDs []eventssvc.PupilID) error
-	StorePupil(ctx context.Context, pupil *Pupil) error
+	PupilByID(ctx context.Context, pupilID string) (*Pupil, error)
+	RemovePupils(ctx context.Context, pupilIDs []string) error
 	StorePupils(ctx context.Context, pupils []*Pupil) error
+	UpdatePupil(ctx context.Context, pupil *Pupil) error
 }
 
 type service struct {
@@ -44,7 +44,7 @@ func NewService(repo Repository) Service {
 }
 
 // AddPupils adds pupils, returning ids of added
-func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]eventssvc.PupilID, error) {
+func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]string, error) {
 	if len(pupilsBio) == 0 {
 		return nil, valid.NewError("pupils", "no pupils were provided")
 	}
@@ -53,7 +53,7 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]events
 	}
 	// pupils to pass to the repo
 	pupils := make([]*Pupil, 0, len(pupilsBio))
-	pupilIDs := make([]eventssvc.PupilID, 0, len(pupilsBio))
+	pupilIDs := make([]string, 0, len(pupilsBio))
 	// date needed to derive a pupil's class entity out of its class name
 	today := time.Now()
 
@@ -110,7 +110,7 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]events
 }
 
 // ChangePupilClass changes the class of the pupil
-func (s *service) ChangePupilClass(ctx context.Context, pupilID eventssvc.PupilID, className string) error {
+func (s *service) ChangePupilClass(ctx context.Context, pupilID string, className string) error {
 
 	// validate args
 	errVld := valid.EmptyError()
@@ -140,12 +140,12 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID eventssvc.PupilI
 	}
 	// otherwise, change the pupil's class
 	pupil.Class = class
-	// save the pupil
-	return s.repo.StorePupil(ctx, pupil)
+	// update the pupil
+	return s.repo.UpdatePupil(ctx, pupil)
 }
 
 // RemovePupils removes pupils using provided IDs and returns their IDs
-func (s *service) RemovePupils(ctx context.Context, pupilIDs []eventssvc.PupilID) error {
+func (s *service) RemovePupils(ctx context.Context, pupilIDs []string) error {
 	if len(pupilIDs) == 0 {
 		return valid.NewError("pupils", "no pupils ids were provided")
 	}

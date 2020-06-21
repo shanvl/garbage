@@ -3,7 +3,6 @@ package idgen
 
 import (
 	gonanoid "github.com/matoous/go-nanoid"
-	"github.com/shanvl/garbage/internal/eventssvc"
 )
 
 const (
@@ -14,15 +13,15 @@ const (
 )
 
 // CreateEventID generates an ID for an event entity
-func CreateEventID() (eventssvc.EventID, error) {
+func CreateEventID() (string, error) {
 	id, err := gen(eventIDLen)
-	return eventssvc.EventID(id), err
+	return id, err
 }
 
 // CreatePupilID generates an ID for a pupil entity
-func CreatePupilID() (eventssvc.PupilID, error) {
+func CreatePupilID() (string, error) {
 	id, err := gen(pupilIDLen)
-	return eventssvc.PupilID(id), err
+	return id, err
 }
 
 func gen(l int) (string, error) {

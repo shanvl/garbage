@@ -183,7 +183,7 @@ func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.Class
 		// create an event and append it to the pupil's slice of events
 		e := aggregating.Event{
 			Event: eventssvc.Event{
-				ID:               eventssvc.EventID(eID.String),
+				ID:               eID.String,
 				Date:             eDate.Time,
 				Name:             eName.String,
 				ResourcesAllowed: resAllowed,
@@ -324,7 +324,7 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 		plastic     pgtype.Float4
 	)
 	// map to fast search the pupil in the pupils slice. ID -> index in the slice
-	pupilSliceIndex := map[eventssvc.PupilID]int{}
+	pupilSliceIndex := map[string]int{}
 	for rows.Next() {
 		err := rows.Scan(&pID, &pFName, &pLName, &cDate, &cLetter, &gadgetsAggr, &paperAggr, &plasticAggr, &eID, &eDate,
 			&eName, &eResAllowed, &gadgets, &paper, &plastic, &total)
@@ -337,14 +337,14 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 			return nil, total, nil
 		}
 		var p *aggregating.Pupil
-		if i, ok := pupilSliceIndex[eventssvc.PupilID(pID.String)]; ok {
+		if i, ok := pupilSliceIndex[string(pID.String)]; ok {
 			// if the pupil is already in the pupils, get it
 			p = pupils[i]
 		} else {
 			// otherwise, create it
 			p = &aggregating.Pupil{
 				Pupil: eventssvc.Pupil{
-					ID:        eventssvc.PupilID(pID.String),
+					ID:        pID.String,
 					FirstName: pFName.String,
 					LastName:  pLName.String,
 				},
@@ -371,7 +371,7 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 		// create an event and append it to the pupil's slice of events
 		e := aggregating.Event{
 			Event: eventssvc.Event{
-				ID:               eventssvc.EventID(eID.String),
+				ID:               eID.String,
 				Date:             eDate.Time,
 				Name:             eName.String,
 				ResourcesAllowed: resAllowed,
@@ -412,7 +412,7 @@ const pupilByIDQueryA = `
 
 // PupilByID returns a pupil with the given ID, with a list of all the resources they has brought to every event that
 // passed the provided filter
-func (a *AggregatingRepo) PupilByID(ctx context.Context, id eventssvc.PupilID, filters aggregating.EventFilters,
+func (a *AggregatingRepo) PupilByID(ctx context.Context, id string, filters aggregating.EventFilters,
 	eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
 	// create the "left join event e on" part of the query
@@ -476,7 +476,7 @@ func (a *AggregatingRepo) PupilByID(ctx context.Context, id eventssvc.PupilID, f
 			return p, nil
 		}
 		// set the event fields
-		e.ID = eventssvc.EventID(eID.String)
+		e.ID = eID.String
 		e.Date = eDate.Time
 		e.Name = eName.String
 		resAllowed, err := eventssvc.StringSliceToResourceSlice(eResourcesAllowed)
@@ -591,7 +591,7 @@ func (a *AggregatingRepo) Events(ctx context.Context, filters aggregating.EventF
 		}
 		e := &aggregating.Event{
 			Event: eventssvc.Event{
-				ID:               eventssvc.EventID(id.String),
+				ID:               id.String,
 				Date:             date.Time,
 				Name:             name.String,
 				ResourcesAllowed: resAllowed,

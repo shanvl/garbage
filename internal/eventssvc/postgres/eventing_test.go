@@ -22,8 +22,8 @@ func TestEventingRepo_ChangePupilResources(t *testing.T) {
 		eventssvc.Paper:   15,
 	}
 	type args struct {
-		eventID   eventssvc.EventID
-		pupilID   eventssvc.PupilID
+		eventID   string
+		pupilID   string
 		resources eventssvc.ResourceMap
 	}
 	tests := []struct {
@@ -78,7 +78,7 @@ func TestEventingRepo_DeleteEvent(t *testing.T) {
 	ctx := context.Background()
 	eventID := getEventID(t)
 	type args struct {
-		eventID eventssvc.EventID
+		eventID string
 	}
 	tests := []struct {
 		name    string
@@ -113,13 +113,13 @@ func TestEventingRepo_EventByID(t *testing.T) {
 	r := postgres.NewEventingRepo(db)
 	ctx := context.Background()
 	type args struct {
-		eventID eventssvc.EventID
+		eventID string
 	}
 	eventID := getEventID(t)
 	tests := []struct {
 		name    string
 		args    args
-		want    eventssvc.EventID
+		want    string
 		wantErr bool
 	}{
 		{
@@ -224,8 +224,8 @@ func TestEventingRepo_PupilByID(t *testing.T) {
 	defer deleteOldP()
 
 	type args struct {
-		pupilID eventssvc.PupilID
-		eventID eventssvc.EventID
+		pupilID string
+		eventID string
 	}
 	tests := []struct {
 		name    string
@@ -291,7 +291,7 @@ func TestEventingRepo_EventPupils(t *testing.T) {
 	eID := getEventID(t)
 
 	type args struct {
-		eventID eventssvc.EventID
+		eventID string
 		filters eventing.EventPupilFilters
 		sortBy  sorting.By
 		amount  int
@@ -383,7 +383,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 	eID := getEventID(t)
 
 	type args struct {
-		eventID eventssvc.EventID
+		eventID string
 		filters eventing.EventClassFilters
 		sortBy  sorting.By
 		amount  int
@@ -482,7 +482,7 @@ func TestEventingRepo_EventClasses(t *testing.T) {
 	}
 }
 
-func createEvent(t *testing.T, event *eventssvc.Event) (eventssvc.EventID, func()) {
+func createEvent(t *testing.T, event *eventssvc.Event) (string, func()) {
 	t.Helper()
 	q := "insert into event (id, name, date, resources_allowed)\n\tvalues ($1, $2, $3, $4::text[]::resource[]);"
 	_, err := db.Exec(context.Background(), q, event.ID, event.Name, event.Date,
@@ -499,7 +499,7 @@ func createEvent(t *testing.T, event *eventssvc.Event) (eventssvc.EventID, func(
 	}
 }
 
-func createPupil(t *testing.T, p *eventssvc.Pupil, c eventssvc.Class) (eventssvc.PupilID, func()) {
+func createPupil(t *testing.T, p *eventssvc.Pupil, c eventssvc.Class) (string, func()) {
 	t.Helper()
 	q := `
 		insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
@@ -517,32 +517,32 @@ func createPupil(t *testing.T, p *eventssvc.Pupil, c eventssvc.Class) (eventssvc
 	}
 }
 
-func deleteEvent(t *testing.T, eventID eventssvc.EventID) {
+func deleteEvent(t *testing.T, eventID string) {
 	t.Helper()
 	if _, err := db.Exec(context.Background(), "delete from event where id=$1", eventID); err != nil {
 		t.Fatalf("prepare db: deleteEvent error: %v", err)
 	}
 }
 
-func getPupilID(t *testing.T) eventssvc.PupilID {
+func getPupilID(t *testing.T) string {
 	t.Helper()
-	var pupilID eventssvc.PupilID
+	var pupilID string
 	if err := db.QueryRow(context.Background(), `select id from pupil`).Scan(&pupilID); err != nil {
 		t.Fatalf("prepare db: %v", err)
 	}
 	return pupilID
 }
 
-func getEventID(t *testing.T) eventssvc.EventID {
+func getEventID(t *testing.T) string {
 	t.Helper()
-	var eventID eventssvc.EventID
+	var eventID string
 	if err := db.QueryRow(context.Background(), `select id from event`).Scan(&eventID); err != nil {
 		t.Fatalf("prepare db: %v", err)
 	}
 	return eventID
 }
 
-func removePupilResources(t *testing.T, pupilID eventssvc.PupilID, eventID eventssvc.EventID) {
+func removePupilResources(t *testing.T, pupilID string, eventID string) {
 	t.Helper()
 	if _, err := db.Exec(context.Background(), `delete from resources where pupil_id = $1 and event_id = $2;`, pupilID,
 		eventID); err != nil {

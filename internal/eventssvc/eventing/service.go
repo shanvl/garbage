@@ -17,36 +17,34 @@ import (
 // Note that all methods and entities are used in the context of one event.
 type Service interface {
 	// ChangePupilResources changes the amount of resources brought by the pupil to the event
-	ChangePupilResources(ctx context.Context, eventID eventssvc.EventID, pupilID eventssvc.PupilID,
-		resources eventssvc.ResourceMap) error
+	ChangePupilResources(ctx context.Context, eventID, pupilID string, resources eventssvc.ResourceMap) error
 	// CreateEvent creates and stores the event
-	CreateEvent(ctx context.Context, date time.Time, name string, resources []eventssvc.Resource) (eventssvc.EventID, error)
+	CreateEvent(ctx context.Context, date time.Time, name string, resources []eventssvc.Resource) (string, error)
 	// DeleteEvent deletes the event
-	DeleteEvent(ctx context.Context, eventID eventssvc.EventID) error
+	DeleteEvent(ctx context.Context, eventID string) error
 	// EventByID returns an event with the given id and all its resources
-	EventByID(ctx context.Context, eventID eventssvc.EventID) (*Event, error)
+	EventByID(ctx context.Context, eventID string) (*Event, error)
 	// EventClasses returns an array of sorted classes with the resources they brought to the specified event
-	EventClasses(ctx context.Context, eventID eventssvc.EventID, filters EventClassFilters, sortBy sorting.By,
+	EventClasses(ctx context.Context, eventID string, filters EventClassFilters, sortBy sorting.By,
 		amount, skip int) (classes []*Class, total int, err error)
 	// EventPupils returns an array of sorted pupils with the resources they brought to the specified event
-	EventPupils(ctx context.Context, eventID eventssvc.EventID, filters EventPupilFilters, sortBy sorting.By,
+	EventPupils(ctx context.Context, eventID string, filters EventPupilFilters, sortBy sorting.By,
 		amount int, skip int) (pupils []*Pupil, total int, err error)
 	// PupilByID returns a pupil with the given id with the resources they brought to that event
-	PupilByID(ctx context.Context, pupilID eventssvc.PupilID, eventID eventssvc.EventID) (*Pupil, error)
+	PupilByID(ctx context.Context, pupilID, eventID string) (*Pupil, error)
 }
 
 // Repository provides methods to work with an event's persistence
 type Repository interface {
-	ChangePupilResources(ctx context.Context, eventID eventssvc.EventID, pupilID eventssvc.PupilID,
-		resources eventssvc.ResourceMap) error
-	DeleteEvent(ctx context.Context, eventID eventssvc.EventID) error
-	EventByID(ctx context.Context, eventID eventssvc.EventID) (*Event, error)
-	EventClasses(ctx context.Context, eventID eventssvc.EventID, filters EventClassFilters, sortBy sorting.By,
+	ChangePupilResources(ctx context.Context, eventID, pupilID string, resources eventssvc.ResourceMap) error
+	DeleteEvent(ctx context.Context, eventID string) error
+	EventByID(ctx context.Context, eventID string) (*Event, error)
+	EventClasses(ctx context.Context, eventID string, filters EventClassFilters, sortBy sorting.By,
 		amount int, skip int) (classes []*Class, total int, err error)
-	EventPupils(ctx context.Context, eventID eventssvc.EventID, filters EventPupilFilters, sortBy sorting.By,
+	EventPupils(ctx context.Context, eventID string, filters EventPupilFilters, sortBy sorting.By,
 		amount int, skip int) (pupils []*Pupil, total int, err error)
-	PupilByID(ctx context.Context, pupilID eventssvc.PupilID, eventID eventssvc.EventID) (*Pupil, error)
-	StoreEvent(ctx context.Context, event *eventssvc.Event) (eventssvc.EventID, error)
+	PupilByID(ctx context.Context, pupilID, eventID string) (*Pupil, error)
+	StoreEvent(ctx context.Context, event *eventssvc.Event) error
 }
 
 type service struct {
@@ -68,7 +66,7 @@ func NewService(repo Repository) Service {
 }
 
 // ChangePupilResources adds/subtracts resources brought by a pupil to/from the event
-func (s *service) ChangePupilResources(ctx context.Context, eventID eventssvc.EventID, pupilID eventssvc.PupilID,
+func (s *service) ChangePupilResources(ctx context.Context, eventID, pupilID string,
 	resources eventssvc.ResourceMap) error {
 
 	errVld := valid.EmptyError()
@@ -109,7 +107,7 @@ func (s *service) ChangePupilResources(ctx context.Context, eventID eventssvc.Ev
 
 // CreateEvent creates and stores an event
 func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
-	resourcesAllowed []eventssvc.Resource) (eventssvc.EventID, error) {
+	resourcesAllowed []eventssvc.Resource) (string, error) {
 
 	errVld := valid.EmptyError()
 	// new event mustn't occur in the past
@@ -142,11 +140,15 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 		ResourcesAllowed: resourcesAllowed,
 	}
 	// store the event
-	return s.repo.StoreEvent(ctx, event)
+	err = s.repo.StoreEvent(ctx, event)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
 // DeleteEvent deletes an event
-func (s *service) DeleteEvent(ctx context.Context, eventID eventssvc.EventID) error {
+func (s *service) DeleteEvent(ctx context.Context, eventID string) error {
 	// check if there's eventID
 	if len(eventID) == 0 {
 		return valid.NewError("eventID", "eventID must be provided")
@@ -156,7 +158,7 @@ func (s *service) DeleteEvent(ctx context.Context, eventID eventssvc.EventID) er
 }
 
 // EventByID returns an event by its ID
-func (s *service) EventByID(ctx context.Context, eventID eventssvc.EventID) (*Event, error) {
+func (s *service) EventByID(ctx context.Context, eventID string) (*Event, error) {
 	// check if there's eventID
 	if len(eventID) == 0 {
 		return nil, valid.NewError("eventID", "eventID is needed")
@@ -165,7 +167,7 @@ func (s *service) EventByID(ctx context.Context, eventID eventssvc.EventID) (*Ev
 }
 
 // EventClasses returns an array of sorted classes for the specified event
-func (s *service) EventClasses(ctx context.Context, eventID eventssvc.EventID, filters EventClassFilters,
+func (s *service) EventClasses(ctx context.Context, eventID string, filters EventClassFilters,
 	sortBy sorting.By, amount, skip int) (classes []*Class, total int, err error) {
 
 	// check if eventID was provided
@@ -188,7 +190,7 @@ func (s *service) EventClasses(ctx context.Context, eventID eventssvc.EventID, f
 }
 
 // EventPupils returns an array of sorted pupils for the specified event
-func (s *service) EventPupils(ctx context.Context, eventID eventssvc.EventID, filters EventPupilFilters,
+func (s *service) EventPupils(ctx context.Context, eventID string, filters EventPupilFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*Pupil, total int, err error) {
 
 	// check if eventID was provided
@@ -211,7 +213,7 @@ func (s *service) EventPupils(ctx context.Context, eventID eventssvc.EventID, fi
 }
 
 // PupilByID returns a pupil with a given id w/ resources for a specified event
-func (s *service) PupilByID(ctx context.Context, pupilID eventssvc.PupilID, eventID eventssvc.EventID) (*Pupil, error) {
+func (s *service) PupilByID(ctx context.Context, pupilID string, eventID string) (*Pupil, error) {
 	// check if eventID and pupilID are provided
 	errVld := valid.EmptyError()
 	if len(eventID) == 0 {

@@ -17,7 +17,7 @@ func TestAggregatingRepo_PupilByID(t *testing.T) {
 	pID := getPupilID(t)
 
 	type args struct {
-		id            eventssvc.PupilID
+		id            string
 		filters       aggregating.EventFilters
 		eventsSorting sorting.By
 	}
