@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"os"
@@ -10,6 +9,7 @@ import (
 
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	healthv1pb "github.com/shanvl/garbage/api/health/v1/pb"
 	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
@@ -37,31 +37,34 @@ func NewServer(agSvc aggregating.Service, evSvc eventing.Service, scSvc schoolin
 	return server
 }
 
+// Run configures and starts gRPC server
 func (s *Server) Run(port int) error {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
 
+	// add interceptors
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpcMiddleware.ChainUnaryServer(
+			// logging
 			grpc_zap.UnaryServerInterceptor(s.log),
-			grpc_zap.PayloadUnaryServerInterceptor(s.log, func(context.Context, string, interface{}) bool {
-				return true
-			}),
-			NewPanicInterceptor().Unary(),
+			// payload logging
+			grpc_zap.PayloadUnaryServerInterceptor(s.log, s.payloadDecider),
+			// panic recovery
+			grpcRecovery.UnaryServerInterceptor(grpcRecovery.WithRecoveryHandler(s.handleRecovery)),
 		)),
 		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(
 			grpc_zap.StreamServerInterceptor(s.log),
-			grpc_zap.PayloadStreamServerInterceptor(s.log, func(context.Context, string, interface{}) bool {
-				return true
-			}),
-			NewPanicInterceptor().Stream(),
+			grpc_zap.PayloadStreamServerInterceptor(s.log, s.payloadDecider),
+			grpcRecovery.StreamServerInterceptor(grpcRecovery.WithRecoveryHandler(s.handleRecovery)),
 		)),
 	)
 
+	// reflection for tools like Evans
 	reflection.Register(grpcServer)
 
+	// register the services
 	eventsv1pb.RegisterAggregatingServiceServer(grpcServer, s)
 	eventsv1pb.RegisterEventingServiceServer(grpcServer, s)
 	eventsv1pb.RegisterSchoolingServiceServer(grpcServer, s)

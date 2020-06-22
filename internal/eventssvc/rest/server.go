@@ -15,13 +15,21 @@ import (
 	"google.golang.org/grpc"
 )
 
+// RunServer configures and starts REST gateway
 func RunServer(port int, grpcAddress string, log *zap.Logger) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// add custom error handler
 	customErrorsOption := runtime.WithErrorHandler(customHTTPError)
+
+	// create new mux
 	mux := runtime.NewServeMux(customErrorsOption)
+
+	// no tls
 	dialOptions := []grpc.DialOption{grpc.WithInsecure()}
+
+	// transform and proxy all REST requests to gRPC server
 	err := eventsv1pb.RegisterAggregatingServiceHandlerFromEndpoint(ctx, mux, grpcAddress, dialOptions)
 	if err != nil {
 		return err
@@ -35,6 +43,7 @@ func RunServer(port int, grpcAddress string, log *zap.Logger) error {
 		return err
 	}
 
+	// create REST gateway
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: mux,
