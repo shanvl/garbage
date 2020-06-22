@@ -3,35 +3,36 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	healthv1pb "github.com/shanvl/garbage/api/health/v1/pb"
 	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
 	"github.com/shanvl/garbage/internal/eventssvc/eventing"
 	"github.com/shanvl/garbage/internal/eventssvc/schooling"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/grpc/status"
 )
 
 type Server struct {
 	agSvc aggregating.Service
 	evSvc eventing.Service
 	scSvc schooling.Service
+	log   *zap.Logger
 }
 
-func NewServer(agSvc aggregating.Service, evSvc eventing.Service, scSvc schooling.Service) *Server {
+func NewServer(agSvc aggregating.Service, evSvc eventing.Service, scSvc schooling.Service, log *zap.Logger) *Server {
 	server := &Server{
 		agSvc: agSvc,
 		evSvc: evSvc,
 		scSvc: scSvc,
+		log:   log,
 	}
 	return server
 }
@@ -44,9 +45,17 @@ func (s *Server) Run(port int) error {
 
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpcMiddleware.ChainUnaryServer(
+			grpc_zap.UnaryServerInterceptor(s.log),
+			grpc_zap.PayloadUnaryServerInterceptor(s.log, func(context.Context, string, interface{}) bool {
+				return true
+			}),
 			NewPanicInterceptor().Unary(),
 		)),
 		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(
+			grpc_zap.StreamServerInterceptor(s.log),
+			grpc_zap.PayloadStreamServerInterceptor(s.log, func(context.Context, string, interface{}) bool {
+				return true
+			}),
 			NewPanicInterceptor().Stream(),
 		)),
 	)
@@ -64,27 +73,15 @@ func (s *Server) Run(port int) error {
 	go func() {
 		<-sigCh
 		grpcServer.GracefulStop()
-		log.Println("stopping gRPC server")
+		s.log.Info("stopping gRPC server",
+			zap.Int("port", port),
+			zap.String("protocol", "gRPC"),
+		)
 	}()
 
-	log.Printf("starting gRPC server on %d port\n", port)
+	s.log.Info("starting gRPC server",
+		zap.Int("port", port),
+		zap.String("protocol", "gRPC"),
+	)
 	return grpcServer.Serve(listener)
-}
-
-func handleContextError(ctx context.Context) error {
-	switch ctx.Err() {
-	case context.Canceled:
-		return status.Error(codes.Canceled, "request is canceled")
-	case context.DeadlineExceeded:
-		return status.Error(codes.DeadlineExceeded, "deadline exceeded")
-	default:
-		return nil
-	}
-}
-
-func logError(err error) error {
-	if err != nil {
-		log.Print(err)
-	}
-	return err
 }

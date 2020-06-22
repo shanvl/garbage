@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,10 +11,11 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
-func RunServer(port int, grpcAddress string) error {
+func RunServer(port int, grpcAddress string, log *zap.Logger) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -49,11 +49,21 @@ func RunServer(port int, grpcAddress string) error {
 		defer cancel()
 
 		if err := server.Shutdown(ctx); err != nil {
-			log.Printf("REST gateway shutdown error: %v\n", err)
+			log.Error("REST gateway shutdown error",
+				zap.Int("port", port),
+				zap.String("protocol", "HTTP"),
+				zap.Error(err),
+			)
 		}
-		log.Println("REST gateway has been shut down")
+		log.Info("REST gateway has been shut down",
+			zap.Int("port", port),
+			zap.String("protocol", "HTTP"),
+		)
 	}()
 
-	log.Printf("Starting REST gateway on %d port\n", port)
+	log.Info("starting REST gateway",
+		zap.Int("port", port),
+		zap.String("protocol", "HTTP"),
+	)
 	return server.ListenAndServe()
 }
