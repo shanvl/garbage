@@ -118,7 +118,7 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID string, classNam
 		errVld.Add("pupilID", "pupilID must be provided")
 	}
 	if len(className) == 0 {
-		errVld.Add("className", "className must be provided")
+		errVld.Add("class", "class must be provided")
 	}
 	if !errVld.IsEmpty() {
 		return errVld
@@ -132,7 +132,7 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID string, classNam
 	// parse className
 	class, err := eventssvc.ClassFromClassName(className, time.Now())
 	if err != nil {
-		return valid.NewError("className", err.Error())
+		return valid.NewError("class", err.Error())
 	}
 	// if the pupil is already in the class, return their id
 	if class == pupil.Class {
