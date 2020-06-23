@@ -11,9 +11,6 @@ import (
 	"unicode"
 )
 
-// ClassID uniquely identifies a particular class
-type ClassID string
-
 // ErrNoClassOnDate indicates that there was no class with the specified credentials on the given date.
 // It can occur, for example, if the class was formed in 2002 and the date is 01.01.2020
 var ErrNoClassOnDate = errors.New("there was no such class on that date")
