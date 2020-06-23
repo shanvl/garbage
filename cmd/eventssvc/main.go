@@ -64,7 +64,7 @@ func main() {
 	grpcPort, restPort := env.Int("GRPC_PORT", 3000), env.Int("REST_PORT", 4000)
 	// run REST gateway
 	go func() {
-		if err := rest.RunServer(restPort, fmt.Sprintf(":%d", grpcPort), logger); err != nil && !errors.Is(err,
+		if err := rest.NewServer(logger).Run(restPort, fmt.Sprintf(":%d", grpcPort)); err != nil && !errors.Is(err,
 			http.ErrServerClosed) {
 
 			logger.Fatal("REST gateway error",

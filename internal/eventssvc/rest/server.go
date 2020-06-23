@@ -15,8 +15,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-// RunServer configures and starts REST gateway
-func RunServer(port int, grpcAddress string, log *zap.Logger) error {
+type Server struct {
+	log *zap.Logger
+}
+
+func NewServer(logger *zap.Logger) *Server {
+	return &Server{logger}
+}
+
+func (s *Server) Run(port int, grpcAddress string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -46,7 +53,7 @@ func RunServer(port int, grpcAddress string, log *zap.Logger) error {
 	// create REST gateway
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: mux,
+		Handler: s.logMiddleware(mux),
 	}
 
 	// graceful shutdown on signals
@@ -58,19 +65,19 @@ func RunServer(port int, grpcAddress string, log *zap.Logger) error {
 		defer cancel()
 
 		if err := server.Shutdown(ctx); err != nil {
-			log.Error("REST gateway shutdown error",
+			s.log.Error("REST gateway shutdown error",
 				zap.Int("port", port),
 				zap.String("protocol", "HTTP"),
 				zap.Error(err),
 			)
 		}
-		log.Info("REST gateway has been shut down",
+		s.log.Info("REST gateway has been shut down",
 			zap.Int("port", port),
 			zap.String("protocol", "HTTP"),
 		)
 	}()
 
-	log.Info("starting REST gateway",
+	s.log.Info("starting REST gateway",
 		zap.Int("port", port),
 		zap.String("protocol", "HTTP"),
 	)
