@@ -31,7 +31,7 @@ service EventingService {
             delete: "/v1/events/{id}"
         };
     }
-    // FindEventByID returns an event with the given id and all its resources
+    // FindEventByID returns an event with the given id and all resources collected at that event
     rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {
         option (google.api.http) = {
             get: "/v1/events/{id}"

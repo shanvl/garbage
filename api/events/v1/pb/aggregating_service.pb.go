@@ -31,12 +31,16 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
+// Note, that we can't use the class name here because it changes depending on the event's date. So the class' letter
+// the date it was formed on used instead
 type FindClassesRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Letter       string               `protobuf:"bytes,1,opt,name=letter,proto3" json:"letter,omitempty"`
+	// letter of the class
+	Letter string `protobuf:"bytes,1,opt,name=letter,proto3" json:"letter,omitempty"`
+	// date the class was formed on
 	DateFormed   *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date_formed,json=dateFormed,proto3" json:"date_formed,omitempty"`
 	EventFilters *EventFilters        `protobuf:"bytes,3,opt,name=event_filters,json=eventFilters,proto3" json:"event_filters,omitempty"`
 	Sorting      ClassSorting         `protobuf:"varint,4,opt,name=sorting,proto3,enum=shanvl.garbage.events.v1.ClassSorting" json:"sorting,omitempty"`
@@ -131,8 +135,11 @@ type FindClassesResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// list of classes with aggregated info about the resources a class has brought to every event that
+	// passed the filters and a list of those events for each class
 	Classes []*ClassAggr `protobuf:"bytes,1,rep,name=classes,proto3" json:"classes,omitempty"`
-	Total   uint32       `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// total classes found
+	Total uint32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 }
 
 func (x *FindClassesResponse) Reset() {
@@ -257,8 +264,10 @@ type FindEventsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// list of the events that passed the provided filters
 	Events []*Event `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
-	Total  uint32   `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// total events found
+	Total uint32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 }
 
 func (x *FindEventsResponse) Reset() {
@@ -375,6 +384,8 @@ type FindPupilByIDResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// pupil with aggregated info about the resources the pupil brought to every event that
+	// passed the filters and a list of those events
 	Pupil *PupilAggr `protobuf:"bytes,1,opt,name=pupil,proto3" json:"pupil,omitempty"`
 }
 
@@ -422,6 +433,7 @@ type FindPupilsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// text search field that can be a combination of the name of a pupil and the name of their class
 	NameAndClass string        `protobuf:"bytes,1,opt,name=name_and_class,json=nameAndClass,proto3" json:"name_and_class,omitempty"`
 	EventFilters *EventFilters `protobuf:"bytes,2,opt,name=event_filters,json=eventFilters,proto3" json:"event_filters,omitempty"`
 	Sorting      PupilSorting  `protobuf:"varint,3,opt,name=sorting,proto3,enum=shanvl.garbage.events.v1.PupilSorting" json:"sorting,omitempty"`
@@ -509,8 +521,11 @@ type FindPupilsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// list of pupils with aggregated info about the resources a pupil has brought to every event that
+	// passed the filters and a list of those events for each pupil
 	Pupils []*PupilAggr `protobuf:"bytes,1,rep,name=pupils,proto3" json:"pupils,omitempty"`
-	Total  uint32       `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// total pupils found
+	Total uint32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 }
 
 func (x *FindPupilsResponse) Reset() {
@@ -899,9 +914,16 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AggregatingServiceClient interface {
+	// FindClasses returns a list of sorted classes with the list of resources they have brought to the events
+	// that passed the given filters
 	FindClasses(ctx context.Context, in *FindClassesRequest, opts ...grpc.CallOption) (*FindClassesResponse, error)
+	// FindEvents returns a list of sorted events that passed the provided filters
 	FindEvents(ctx context.Context, in *FindEventsRequest, opts ...grpc.CallOption) (*FindEventsResponse, error)
+	// FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
+	// that passed the provided filters
 	FindPupilByID(ctx context.Context, in *FindPupilByIDRequest, opts ...grpc.CallOption) (*FindPupilByIDResponse, error)
+	// FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
+	// passed the given filters
 	FindPupils(ctx context.Context, in *FindPupilsRequest, opts ...grpc.CallOption) (*FindPupilsResponse, error)
 }
 
@@ -951,9 +973,16 @@ func (c *aggregatingServiceClient) FindPupils(ctx context.Context, in *FindPupil
 
 // AggregatingServiceServer is the server API for AggregatingService service.
 type AggregatingServiceServer interface {
+	// FindClasses returns a list of sorted classes with the list of resources they have brought to the events
+	// that passed the given filters
 	FindClasses(context.Context, *FindClassesRequest) (*FindClassesResponse, error)
+	// FindEvents returns a list of sorted events that passed the provided filters
 	FindEvents(context.Context, *FindEventsRequest) (*FindEventsResponse, error)
+	// FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
+	// that passed the provided filters
 	FindPupilByID(context.Context, *FindPupilByIDRequest) (*FindPupilByIDResponse, error)
+	// FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
+	// passed the given filters
 	FindPupils(context.Context, *FindPupilsRequest) (*FindPupilsResponse, error)
 }
 

@@ -13,6 +13,7 @@
   "paths": {
     "/v1/events": {
       "post": {
+        "summary": "CreateEvent creates and stores the event",
         "operationId": "EventingService_CreateEvent",
         "responses": {
           "200": {
@@ -45,6 +46,7 @@
     },
     "/v1/events/{eventId}/classes": {
       "get": {
+        "summary": "FindEventClasses returns an array of sorted classes with the resources they brought to the specified event",
         "operationId": "EventingService_FindEventClasses",
         "responses": {
           "200": {
@@ -69,6 +71,7 @@
           },
           {
             "name": "className",
+            "description": "text search field with a class name as it was on the date of the event (class name changes depending on the\nevent's date).",
             "in": "query",
             "required": false,
             "type": "string"
@@ -110,6 +113,7 @@
     },
     "/v1/events/{eventId}/pupils": {
       "get": {
+        "summary": "FindEventPupils returns an array of sorted pupils with the resources they brought to the specified event",
         "operationId": "EventingService_FindEventPupils",
         "responses": {
           "200": {
@@ -134,6 +138,7 @@
           },
           {
             "name": "nameAndClass",
+            "description": "text search field with the combination of pupils names and classes names as they were on the date of the event\n(class name changes depending on the event's date).",
             "in": "query",
             "required": false,
             "type": "string"
@@ -175,6 +180,7 @@
     },
     "/v1/events/{eventId}/pupils/{pupilId}": {
       "get": {
+        "summary": "FindPupilByID returns a pupil with the given id with the resources they brought to that event",
         "operationId": "EventingService_FindEventPupilByID",
         "responses": {
           "200": {
@@ -209,6 +215,7 @@
         ]
       },
       "put": {
+        "summary": "ChangePupilResources changes the amount of resources brought by the pupil to the event",
         "operationId": "EventingService_ChangePupilResources",
         "responses": {
           "200": {
@@ -253,6 +260,7 @@
     },
     "/v1/events/{id}": {
       "get": {
+        "summary": "FindEventByID returns an event with the given id and all resources collected at that event",
         "operationId": "EventingService_FindEventByID",
         "responses": {
           "200": {
@@ -281,6 +289,7 @@
         ]
       },
       "delete": {
+        "summary": "DeleteEvent deletes the event",
         "operationId": "EventingService_DeleteEvent",
         "responses": {
           "200": {
@@ -324,12 +333,15 @@
           "type": "string"
         },
         "class": {
-          "type": "string"
+          "type": "string",
+          "title": "name of the class as it was on the date of the event"
         },
         "resourcesBrought": {
-          "$ref": "#/definitions/v1ResourcesBrought"
+          "$ref": "#/definitions/v1ResourcesBrought",
+          "title": "amount of the resources the pupil brought to the event"
         }
-      }
+      },
+      "title": "Pupils bring recyclable materials (resources) to the events.\nThis message is used in the context of a single event"
     },
     "protobufAny": {
       "type": "object",
@@ -370,8 +382,9 @@
         "pupilId": {
           "type": "string"
         },
-        "resources": {
-          "$ref": "#/definitions/v1ResourcesBrought"
+        "resourcesBrought": {
+          "$ref": "#/definitions/v1ResourcesBrought",
+          "title": "amount of resources brought by the pupil to the event"
         }
       }
     },
@@ -379,12 +392,15 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "name of the class as it was on the date of the event"
         },
         "resourcesBrought": {
-          "$ref": "#/definitions/v1ResourcesBrought"
+          "$ref": "#/definitions/v1ResourcesBrought",
+          "title": "amount of the resources the class brought to the event"
         }
-      }
+      },
+      "title": "Class is a school class consisting of pupils. This message is used in the context of a single event"
     },
     "v1ClassSorting": {
       "type": "string",
@@ -396,14 +412,16 @@
         "CLASS_SORTING_PAPER",
         "CLASS_SORTING_PLASTIC"
       ],
-      "default": "CLASS_SORTING_UNKNOWN"
+      "default": "CLASS_SORTING_UNKNOWN",
+      "title": "ClassSorting shows how classes can be sorted"
     },
     "v1CreateEventRequest": {
       "type": "object",
       "properties": {
         "date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "title": "event date"
         },
         "name": {
           "type": "string"
@@ -412,7 +430,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Resource"
-          }
+          },
+          "title": "resources permitted on the event"
         }
       }
     },
@@ -432,7 +451,8 @@
         },
         "date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "title": "date on which the event will take place"
         },
         "name": {
           "type": "string"
@@ -441,18 +461,22 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Resource"
-          }
+          },
+          "title": "types of resources allowed to be brought to this event"
         },
         "resourcesBrought": {
-          "$ref": "#/definitions/v1ResourcesBrought"
+          "$ref": "#/definitions/v1ResourcesBrought",
+          "title": "amount of the resources gathered at the event"
         }
-      }
+      },
+      "title": "Event is a meeting of pupils who bring in recyclables\nThe goal of the event is to gather as many recyclable materials (resources) as possible"
     },
     "v1FindEventByIDResponse": {
       "type": "object",
       "properties": {
         "event": {
-          "$ref": "#/definitions/v1Event"
+          "$ref": "#/definitions/v1Event",
+          "title": "event's info with the resources collected on that event"
         }
       }
     },
@@ -463,11 +487,13 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Class"
-          }
+          },
+          "title": "list of found classes with the resources each class brought to the event"
         },
         "total": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "title": "total classes found"
         }
       }
     },
@@ -475,7 +501,8 @@
       "type": "object",
       "properties": {
         "pupil": {
-          "$ref": "#/definitions/eventsv1Pupil"
+          "$ref": "#/definitions/eventsv1Pupil",
+          "title": "pupil info with the resources they brought to the event"
         }
       }
     },
@@ -486,11 +513,13 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/eventsv1Pupil"
-          }
+          },
+          "title": "list of found pupils with the resources each pupil brought to the event"
         },
         "total": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "title": "total pupils found"
         }
       }
     },
@@ -504,7 +533,8 @@
         "PUPIL_SORTING_PAPER",
         "PUPIL_SORTING_PLASTIC"
       ],
-      "default": "PUPIL_SORTING_UNKNOWN"
+      "default": "PUPIL_SORTING_UNKNOWN",
+      "title": "PupilSorting shows how pupils can be sorted"
     },
     "v1Resource": {
       "type": "string",
@@ -514,7 +544,8 @@
         "RESOURCE_PAPER",
         "RESOURCE_PLASTIC"
       ],
-      "default": "RESOURCE_UNKNOWN"
+      "default": "RESOURCE_UNKNOWN",
+      "title": "Resource is a concrete type of recyclables brought by the pupils to the events"
     },
     "v1ResourcesBrought": {
       "type": "object",
@@ -531,7 +562,8 @@
           "type": "number",
           "format": "float"
         }
-      }
+      },
+      "title": "ResourceBrought message shows how many resources a pupil/class has brought to an event or how many resources were\ncollected on an event"
     }
   }
 }

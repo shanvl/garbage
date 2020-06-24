@@ -55,8 +55,11 @@ func (s *Server) Run(port int) error {
 			grpcRecovery.UnaryServerInterceptor(grpcRecovery.WithRecoveryHandler(s.handleRecovery)),
 		)),
 		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(
+			// logging
 			grpc_zap.StreamServerInterceptor(s.log),
+			// payload logging
 			grpc_zap.PayloadStreamServerInterceptor(s.log, s.payloadDecider),
+			// panic recovery
 			grpcRecovery.StreamServerInterceptor(grpcRecovery.WithRecoveryHandler(s.handleRecovery)),
 		)),
 	)

@@ -13,6 +13,7 @@
   "paths": {
     "/v1/classes": {
       "get": {
+        "summary": "FindClasses returns a list of sorted classes with the list of resources they have brought to the events\nthat passed the given filters",
         "operationId": "AggregatingService_FindClasses",
         "responses": {
           "200": {
@@ -31,12 +32,14 @@
         "parameters": [
           {
             "name": "letter",
+            "description": "letter of the class.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "dateFormed",
+            "description": "date the class was formed on.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -44,6 +47,7 @@
           },
           {
             "name": "eventFilters.from",
+            "description": "include events occurred since this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -51,6 +55,7 @@
           },
           {
             "name": "eventFilters.to",
+            "description": "include events occurred up to this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -58,12 +63,14 @@
           },
           {
             "name": "eventFilters.name",
+            "description": "name of the event.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "eventFilters.resourcesAllowed",
+            "description": "resources permitted to be brought to this event.",
             "in": "query",
             "required": false,
             "type": "array",
@@ -132,6 +139,7 @@
     },
     "/v1/events": {
       "get": {
+        "summary": "FindEvents returns a list of sorted events that passed the provided filters",
         "operationId": "AggregatingService_FindEvents",
         "responses": {
           "200": {
@@ -150,6 +158,7 @@
         "parameters": [
           {
             "name": "filters.from",
+            "description": "include events occurred since this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -157,6 +166,7 @@
           },
           {
             "name": "filters.to",
+            "description": "include events occurred up to this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -164,12 +174,14 @@
           },
           {
             "name": "filters.name",
+            "description": "name of the event.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "filters.resourcesAllowed",
+            "description": "resources permitted to be brought to this event.",
             "in": "query",
             "required": false,
             "type": "array",
@@ -223,6 +235,7 @@
     },
     "/v1/pupils": {
       "get": {
+        "summary": "FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that\npassed the given filters",
         "operationId": "AggregatingService_FindPupils",
         "responses": {
           "200": {
@@ -241,12 +254,14 @@
         "parameters": [
           {
             "name": "nameAndClass",
+            "description": "text search field that can be a combination of the name of a pupil and the name of their class.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "eventFilters.from",
+            "description": "include events occurred since this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -254,6 +269,7 @@
           },
           {
             "name": "eventFilters.to",
+            "description": "include events occurred up to this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -261,12 +277,14 @@
           },
           {
             "name": "eventFilters.name",
+            "description": "name of the event.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "eventFilters.resourcesAllowed",
+            "description": "resources permitted to be brought to this event.",
             "in": "query",
             "required": false,
             "type": "array",
@@ -335,6 +353,7 @@
     },
     "/v1/pupils/{id}": {
       "get": {
+        "summary": "FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events\nthat passed the provided filters",
         "operationId": "AggregatingService_FindPupilByID",
         "responses": {
           "200": {
@@ -359,6 +378,7 @@
           },
           {
             "name": "eventFilters.from",
+            "description": "include events occurred since this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -366,6 +386,7 @@
           },
           {
             "name": "eventFilters.to",
+            "description": "include events occurred up to this date.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -373,12 +394,14 @@
           },
           {
             "name": "eventFilters.name",
+            "description": "name of the event.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "eventFilters.resourcesAllowed",
+            "description": "resources permitted to be brought to this event.",
             "in": "query",
             "required": false,
             "type": "array",
@@ -452,22 +475,27 @@
       "type": "object",
       "properties": {
         "letter": {
-          "type": "string"
+          "type": "string",
+          "title": "letter is the letter of the class"
         },
         "dateFormed": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "title": "date the class was formed on"
         },
         "resourcesBrought": {
-          "$ref": "#/definitions/v1ResourcesBrought"
+          "$ref": "#/definitions/v1ResourcesBrought",
+          "title": "resources the class has brought to all the events that passed the filters"
         },
         "events": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Event"
-          }
+          },
+          "title": "array of events with their names and the amount of resources brought by the class"
         }
-      }
+      },
+      "title": "ClassAggr is used in the context of many events the class has participated in.\nNote, that the name of the class changes depending on the date of a particular event. Hence, we send its\nletter and the date it was formed on instead of its name"
     },
     "v1ClassSorting": {
       "type": "string",
@@ -479,7 +507,8 @@
         "CLASS_SORTING_PAPER",
         "CLASS_SORTING_PLASTIC"
       ],
-      "default": "CLASS_SORTING_UNKNOWN"
+      "default": "CLASS_SORTING_UNKNOWN",
+      "title": "ClassSorting shows how classes can be sorted"
     },
     "v1Event": {
       "type": "object",
@@ -489,7 +518,8 @@
         },
         "date": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "title": "date on which the event will take place"
         },
         "name": {
           "type": "string"
@@ -498,34 +528,42 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Resource"
-          }
+          },
+          "title": "types of resources allowed to be brought to this event"
         },
         "resourcesBrought": {
-          "$ref": "#/definitions/v1ResourcesBrought"
+          "$ref": "#/definitions/v1ResourcesBrought",
+          "title": "amount of the resources gathered at the event"
         }
-      }
+      },
+      "title": "Event is a meeting of pupils who bring in recyclables\nThe goal of the event is to gather as many recyclable materials (resources) as possible"
     },
     "v1EventFilters": {
       "type": "object",
       "properties": {
         "from": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "title": "include events occurred since this date"
         },
         "to": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "title": "include events occurred up to this date"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "name of the event"
         },
         "resourcesAllowed": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Resource"
-          }
+          },
+          "title": "resources permitted to be brought to this event"
         }
-      }
+      },
+      "title": "EventFilters is used to filter the events"
     },
     "v1EventSorting": {
       "type": "string",
@@ -539,7 +577,8 @@
         "EVENT_SORTING_PAPER",
         "EVENT_SORTING_PLASTIC"
       ],
-      "default": "EVENT_SORTING_UNKNOWN"
+      "default": "EVENT_SORTING_UNKNOWN",
+      "title": "EventSorting shows how events can be sorted"
     },
     "v1FindClassesResponse": {
       "type": "object",
@@ -548,11 +587,13 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ClassAggr"
-          }
+          },
+          "title": "list of classes with aggregated info about the resources a class has brought to every event that\npassed the filters and a list of those events for each class"
         },
         "total": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "title": "total classes found"
         }
       }
     },
@@ -563,11 +604,13 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Event"
-          }
+          },
+          "title": "list of the events that passed the provided filters"
         },
         "total": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "title": "total events found"
         }
       }
     },
@@ -575,7 +618,8 @@
       "type": "object",
       "properties": {
         "pupil": {
-          "$ref": "#/definitions/v1PupilAggr"
+          "$ref": "#/definitions/v1PupilAggr",
+          "title": "pupil with aggregated info about the resources the pupil brought to every event that\npassed the filters and a list of those events"
         }
       }
     },
@@ -586,11 +630,13 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1PupilAggr"
-          }
+          },
+          "title": "list of pupils with aggregated info about the resources a pupil has brought to every event that\npassed the filters and a list of those events for each pupil"
         },
         "total": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "title": "total pupils found"
         }
       }
     },
@@ -614,15 +660,18 @@
           "format": "date-time"
         },
         "resourcesBrought": {
-          "$ref": "#/definitions/v1ResourcesBrought"
+          "$ref": "#/definitions/v1ResourcesBrought",
+          "title": "resources that the pupil has brought to all the events that passed the filters"
         },
         "events": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Event"
-          }
+          },
+          "title": "array of events with their names and the amount of resources brought by the pupil"
         }
-      }
+      },
+      "title": "PupilAggr is used in the context of many events the pupil has participated in.\nNote, that the name of the class changes depending on the date of a particular event. Hence, we send its\nletter and the date it was formed on instead of its name"
     },
     "v1PupilSorting": {
       "type": "string",
@@ -634,7 +683,8 @@
         "PUPIL_SORTING_PAPER",
         "PUPIL_SORTING_PLASTIC"
       ],
-      "default": "PUPIL_SORTING_UNKNOWN"
+      "default": "PUPIL_SORTING_UNKNOWN",
+      "title": "PupilSorting shows how pupils can be sorted"
     },
     "v1Resource": {
       "type": "string",
@@ -644,7 +694,8 @@
         "RESOURCE_PAPER",
         "RESOURCE_PLASTIC"
       ],
-      "default": "RESOURCE_UNKNOWN"
+      "default": "RESOURCE_UNKNOWN",
+      "title": "Resource is a concrete type of recyclables brought by the pupils to the events"
     },
     "v1ResourcesBrought": {
       "type": "object",
@@ -661,7 +712,8 @@
           "type": "number",
           "format": "float"
         }
-      }
+      },
+      "title": "ResourceBrought message shows how many resources a pupil/class has brought to an event or how many resources were\ncollected on an event"
     }
   }
 }

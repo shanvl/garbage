@@ -12,6 +12,7 @@ const (
 	NameDes
 	Paper
 	Plastic
+	Unspecified
 )
 
 // IsDate checks if a provided string can be used as a sorting by date

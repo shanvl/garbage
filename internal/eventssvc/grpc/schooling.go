@@ -34,7 +34,7 @@ func (s *Server) AddPupils(ctx context.Context, req *eventsv1pb.AddPupilsRequest
 // ChangePupilClass changes the class of the pupil
 func (s *Server) ChangePupilClass(ctx context.Context, req *eventsv1pb.ChangePupilClassRequest) (*empty.Empty, error) {
 
-	err := s.scSvc.ChangePupilClass(ctx, req.GetId(), req.GetClass())
+	err := s.scSvc.ChangePupilClass(ctx, req.GetPupilId(), req.GetClass())
 	if err != nil {
 		return nil, s.handleError(err)
 	}

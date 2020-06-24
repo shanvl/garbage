@@ -26,6 +26,7 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
+// Resource is a concrete type of recyclables brought by the pupils to the events
 type Resource int32
 
 const (
@@ -78,6 +79,7 @@ func (Resource) EnumDescriptor() ([]byte, []int) {
 	return file_events_proto_rawDescGZIP(), []int{0}
 }
 
+// PupilSorting shows how pupils can be sorted
 type PupilSorting int32
 
 const (
@@ -136,6 +138,7 @@ func (PupilSorting) EnumDescriptor() ([]byte, []int) {
 	return file_events_proto_rawDescGZIP(), []int{1}
 }
 
+// ClassSorting shows how classes can be sorted
 type ClassSorting int32
 
 const (
@@ -194,6 +197,7 @@ func (ClassSorting) EnumDescriptor() ([]byte, []int) {
 	return file_events_proto_rawDescGZIP(), []int{2}
 }
 
+// EventSorting shows how events can be sorted
 type EventSorting int32
 
 const (
@@ -258,12 +262,15 @@ func (EventSorting) EnumDescriptor() ([]byte, []int) {
 	return file_events_proto_rawDescGZIP(), []int{3}
 }
 
+// Class is a school class consisting of pupils. This message is used in the context of a single event
 type Class struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name             string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// name of the class as it was on the date of the event
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// amount of the resources the class brought to the event
 	ResourcesBrought *ResourcesBrought `protobuf:"bytes,2,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
 }
 
@@ -313,15 +320,22 @@ func (x *Class) GetResourcesBrought() *ResourcesBrought {
 	return nil
 }
 
+// ClassAggr is used in the context of many events the class has participated in.
+// Note, that the name of the class changes depending on the date of a particular event. Hence, we send its
+// letter and the date it was formed on instead of its name
 type ClassAggr struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Letter           string               `protobuf:"bytes,1,opt,name=letter,proto3" json:"letter,omitempty"`
-	DateFormed       *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date_formed,json=dateFormed,proto3" json:"date_formed,omitempty"`
-	ResourcesBrought *ResourcesBrought    `protobuf:"bytes,3,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
-	Events           []*Event             `protobuf:"bytes,4,rep,name=events,proto3" json:"events,omitempty"`
+	// letter is the letter of the class
+	Letter string `protobuf:"bytes,1,opt,name=letter,proto3" json:"letter,omitempty"`
+	// date the class was formed on
+	DateFormed *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date_formed,json=dateFormed,proto3" json:"date_formed,omitempty"`
+	// resources the class has brought to all the events that passed the filters
+	ResourcesBrought *ResourcesBrought `protobuf:"bytes,3,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
+	// array of events with their names and the amount of resources brought by the class
+	Events []*Event `protobuf:"bytes,4,rep,name=events,proto3" json:"events,omitempty"`
 }
 
 func (x *ClassAggr) Reset() {
@@ -384,16 +398,21 @@ func (x *ClassAggr) GetEvents() []*Event {
 	return nil
 }
 
+// Event is a meeting of pupils who bring in recyclables
+// The goal of the event is to gather as many recyclable materials (resources) as possible
 type Event struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id               string               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Date             *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
-	Name             string               `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	ResourcesAllowed []Resource           `protobuf:"varint,4,rep,packed,name=resources_allowed,json=resourcesAllowed,proto3,enum=shanvl.garbage.events.v1.Resource" json:"resources_allowed,omitempty"`
-	ResourcesBrought *ResourcesBrought    `protobuf:"bytes,5,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// date on which the event will take place
+	Date *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	Name string               `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// types of resources allowed to be brought to this event
+	ResourcesAllowed []Resource `protobuf:"varint,4,rep,packed,name=resources_allowed,json=resourcesAllowed,proto3,enum=shanvl.garbage.events.v1.Resource" json:"resources_allowed,omitempty"`
+	// amount of the resources gathered at the event
+	ResourcesBrought *ResourcesBrought `protobuf:"bytes,5,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
 }
 
 func (x *Event) Reset() {
@@ -463,15 +482,20 @@ func (x *Event) GetResourcesBrought() *ResourcesBrought {
 	return nil
 }
 
+// EventFilters is used to filter the events
 type EventFilters struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	From             *timestamp.Timestamp `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	To               *timestamp.Timestamp `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
-	Name             string               `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	ResourcesAllowed []Resource           `protobuf:"varint,4,rep,packed,name=resources_allowed,json=resourcesAllowed,proto3,enum=shanvl.garbage.events.v1.Resource" json:"resources_allowed,omitempty"`
+	// include events occurred since this date
+	From *timestamp.Timestamp `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// include events occurred up to this date
+	To *timestamp.Timestamp `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
+	// name of the event
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// resources permitted to be brought to this event
+	ResourcesAllowed []Resource `protobuf:"varint,4,rep,packed,name=resources_allowed,json=resourcesAllowed,proto3,enum=shanvl.garbage.events.v1.Resource" json:"resources_allowed,omitempty"`
 }
 
 func (x *EventFilters) Reset() {
@@ -534,15 +558,19 @@ func (x *EventFilters) GetResourcesAllowed() []Resource {
 	return nil
 }
 
+// Pupils bring recyclable materials (resources) to the events.
+// This message is used in the context of a single event
 type Pupil struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id               string            `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FirstName        string            `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
-	LastName         string            `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
-	Class            string            `protobuf:"bytes,4,opt,name=class,proto3" json:"class,omitempty"`
+	Id        string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FirstName string `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName  string `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	// name of the class as it was on the date of the event
+	Class string `protobuf:"bytes,4,opt,name=class,proto3" json:"class,omitempty"`
+	// amount of the resources the pupil brought to the event
 	ResourcesBrought *ResourcesBrought `protobuf:"bytes,5,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
 }
 
@@ -613,18 +641,23 @@ func (x *Pupil) GetResourcesBrought() *ResourcesBrought {
 	return nil
 }
 
+// PupilAggr is used in the context of many events the pupil has participated in.
+// Note, that the name of the class changes depending on the date of a particular event. Hence, we send its
+// letter and the date it was formed on instead of its name
 type PupilAggr struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id               string               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FirstName        string               `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
-	LastName         string               `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
-	ClassLetter      string               `protobuf:"bytes,4,opt,name=class_letter,json=classLetter,proto3" json:"class_letter,omitempty"`
-	ClassDateFormed  *timestamp.Timestamp `protobuf:"bytes,5,opt,name=class_date_formed,json=classDateFormed,proto3" json:"class_date_formed,omitempty"`
-	ResourcesBrought *ResourcesBrought    `protobuf:"bytes,6,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
-	Events           []*Event             `protobuf:"bytes,7,rep,name=events,proto3" json:"events,omitempty"`
+	Id              string               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FirstName       string               `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName        string               `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	ClassLetter     string               `protobuf:"bytes,4,opt,name=class_letter,json=classLetter,proto3" json:"class_letter,omitempty"`
+	ClassDateFormed *timestamp.Timestamp `protobuf:"bytes,5,opt,name=class_date_formed,json=classDateFormed,proto3" json:"class_date_formed,omitempty"`
+	// resources that the pupil has brought to all the events that passed the filters
+	ResourcesBrought *ResourcesBrought `protobuf:"bytes,6,opt,name=resources_brought,json=resourcesBrought,proto3" json:"resources_brought,omitempty"`
+	// array of events with their names and the amount of resources brought by the pupil
+	Events []*Event `protobuf:"bytes,7,rep,name=events,proto3" json:"events,omitempty"`
 }
 
 func (x *PupilAggr) Reset() {
@@ -708,6 +741,8 @@ func (x *PupilAggr) GetEvents() []*Event {
 	return nil
 }
 
+// ResourceBrought message shows how many resources a pupil/class has brought to an event or how many resources were
+// collected on an event
 type ResourcesBrought struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

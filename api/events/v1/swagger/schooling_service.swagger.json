@@ -13,6 +13,7 @@
   "paths": {
     "/v1/pupils": {
       "delete": {
+        "summary": "RemovePupils removes the pupils with the given IDs",
         "operationId": "SchoolingService_RemovePupils",
         "responses": {
           "200": {
@@ -31,6 +32,7 @@
         "parameters": [
           {
             "name": "pupilIds",
+            "description": "ids of the pupils deleted.",
             "in": "query",
             "required": false,
             "type": "array",
@@ -45,6 +47,7 @@
         ]
       },
       "post": {
+        "summary": "AddPupils adds the given pupils and returns the ids of the added",
         "operationId": "SchoolingService_AddPupils",
         "responses": {
           "200": {
@@ -75,8 +78,9 @@
         ]
       }
     },
-    "/v1/pupils/{id}": {
+    "/v1/pupils/{pupilId}": {
       "put": {
+        "summary": "ChangePupilClass changes the class of the pupil",
         "operationId": "SchoolingService_ChangePupilClass",
         "responses": {
           "200": {
@@ -94,7 +98,7 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "pupilId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -152,7 +156,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1AddPupilsRequestPupil"
-          }
+          },
+          "title": "pupils to be added"
         }
       }
     },
@@ -166,7 +171,8 @@
           "type": "string"
         },
         "class": {
-          "type": "string"
+          "type": "string",
+          "title": "class name as it is now (class name changes depending on the date)"
         }
       }
     },
@@ -177,18 +183,20 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "title": "ids of the pupils added"
         }
       }
     },
     "v1ChangePupilClassRequest": {
       "type": "object",
       "properties": {
-        "id": {
+        "pupilId": {
           "type": "string"
         },
         "class": {
-          "type": "string"
+          "type": "string",
+          "title": "class name as it is now (class name changes depending on the date)"
         }
       }
     }
