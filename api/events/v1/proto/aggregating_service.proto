@@ -11,8 +11,7 @@ option go_package = ".;eventsv1pb";
 // AggregatingService is responsible for providing aggregated info on how classes and pupils have performed at
 // events scattered in time, with various filters applied
 service AggregatingService {
-    // FindClasses returns a list of sorted classes with the list of resources they have brought to the events
-    // that passed the given filters
+    // FindClasses returns a list of sorted classes, each of which has a list of events that passed the given filters
     rpc FindClasses (FindClassesRequest) returns (FindClassesResponse) {
         option (google.api.http) = {
             get: "/v1/classes"
@@ -24,15 +23,13 @@ service AggregatingService {
             get: "/v1/events"
         };
     }
-    // FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
-    // that passed the provided filters
+    // FindPupilByID returns a pupil with the given ID and a list of events they has attended
     rpc FindPupilByID (FindPupilByIDRequest) returns (FindPupilByIDResponse) {
         option (google.api.http) = {
             get: "/v1/pupils/{id}"
         };
     }
-    // FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
-    // passed the given filters
+    // FindPupils returns a list of sorted classes, each of which has a list of events that passed the given filters
     rpc FindPupils (FindPupilsRequest) returns (FindPupilsResponse) {
         option (google.api.http) = {
             get: "/v1/pupils"

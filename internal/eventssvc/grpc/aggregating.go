@@ -12,8 +12,7 @@ import (
 	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
 )
 
-// FindClasses returns a list of sorted classes with the list of resources they have brought to the events
-// that passed the given filters
+// FindClasses returns a list of sorted classes, each of which has a list of events that passed the given filters
 func (s *Server) FindClasses(ctx context.Context, req *eventsv1pb.FindClassesRequest) (*eventsv1pb.
 	FindClassesResponse, error) {
 
@@ -84,8 +83,7 @@ func (s *Server) FindEvents(ctx context.Context, req *eventsv1pb.FindEventsReque
 	}, nil
 }
 
-// FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
-// passed the given filters
+// FindPupils returns a list of sorted classes, each of which has a list of events that passed the given filters
 func (s *Server) FindPupils(ctx context.Context, req *eventsv1pb.FindPupilsRequest) (*eventsv1pb.
 	FindPupilsResponse, error) {
 
@@ -119,8 +117,7 @@ func (s *Server) FindPupils(ctx context.Context, req *eventsv1pb.FindPupilsReque
 	return &eventsv1pb.FindPupilsResponse{Pupils: pbPupils, Total: uint32(total)}, nil
 }
 
-// FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
-// that passed the provided filters
+// FindPupilByID returns a pupil with the given ID and a list of events they has attended
 func (s *Server) FindPupilByID(ctx context.Context, req *eventsv1pb.FindPupilByIDRequest) (*eventsv1pb.
 	FindPupilByIDResponse, error) {
 

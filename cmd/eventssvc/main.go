@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/log/zapadapter"
 	"github.com/shanvl/garbage/internal/eventssvc/aggregating"
 	"github.com/shanvl/garbage/internal/eventssvc/eventing"
@@ -30,6 +31,11 @@ func main() {
 	}
 	defer logger.Sync()
 
+	// should the db log its actions
+	var dbLogger pgx.Logger = nil
+	if env.Bool("POSTGRES_LOG", false) {
+		dbLogger = zapadapter.NewLogger(logger)
+	}
 	// create postgres connection pool
 	postgresConf := postgres.Config{
 		Database:             env.String("POSTGRES_DB", "garbage1"),
@@ -40,7 +46,7 @@ func main() {
 		MaxConns:             env.Int("POSTGRES_MAX_CONN", 25),
 		MaxConnLifetime:      env.Duration("POSTGRES_CON_LIFE", 5*time.Minute),
 		PreferSimpleProtocol: env.Bool("POSTGRES_SIMPLE_PROTOCOL", false),
-		Logger:               zapadapter.NewLogger(logger),
+		Logger:               dbLogger,
 	}
 	postgresPool, err := postgres.Connect(postgresConf)
 	if err != nil {

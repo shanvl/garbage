@@ -20,6 +20,7 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_USER=root
       - POSTGRES_MAX_CONN=20
+      - POSTGRES_LOG=false
       - POSTGRES_CONN_LIFE=5m
       - POSTGRES_SIMPLE_PROTOCOL=false
     networks:

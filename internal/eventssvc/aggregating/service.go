@@ -14,21 +14,18 @@ import (
 // Service is an interface providing methods for obtaining aggregated info on how classes and pupils performed at
 // events, with various filters applied
 type Service interface {
-	// Classes returns a list of sorted classes with the list of resources they have brought to the events that passed
-	// the given filters
+	// Classes returns a list of sorted classes, each of which has a list of events that passed the given filters
 	Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By, amount,
 		skip int) (classes []*Class, total int, err error)
-	// Pupils returns a list of sorted pupils with the list of resources they have brought to the events that passed
-	// the given filters
-	Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
-		skip int) (pupils []*Pupil, total int, err error)
-	// PupilByID returns a pupil with the given ID with the list of all resources they has brought to every event
-	// that passed the provided filter
-	PupilByID(ctx context.Context, id string, filters EventFilters, eventsSorting sorting.By) (*Pupil,
-		error)
 	// Events returns a list of sorted events that passed the provided filters
 	Events(ctx context.Context, filters EventFilters, sortBy sorting.By, amount, skip int) (events []*Event,
 		total int, err error)
+	// Pupils returns a list of sorted classes, each of which has a list of events that passed the given filters
+	Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
+		skip int) (pupils []*Pupil, total int, err error)
+	// PupilByID returns a pupil with the given ID and a list of events they has attended
+	PupilByID(ctx context.Context, id string, filters EventFilters, eventsSorting sorting.By) (*Pupil,
+		error)
 }
 
 // Repository provides methods to work with entities persistence
@@ -58,7 +55,7 @@ func NewService(repo Repository) Service {
 	return &service{repo}
 }
 
-// Classes returns a list of sorted classes with resources they brought to the events that passed given filters
+// Classes returns a list of sorted classes, each of which has a list of events that passed the given filters
 func (s *service) Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By,
 	amount, skip int) (classes []*Class, total int, err error) {
 
@@ -86,8 +83,7 @@ func (s *service) Events(ctx context.Context, filters EventFilters, sortBy sorti
 	return s.repo.Events(ctx, filters, sortBy, amount, skip)
 }
 
-// Pupils returns a list of sorted pupils with a list of resources they brought to the events that passed the given
-// filters
+// Pupils returns a list of sorted classes, each of which has a list of events that passed the given filters
 func (s *service) Pupils(ctx context.Context, filters PupilFilters, pupilsSorting, eventsSorting sorting.By, amount,
 	skip int) (pupils []*Pupil, total int, err error) {
 
@@ -104,8 +100,7 @@ func (s *service) Pupils(ctx context.Context, filters PupilFilters, pupilsSortin
 	return s.repo.Pupils(ctx, filters, pupilsSorting, eventsSorting, amount, skip)
 }
 
-// PupilByID returns a pupil with the given ID with a list of all the resources they has brought to every event that
-// passed the provided filter. Events are sorted
+// PupilByID returns a pupil with the given ID and a list of events they has attended
 func (s *service) PupilByID(ctx context.Context, id string, filters EventFilters,
 	eventsSorting sorting.By) (*Pupil, error) {
 
