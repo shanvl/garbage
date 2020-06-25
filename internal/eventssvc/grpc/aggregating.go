@@ -26,10 +26,39 @@ func (s *Server) FindEvents(ctx context.Context, request *eventsv1pb.FindEventsR
 	panic("implement me")
 }
 
-func (s *Server) FindPupils(ctx context.Context, request *eventsv1pb.FindPupilsRequest) (*eventsv1pb.
+// FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
+// passed the given filters
+func (s *Server) FindPupils(ctx context.Context, req *eventsv1pb.FindPupilsRequest) (*eventsv1pb.
 	FindPupilsResponse, error) {
 
-	panic("implement me")
+	// proto to args
+	eventFilters, err := protoToEventFilters(req.GetEventFilters())
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	// call the service
+	pupils, total, err := s.agSvc.Pupils(ctx,
+		aggregating.PupilFilters{
+			EventFilters: eventFilters,
+			NameAndClass: req.GetNameAndClass(),
+		}, protoPupilSortingMap[req.GetSorting()],
+		protoEventSortingMap[req.GetEventSorting()],
+		int(req.GetAmount()),
+		int(req.GetSkip()),
+	)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	// result to proto
+	pbPupils := make([]*eventsv1pb.PupilAggr, len(pupils))
+	for i, pupil := range pupils {
+		pbPupil, err := pupilAggrToProto(pupil)
+		if err != nil {
+			return nil, s.handleError(err)
+		}
+		pbPupils[i] = pbPupil
+	}
+	return &eventsv1pb.FindPupilsResponse{Pupils: pbPupils, Total: uint32(total)}, nil
 }
 
 // FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
@@ -37,10 +66,12 @@ func (s *Server) FindPupils(ctx context.Context, request *eventsv1pb.FindPupilsR
 func (s *Server) FindPupilByID(ctx context.Context, req *eventsv1pb.FindPupilByIDRequest) (*eventsv1pb.
 	FindPupilByIDResponse, error) {
 
+	// proto to args
 	eventFilters, err := protoToEventFilters(req.GetEventFilters())
 	if err != nil {
 		return nil, s.handleError(err)
 	}
+	// call the service
 	pupil, err := s.agSvc.PupilByID(
 		ctx,
 		req.GetId(),
@@ -50,7 +81,7 @@ func (s *Server) FindPupilByID(ctx context.Context, req *eventsv1pb.FindPupilByI
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-
+	// result to proto
 	pbPupil, err := pupilAggrToProto(pupil)
 	if err != nil {
 		return nil, s.handleError(err)
@@ -58,6 +89,7 @@ func (s *Server) FindPupilByID(ctx context.Context, req *eventsv1pb.FindPupilByI
 	return &eventsv1pb.FindPupilByIDResponse{Pupil: pbPupil}, nil
 }
 
+// protoToEventFilters transforms *eventsv1pb.EventFilters to aggregating.EventFilters
 func protoToEventFilters(proto *eventsv1pb.EventFilters) (aggregating.EventFilters, error) {
 	if proto == nil {
 		return aggregating.EventFilters{}, nil
@@ -82,7 +114,7 @@ func protoToEventFilters(proto *eventsv1pb.EventFilters) (aggregating.EventFilte
 	}, nil
 }
 
-// converts *eventssvc.Event to *eventsv1pb.Event
+// eventAggrToProto converts *eventssvc.Event to *eventsv1pb.Event
 func eventAggrToProto(event *aggregating.Event) (*eventsv1pb.Event, error) {
 	if event == nil {
 		return nil, nil
@@ -104,6 +136,7 @@ func eventAggrToProto(event *aggregating.Event) (*eventsv1pb.Event, error) {
 	}, nil
 }
 
+// pupilAggrToProto transforms *aggregating.Pupil to *eventsv1pb.PupilAggr
 func pupilAggrToProto(pupil *aggregating.Pupil) (*eventsv1pb.PupilAggr, error) {
 	// events to proto
 	pbEvents := make([]*eventsv1pb.Event, len(pupil.Events))
@@ -130,6 +163,7 @@ func pupilAggrToProto(pupil *aggregating.Pupil) (*eventsv1pb.PupilAggr, error) {
 	}, nil
 }
 
+// protoTimeToTimestamp transforms *timestamp.Timestamp to time.Time
 func protoTimeToTimestamp(proto *timestamp.Timestamp) (time.Time, error) {
 	if proto == nil {
 		return time.Time{}, nil
