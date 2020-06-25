@@ -369,7 +369,7 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 		// create a map of the resources brought by the pupil to the event
 		resBrought := newResourceMap(resAllowed, gadgets.Float, paper.Float, plastic.Float)
 		// create an event and append it to the pupil's slice of events
-		e := aggregating.Event{
+		e := &aggregating.Event{
 			Event: eventssvc.Event{
 				ID:               eID.String,
 				Date:             eDate.Time,
@@ -463,7 +463,7 @@ func (a *AggregatingRepo) PupilByID(ctx context.Context, id string, filters aggr
 	)
 	p := &aggregating.Pupil{}
 	for rows.Next() {
-		e := aggregating.Event{}
+		e := &aggregating.Event{}
 		if err := rows.Scan(&eID, &eDate, &eName, &eResourcesAllowed, &eGadgets, &ePaper, &ePlastic, &p.ID,
 			&p.FirstName, &p.LastName, &p.Class.DateFormed, &p.Class.Letter, &pGadgets, &pPaper,
 			&pPlastic); err != nil {

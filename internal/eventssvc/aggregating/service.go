@@ -164,7 +164,7 @@ type Pupil struct {
 	// all the resources the pupil brought to the events
 	ResourcesBrought eventssvc.ResourceMap
 	// list of events with resources brought by the pupil to each of them
-	Events []Event
+	Events []*Event
 }
 
 // ClassFilters are used to filter classes and events in which they participated

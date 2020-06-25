@@ -9,9 +9,6 @@ import (
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	"github.com/shanvl/garbage/internal/eventssvc"
 	"github.com/shanvl/garbage/internal/eventssvc/eventing"
-	"github.com/shanvl/garbage/internal/eventssvc/sorting"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // ChangePupilResources changes the amount of resources brought by the pupil to the event
@@ -32,9 +29,9 @@ func (s *Server) CreateEvent(ctx context.Context, req *eventsv1pb.CreateEventReq
 	CreateEventResponse, error) {
 
 	// proto to args
-	eventDate, err := ptypes.Timestamp(req.GetDate())
+	eventDate, err := protoTimeToTimestamp(req.GetDate())
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid event date: %v", err))
+		return nil, s.handleError(fmt.Errorf("event date: %w", err))
 	}
 	resourcesAllowed, err := protoToResources(req.GetResourcesAllowed())
 	if err != nil {
@@ -149,12 +146,8 @@ func classToProto(class *eventing.Class) *eventsv1pb.Class {
 		return nil
 	}
 	return &eventsv1pb.Class{
-		Name: class.Name,
-		ResourcesBrought: &eventsv1pb.ResourcesBrought{
-			Gadgets: class.ResourcesBrought[eventssvc.Gadgets],
-			Paper:   class.ResourcesBrought[eventssvc.Paper],
-			Plastic: class.ResourcesBrought[eventssvc.Plastic],
-		},
+		Name:             class.Name,
+		ResourcesBrought: resourceMapToProto(class.ResourcesBrought),
 	}
 }
 
@@ -165,18 +158,14 @@ func eventToProto(event *eventing.Event) (*eventsv1pb.Event, error) {
 	}
 	date, err := ptypes.TimestampProto(event.Date)
 	if err != nil {
-		return nil, fmt.Errorf("wasn't able to convert date to proto: %w", err)
+		return nil, fmt.Errorf("event date: %w", ErrInvalidTimestamp)
 	}
 	return &eventsv1pb.Event{
 		Id:               event.ID,
 		Date:             date,
 		Name:             event.Name,
 		ResourcesAllowed: resourcesToProto(event.ResourcesAllowed),
-		ResourcesBrought: &eventsv1pb.ResourcesBrought{
-			Gadgets: event.ResourcesBrought[eventssvc.Gadgets],
-			Paper:   event.ResourcesBrought[eventssvc.Paper],
-			Plastic: event.ResourcesBrought[eventssvc.Plastic],
-		},
+		ResourcesBrought: resourceMapToProto(event.ResourcesBrought),
 	}, nil
 }
 
@@ -186,15 +175,11 @@ func pupilToProto(pupil *eventing.Pupil) *eventsv1pb.Pupil {
 		return nil
 	}
 	return &eventsv1pb.Pupil{
-		Id:        pupil.ID,
-		FirstName: pupil.FirstName,
-		LastName:  pupil.LastName,
-		Class:     pupil.Class,
-		ResourcesBrought: &eventsv1pb.ResourcesBrought{
-			Gadgets: pupil.ResourcesBrought[eventssvc.Gadgets],
-			Paper:   pupil.ResourcesBrought[eventssvc.Paper],
-			Plastic: pupil.ResourcesBrought[eventssvc.Plastic],
-		},
+		Id:               pupil.ID,
+		FirstName:        pupil.FirstName,
+		LastName:         pupil.LastName,
+		Class:            pupil.Class,
+		ResourcesBrought: resourceMapToProto(pupil.ResourcesBrought),
 	}
 }
 
@@ -243,20 +228,11 @@ func protoToResourcesMap(proto *eventsv1pb.ResourcesBrought) eventssvc.ResourceM
 	}
 }
 
-var protoClassSortingMap = map[eventsv1pb.ClassSorting]sorting.By{
-	eventsv1pb.ClassSorting_CLASS_SORTING_GADGETS:   sorting.Gadgets,
-	eventsv1pb.ClassSorting_CLASS_SORTING_NAME_ASC:  sorting.NameAsc,
-	eventsv1pb.ClassSorting_CLASS_SORTING_NAME_DESC: sorting.NameDes,
-	eventsv1pb.ClassSorting_CLASS_SORTING_PAPER:     sorting.Paper,
-	eventsv1pb.ClassSorting_CLASS_SORTING_PLASTIC:   sorting.Plastic,
-	eventsv1pb.ClassSorting_CLASS_SORTING_UNKNOWN:   sorting.Unspecified,
-}
-
-var protoPupilSortingMap = map[eventsv1pb.PupilSorting]sorting.By{
-	eventsv1pb.PupilSorting_PUPIL_SORTING_GADGETS:   sorting.Gadgets,
-	eventsv1pb.PupilSorting_PUPIL_SORTING_NAME_ASC:  sorting.NameAsc,
-	eventsv1pb.PupilSorting_PUPIL_SORTING_NAME_DESC: sorting.NameDes,
-	eventsv1pb.PupilSorting_PUPIL_SORTING_PAPER:     sorting.Paper,
-	eventsv1pb.PupilSorting_PUPIL_SORTING_PLASTIC:   sorting.Plastic,
-	eventsv1pb.PupilSorting_PUPIL_SORTING_UNKNOWN:   sorting.Unspecified,
+// converts eventssvc.ResourceMap to *eventsv1pb.ResourcesBrought
+func resourceMapToProto(m eventssvc.ResourceMap) *eventsv1pb.ResourcesBrought {
+	return &eventsv1pb.ResourcesBrought{
+		Gadgets: m[eventssvc.Gadgets],
+		Paper:   m[eventssvc.Paper],
+		Plastic: m[eventssvc.Plastic],
+	}
 }

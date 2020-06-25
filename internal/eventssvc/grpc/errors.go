@@ -13,6 +13,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// grpc specific parsing error which occurs when a provided proto timestamp can't be transformed to an entity of
+// time.Time
+var ErrInvalidTimestamp = errors.New("invalid timestamp")
+
 // handle error transforms a service's error into appropriate grpc error. It also logs all unrecognized errors
 func (s *Server) handleError(err error) error {
 	var validErr *valid.ErrValidation
@@ -20,6 +24,8 @@ func (s *Server) handleError(err error) error {
 	case errors.As(err, &validErr):
 		return errWithDetails(codes.InvalidArgument, validErr.Error(), validErr.Fields())
 	case errors.Is(err, eventssvc.ErrInvalidClassName):
+		fallthrough
+	case errors.Is(err, ErrInvalidTimestamp):
 		fallthrough
 	case errors.Is(err, eventssvc.ErrNoClassOnDate):
 		fallthrough
