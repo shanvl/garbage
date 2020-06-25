@@ -147,7 +147,7 @@ type Class struct {
 	// all the resources the class brought to the events
 	ResourcesBrought eventssvc.ResourceMap
 	// list of events with resources brought by the class to each of them
-	Events []Event
+	Events []*Event
 }
 
 // Event is a model of the event, adapted for this use case.

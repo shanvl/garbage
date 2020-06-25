@@ -181,7 +181,7 @@ func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.Class
 		// create a map of the resources brought by the class to the event
 		resBrought := newResourceMap(resAllowed, gadgets.Float, paper.Float, plastic.Float)
 		// create an event and append it to the pupil's slice of events
-		e := aggregating.Event{
+		e := &aggregating.Event{
 			Event: eventssvc.Event{
 				ID:               eID.String,
 				Date:             eDate.Time,
