@@ -13,8 +13,6 @@ services:
       - db
     networks:
       - garbage-test
-    ports:
-      - "3000:3000"
     volumes:
       - $PWD:/garbage
 

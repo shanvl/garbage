@@ -17,7 +17,6 @@ func TestMain(m *testing.M) {
 	os.Exit(testMain(m))
 }
 
-// TODO: add logger
 // connects to the test db
 func testMain(m *testing.M) int {
 	// connect to the test db. Config values are hardcoded in order not to corrupt production db in case the wrong

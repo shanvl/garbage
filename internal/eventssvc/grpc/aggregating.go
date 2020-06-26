@@ -38,6 +38,9 @@ func (s *Server) FindClasses(ctx context.Context, req *eventsv1pb.FindClassesReq
 		int(req.GetAmount()),
 		int(req.GetSkip()),
 	)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
 	// result to proto
 	pbClasses := make([]*eventsv1pb.ClassAggr, len(classes))
 	for i, class := range classes {

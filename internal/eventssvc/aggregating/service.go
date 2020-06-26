@@ -4,6 +4,7 @@ package aggregating
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/shanvl/garbage/internal/eventssvc"
@@ -59,6 +60,11 @@ func NewService(repo Repository) Service {
 func (s *service) Classes(ctx context.Context, filters ClassFilters, classesSorting, eventsSorting sorting.By,
 	amount, skip int) (classes []*Class, total int, err error) {
 
+	// there should be no class letter at all or only one letter
+	if len(filters.Letter) > 1 {
+		err := valid.NewError("class letter", fmt.Sprintf("invalid class letter: %s", filters.Letter))
+		return nil, 0, err
+	}
 	// if provided values are incorrect, use default ones instead
 	amount, skip = validateAmountSkip(amount, skip)
 	// classes can be sorted by resources they brought or by name

@@ -96,6 +96,19 @@ func Test_service_Classes(t *testing.T) {
 			wantErr:     false,
 		},
 		{
+			name: "invalid letter",
+			args: args{
+				aggregating.ClassFilters{Letter: "bb"},
+				sorting.NameAsc,
+				sorting.DateDes,
+				25,
+				0,
+			},
+			wantClasses: nil,
+			wantTotal:   0,
+			wantErr:     true,
+		},
+		{
 			name: "ok args",
 			args: args{
 				aggregating.ClassFilters{},
