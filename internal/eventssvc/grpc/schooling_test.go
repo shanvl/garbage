@@ -136,6 +136,76 @@ func TestServer_AddPupils(t *testing.T) {
 	}
 }
 
+func TestServer_ChangePupilClass(t *testing.T) {
+	ctx := context.Background()
+	pupilID := getPupilID(t)
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.ChangePupilClassRequest
+		code codes.Code
+	}{
+		{
+			name: "no pupil with that id",
+			req: &eventsv1pb.ChangePupilClassRequest{
+				PupilId: "nopupilwiththatid",
+				Class:   "1b",
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "empty id",
+			req: &eventsv1pb.ChangePupilClassRequest{
+				PupilId: "",
+				Class:   "1b",
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "invalid class",
+			req: &eventsv1pb.ChangePupilClassRequest{
+				PupilId: pupilID,
+				Class:   "12b",
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "empty class",
+			req: &eventsv1pb.ChangePupilClassRequest{
+				PupilId: pupilID,
+				Class:   "",
+			},
+			code: codes.InvalidArgument,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.ChangePupilClass(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("ChangePupilClass() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("ChangePupilClass() res == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("ChangePupilClass() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("ChangePupilClass() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("ChangePupilClass() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("ChangePupilClass() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+	}
+}
+
 func testDeletePupils(t *testing.T, ids []string) {
 	err := schoolingRepo.RemovePupils(context.Background(), ids)
 	if err != nil {
