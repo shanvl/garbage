@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
+	"github.com/shanvl/garbage/internal/eventssvc"
+	"github.com/shanvl/garbage/internal/eventssvc/schooling"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -206,9 +208,111 @@ func TestServer_ChangePupilClass(t *testing.T) {
 	}
 }
 
+func TestServer_RemovePupils(t *testing.T) {
+	ctx := context.Background()
+	pupilIDs := testAddPupils(t)
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.RemovePupilsRequest
+		code codes.Code
+	}{
+		{
+			name: "valid ids",
+			req: &eventsv1pb.RemovePupilsRequest{
+				PupilIds: pupilIDs,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "no pupils with such ids",
+			req: &eventsv1pb.RemovePupilsRequest{
+				PupilIds: []string{"12", "32", "sss"},
+			},
+			code: codes.OK,
+		},
+		{
+			name: "empty array of ids",
+			req: &eventsv1pb.RemovePupilsRequest{
+				PupilIds: []string{},
+			},
+			code: codes.InvalidArgument,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.RemovePupils(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("RemovePupils() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("RemovePupils() res == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("RemovePupils() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("RemovePupils() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("RemovePupils() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("RemovePupils() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+	}
+}
+
 func testDeletePupils(t *testing.T, ids []string) {
 	err := schoolingRepo.RemovePupils(context.Background(), ids)
 	if err != nil {
 		t.Fatalf("could't delete pupils: %v", err)
 	}
+}
+
+func testAddPupils(t *testing.T) []string {
+	ids := []string{"xxxxxx", "yyyyyyy", "zzzzzzzz"}
+	err := schoolingRepo.StorePupils(context.Background(), []*schooling.Pupil{
+		{
+			Pupil: eventssvc.Pupil{
+				ID:        ids[0],
+				FirstName: "aa",
+				LastName:  "bb",
+			},
+			Class: eventssvc.Class{
+				Letter:     "a",
+				DateFormed: date(2015, 9, 1),
+			},
+		},
+		{
+			Pupil: eventssvc.Pupil{
+				ID:        ids[1],
+				FirstName: "aa",
+				LastName:  "bb",
+			},
+			Class: eventssvc.Class{
+				Letter:     "b",
+				DateFormed: date(2016, 9, 1),
+			},
+		},
+		{
+			Pupil: eventssvc.Pupil{
+				ID:        ids[2],
+				FirstName: "dd",
+				LastName:  "zz",
+			},
+			Class: eventssvc.Class{
+				Letter:     "c",
+				DateFormed: date(2012, 9, 1),
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("couldn't add pupils %v", err)
+	}
+	return ids
 }
