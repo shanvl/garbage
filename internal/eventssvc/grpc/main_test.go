@@ -10,7 +10,6 @@ import (
 	"github.com/shanvl/garbage/internal/eventssvc/eventing"
 	"github.com/shanvl/garbage/internal/eventssvc/postgres"
 	"github.com/shanvl/garbage/internal/eventssvc/schooling"
-	"github.com/shanvl/garbage/pkg/env"
 )
 
 var (
@@ -29,14 +28,14 @@ func testMain(m *testing.M) int {
 	// connect to the test db. Config values are hardcoded in order not to corrupt production db in case the wrong
 	// compose file is used
 	db, err := postgres.Connect(postgres.Config{
-		Database:             env.String("POSTGRES_DB", "garbage1"),
-		Host:                 env.String("POSTGRES_HOST", "localhost"),
-		User:                 env.String("POSTGRES_USER", "jynweythek223"),
-		Password:             env.String("POSTGRES_PASSWORD", "postgres"),
-		Port:                 env.Int("POSTGRES_PORT", 5432),
-		MaxConns:             env.Int("POSTGRES_MAX_CONN", 25),
-		MaxConnLifetime:      env.Duration("POSTGRES_CON_LIFE", 5*time.Minute),
-		PreferSimpleProtocol: env.Bool("POSTGRES_SIMPLE_PROTOCOL", false)})
+		Host:            "db",
+		Database:        "testdb",
+		User:            "root",
+		Password:        "root",
+		Port:            5432,
+		MaxConns:        20,
+		MaxConnLifetime: 5 * time.Minute,
+	})
 	if err != nil {
 		log.Printf("couldn't connect to testdb: %s\n", err)
 		return 1

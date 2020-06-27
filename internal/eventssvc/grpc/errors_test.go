@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -81,7 +80,6 @@ func Test_errWithDetails(t *testing.T) {
 					}
 				}
 			}
-			fmt.Println(w)
 			if !reflect.DeepEqual(w, tt.wantErr) {
 				t.Errorf("errWithDetails error: got: %v, want: %v\n", w, tt.wantErr)
 				return

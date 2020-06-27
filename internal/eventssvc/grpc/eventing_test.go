@@ -16,7 +16,9 @@ import (
 
 func TestServer_ChangePupilResources(t *testing.T) {
 	ctx := context.Background()
-	eventID := getEventID(t)
+	// we need an event with all resources allowed
+	eventID := getEventIDWithResourcesAllowed(t, []eventssvc.Resource{eventssvc.Gadgets, eventssvc.Paper,
+		eventssvc.Plastic})
 	pupilID := getPupilID(t)
 	testCases := []struct {
 		name string
@@ -673,6 +675,16 @@ func TestServer_FindEventPupilByID(t *testing.T) {
 
 func getEventID(t *testing.T) string {
 	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{}, sorting.NameDes, 1, 0)
+	if err != nil || len(events) == 0 {
+		t.Fatalf("couldn't find an event: %v", err)
+	}
+	return events[0].ID
+}
+
+func getEventIDWithResourcesAllowed(t *testing.T, resourcesAllowed []eventssvc.Resource) string {
+	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{
+		ResourcesAllowed: resourcesAllowed,
+	}, sorting.NameDes, 1, 0)
 	if err != nil || len(events) == 0 {
 		t.Fatalf("couldn't find an event: %v", err)
 	}
