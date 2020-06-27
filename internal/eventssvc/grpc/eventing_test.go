@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"testing"
+	"time"
 
 	eventsv1pb "github.com/shanvl/garbage/api/events/v1/pb"
 	"github.com/shanvl/garbage/internal/eventssvc"
@@ -151,6 +152,104 @@ func TestServer_ChangePupilResources(t *testing.T) {
 	}
 }
 
+func TestServer_CreateEvent(t *testing.T) {
+	ctx := context.Background()
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.CreateEventRequest
+		code codes.Code
+	}{
+		{
+			name: "no resourcesAllowed",
+			req: &eventsv1pb.CreateEventRequest{
+				Date:             testTimeToProto(t, time.Now().AddDate(1, 0, 0)),
+				Name:             "event name",
+				ResourcesAllowed: nil,
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "unknown resource",
+			req: &eventsv1pb.CreateEventRequest{
+				Date:             testTimeToProto(t, time.Now().AddDate(1, 0, 0)),
+				Name:             "event name",
+				ResourcesAllowed: []eventsv1pb.Resource{eventsv1pb.Resource_RESOURCE_UNKNOWN},
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "event's date is in the past",
+			req: &eventsv1pb.CreateEventRequest{
+				Date:             testTimeToProto(t, time.Now().AddDate(-1, 0, 0)),
+				Name:             "event name",
+				ResourcesAllowed: []eventsv1pb.Resource{eventsv1pb.Resource_RESOURCE_PLASTIC},
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "has no date",
+			req: &eventsv1pb.CreateEventRequest{
+				Date: nil,
+				Name: "event name",
+				ResourcesAllowed: []eventsv1pb.Resource{eventsv1pb.Resource_RESOURCE_PLASTIC,
+					eventsv1pb.Resource_RESOURCE_GADGETS},
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no name",
+			req: &eventsv1pb.CreateEventRequest{
+				Date: testTimeToProto(t, time.Now().AddDate(1, 0, 0)),
+				Name: "",
+				ResourcesAllowed: []eventsv1pb.Resource{eventsv1pb.Resource_RESOURCE_PLASTIC,
+					eventsv1pb.Resource_RESOURCE_GADGETS},
+			},
+			code: codes.OK,
+		},
+		{
+			name: "has name, has date, has resources",
+			req: &eventsv1pb.CreateEventRequest{
+				Date: testTimeToProto(t, time.Now().AddDate(1, 0, 0)),
+				Name: "event name",
+				ResourcesAllowed: []eventsv1pb.Resource{eventsv1pb.Resource_RESOURCE_PLASTIC,
+					eventsv1pb.Resource_RESOURCE_GADGETS},
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.CreateEvent(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("CreateEvent() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("CreateEvent() res == nil, want != nil")
+				}
+				if len(res.Id) == 0 {
+					t.Errorf("CreateEvent() length of the id == 0, want > 0")
+				}
+				testDeleteEvent(t, res.Id)
+			} else {
+				if err == nil {
+					t.Errorf("CreateEvent() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("CreateEvent() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("CreateEvent() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("CreateEvent() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+	}
+}
+
 func getEventID(t *testing.T) string {
 	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{}, sorting.NameDes, 1, 0)
 	if err != nil || len(events) == 0 {
@@ -171,5 +270,12 @@ func changePupilResources(t *testing.T, eventID, pupilID string, resources event
 	err := eventingRepo.ChangePupilResources(context.Background(), eventID, pupilID, resources)
 	if err != nil {
 		t.Fatalf("wasn't able to change pupil's resources back: %v", err)
+	}
+}
+
+func testDeleteEvent(t *testing.T, eventID string) {
+	err := eventingRepo.DeleteEvent(context.Background(), eventID)
+	if err != nil {
+		t.Fatalf("event wasn't deleted: %v", err)
 	}
 }
