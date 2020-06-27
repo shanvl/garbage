@@ -313,6 +313,68 @@ func TestServer_DeleteEvent(t *testing.T) {
 	}
 }
 
+func TestServer_EventByID(t *testing.T) {
+	ctx := context.Background()
+	eventID := getEventID(t)
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.FindEventByIDRequest
+		code codes.Code
+	}{
+		{
+			name: "no event id",
+			req: &eventsv1pb.FindEventByIDRequest{
+				Id: "",
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no event with that id",
+			req: &eventsv1pb.FindEventByIDRequest{
+				Id: "somerandomeventid",
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "event has been found",
+			req: &eventsv1pb.FindEventByIDRequest{
+				Id: eventID,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.FindEventByID(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("FindEventByID() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("FindEventByID() res == nil, want != nil")
+				}
+				if res.Event == nil {
+					t.Errorf("FindEventByID() event == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("FindEventByID() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("FindEventByID() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("FindEventByID() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("FindEventByID() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+	}
+}
+
 func getEventID(t *testing.T) string {
 	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{}, sorting.NameDes, 1, 0)
 	if err != nil || len(events) == 0 {
