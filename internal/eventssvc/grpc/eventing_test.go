@@ -589,6 +589,88 @@ func TestServer_FindEventPupils(t *testing.T) {
 	}
 }
 
+func TestServer_FindEventPupilByID(t *testing.T) {
+	ctx := context.Background()
+	eventID := getEventID(t)
+	pupilID := getPupilID(t)
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.FindEventPupilByIDRequest
+		code codes.Code
+	}{
+		{
+			name: "no event id",
+			req: &eventsv1pb.FindEventPupilByIDRequest{
+				EventId: "",
+				PupilId: pupilID,
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no pupil id",
+			req: &eventsv1pb.FindEventPupilByIDRequest{
+				EventId: eventID,
+				PupilId: "",
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no such event",
+			req: &eventsv1pb.FindEventPupilByIDRequest{
+				EventId: "random event id",
+				PupilId: pupilID,
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "no such pupil",
+			req: &eventsv1pb.FindEventPupilByIDRequest{
+				EventId: eventID,
+				PupilId: "random pupil id",
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "pupil found",
+			req: &eventsv1pb.FindEventPupilByIDRequest{
+				EventId: eventID,
+				PupilId: pupilID,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.FindEventPupilByID(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("FindEventPupilByID() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("FindEventPupilByID() res == nil, want != nil")
+				}
+				if res.Pupil == nil {
+					t.Errorf("FindEventPupilByID() pupil == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("FindEventPupilByID() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("FindEventPupilByID() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("FindEventPupilByID() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("FindEventPupilByID() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+	}
+}
+
 func getEventID(t *testing.T) string {
 	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{}, sorting.NameDes, 1, 0)
 	if err != nil || len(events) == 0 {
