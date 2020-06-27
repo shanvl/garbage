@@ -482,6 +482,113 @@ func TestServer_FindEventClasses(t *testing.T) {
 	}
 }
 
+func TestServer_FindEventPupils(t *testing.T) {
+	ctx := context.Background()
+	eventID := getEventID(t)
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.FindEventPupilsRequest
+		code codes.Code
+	}{
+		{
+			name: "no event id",
+			req: &eventsv1pb.FindEventPupilsRequest{
+				EventId:      "",
+				NameAndClass: "a 1a",
+				Sorting:      eventsv1pb.PupilSorting_PUPIL_SORTING_GADGETS,
+				Amount:       10,
+				Skip:         0,
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no such event",
+			req: &eventsv1pb.FindEventPupilsRequest{
+				EventId:      "somerandomeventid",
+				NameAndClass: "a 1a",
+				Sorting:      eventsv1pb.PupilSorting_PUPIL_SORTING_GADGETS,
+				Amount:       10,
+				Skip:         0,
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "no filters",
+			req: &eventsv1pb.FindEventPupilsRequest{
+				EventId:      eventID,
+				NameAndClass: "",
+				Sorting:      0,
+				Amount:       0,
+				Skip:         0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "all filters are set",
+			req: &eventsv1pb.FindEventPupilsRequest{
+				EventId:      eventID,
+				NameAndClass: "a 1a",
+				Sorting:      eventsv1pb.PupilSorting_PUPIL_SORTING_GADGETS,
+				Amount:       10,
+				Skip:         0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "skip > amount of records",
+			req: &eventsv1pb.FindEventPupilsRequest{
+				EventId:      eventID,
+				NameAndClass: "a 1a",
+				Sorting:      eventsv1pb.PupilSorting_PUPIL_SORTING_GADGETS,
+				Amount:       9999,
+				Skip:         0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "sorting unknown",
+			req: &eventsv1pb.FindEventPupilsRequest{
+				EventId:      eventID,
+				NameAndClass: "a 1a",
+				Sorting:      eventsv1pb.PupilSorting_PUPIL_SORTING_UNKNOWN,
+				Amount:       10,
+				Skip:         0,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.FindEventPupils(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("FindEventPupils() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("FindEventPupils() res == nil, want != nil")
+				}
+				if res.Pupils == nil {
+					t.Errorf("FindEventPupils() pupils == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("FindEventPupils() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("FindEventPupils() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("FindEventPupils() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("FindEventPupils() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+	}
+}
+
 func getEventID(t *testing.T) string {
 	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{}, sorting.NameDes, 1, 0)
 	if err != nil || len(events) == 0 {
