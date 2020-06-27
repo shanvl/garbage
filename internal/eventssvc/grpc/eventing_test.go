@@ -245,8 +245,71 @@ func TestServer_CreateEvent(t *testing.T) {
 				if st.Code() != tc.code {
 					t.Errorf("CreateEvent() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
 				}
+				if st.Code() == codes.OK && res != nil {
+					testDeleteEvent(t, res.Id)
+				}
 			}
 		})
+	}
+}
+
+func TestServer_DeleteEvent(t *testing.T) {
+	ctx := context.Background()
+	eventID := testCreateEvent(t)
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.DeleteEventRequest
+		code codes.Code
+	}{
+		{
+			name: "no id",
+			req: &eventsv1pb.DeleteEventRequest{
+				Id: "",
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no event with that id",
+			req: &eventsv1pb.DeleteEventRequest{
+				Id: "somerandomid",
+			},
+			code: codes.OK,
+		},
+		{
+			name: "valid id",
+			req: &eventsv1pb.DeleteEventRequest{
+				Id: eventID,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.DeleteEvent(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("DeleteEvent() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("DeleteEvent() res == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("DeleteEvent() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("DeleteEvent() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("DeleteEvent() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("DeleteEvent() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+		testDeleteEvent(t, eventID)
 	}
 }
 
@@ -278,4 +341,18 @@ func testDeleteEvent(t *testing.T, eventID string) {
 	if err != nil {
 		t.Fatalf("event wasn't deleted: %v", err)
 	}
+}
+
+func testCreateEvent(t *testing.T) string {
+	eventID := "qwertylopki"
+	err := eventingRepo.StoreEvent(context.Background(), &eventssvc.Event{
+		ID:               eventID,
+		Date:             time.Now().AddDate(1, 0, 0),
+		Name:             "",
+		ResourcesAllowed: []eventssvc.Resource{eventssvc.Plastic},
+	})
+	if err != nil {
+		t.Fatalf("couldn't create an event: %v", err)
+	}
+	return eventID
 }
