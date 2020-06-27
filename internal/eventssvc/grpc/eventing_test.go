@@ -313,7 +313,7 @@ func TestServer_DeleteEvent(t *testing.T) {
 	}
 }
 
-func TestServer_EventByID(t *testing.T) {
+func TestServer_FindEventByID(t *testing.T) {
 	ctx := context.Background()
 	eventID := getEventID(t)
 	testCases := []struct {
@@ -369,6 +369,113 @@ func TestServer_EventByID(t *testing.T) {
 				}
 				if st.Code() != tc.code {
 					t.Errorf("FindEventByID() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
+				}
+			}
+		})
+	}
+}
+
+func TestServer_FindEventClasses(t *testing.T) {
+	ctx := context.Background()
+	eventID := getEventID(t)
+	testCases := []struct {
+		name string
+		req  *eventsv1pb.FindEventClassesRequest
+		code codes.Code
+	}{
+		{
+			name: "no event id",
+			req: &eventsv1pb.FindEventClassesRequest{
+				EventId:   "",
+				ClassName: "1b",
+				Sorting:   eventsv1pb.ClassSorting_CLASS_SORTING_PAPER,
+				Amount:    10,
+				Skip:      0,
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no such event",
+			req: &eventsv1pb.FindEventClassesRequest{
+				EventId:   "somerandomeventid",
+				ClassName: "1b",
+				Sorting:   eventsv1pb.ClassSorting_CLASS_SORTING_PAPER,
+				Amount:    10,
+				Skip:      0,
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "no filters",
+			req: &eventsv1pb.FindEventClassesRequest{
+				EventId:   eventID,
+				ClassName: "",
+				Sorting:   0,
+				Amount:    0,
+				Skip:      0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "skip > amount of records",
+			req: &eventsv1pb.FindEventClassesRequest{
+				EventId:   eventID,
+				ClassName: "1b",
+				Sorting:   eventsv1pb.ClassSorting_CLASS_SORTING_PAPER,
+				Amount:    10,
+				Skip:      9999,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "invalid class name",
+			req: &eventsv1pb.FindEventClassesRequest{
+				EventId:   eventID,
+				ClassName: "12bb",
+				Sorting:   eventsv1pb.ClassSorting_CLASS_SORTING_PAPER,
+				Amount:    10,
+				Skip:      0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "sorting unknown",
+			req: &eventsv1pb.FindEventClassesRequest{
+				EventId:   eventID,
+				ClassName: "12bb",
+				Sorting:   eventsv1pb.ClassSorting_CLASS_SORTING_UNKNOWN,
+				Amount:    10,
+				Skip:      0,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := server.FindEventClasses(ctx, tc.req)
+			if tc.code == codes.OK {
+				if err != nil {
+					t.Errorf("FindEventClasses() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("FindEventClasses() res == nil, want != nil")
+				}
+				if res.Classes == nil {
+					t.Errorf("FindEventClasses() classes == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("FindEventClasses() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("FindEventClasses() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("FindEventClasses() couldn't get status from err %v", err)
+				}
+				if st.Code() != tc.code {
+					t.Errorf("FindEventClasses() err codes mismatch: code == %v, want == %v", st.Code(), tc.code)
 				}
 			}
 		})
