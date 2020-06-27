@@ -15,9 +15,9 @@ import (
 
 var (
 	server          *Server
-	aggregatingRepo *postgres.AggregatingRepo
-	eventingRepo    *postgres.EventingRepo
-	schoolingRepo   *postgres.SchoolingRepo
+	aggregatingRepo aggregating.Repository
+	eventingRepo    eventing.Repository
+	schoolingRepo   schooling.Repository
 )
 
 func TestMain(m *testing.M) {

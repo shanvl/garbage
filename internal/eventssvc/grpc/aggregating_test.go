@@ -444,7 +444,7 @@ func TestServer_FindPupilByID(t *testing.T) {
 func getPupilID(t *testing.T) string {
 	pupils, _, err := aggregatingRepo.Pupils(context.Background(), aggregating.PupilFilters{}, sorting.NameDes,
 		sorting.NameDes, 1, 0)
-	if err != nil {
+	if err != nil || len(pupils) == 0 {
 		t.Fatalf("could't find a pupil: %v", err)
 	}
 	pupilID := pupils[0].ID
