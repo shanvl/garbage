@@ -202,6 +202,7 @@ func TestSchoolingRepo_RemovePupils(t *testing.T) {
 }
 
 func seedPupils(t *testing.T) ([]*schooling.Pupil, func()) {
+	t.Helper()
 	pp := []*schooling.Pupil{
 		{
 			Pupil: eventssvc.Pupil{
@@ -237,7 +238,6 @@ func seedPupils(t *testing.T) ([]*schooling.Pupil, func()) {
 			},
 		},
 	}
-	t.Helper()
 	q := `
 		insert into pupil (id, first_name, last_name, class_letter, class_date_formed)
 		values ($1, $2, $3, $4, $5);

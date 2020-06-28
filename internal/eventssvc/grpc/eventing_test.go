@@ -17,9 +17,9 @@ import (
 func TestServer_ChangePupilResources(t *testing.T) {
 	ctx := context.Background()
 	// we need an event with all resources allowed
-	eventID := getEventIDWithResourcesAllowed(t, []eventssvc.Resource{eventssvc.Gadgets, eventssvc.Paper,
+	eventID := testGetEventIDWithResourcesAllowed(t, []eventssvc.Resource{eventssvc.Gadgets, eventssvc.Paper,
 		eventssvc.Plastic})
-	pupilID := getPupilID(t)
+	pupilID := testGetPupilID(t)
 	testCases := []struct {
 		name string
 		req  *eventsv1pb.ChangePupilResourcesRequest
@@ -125,7 +125,7 @@ func TestServer_ChangePupilResources(t *testing.T) {
 				}
 				// compare request's resources with repo's resources
 				reqResourcesBrought := tc.req.ResourcesBrought
-				pupilInRepo := getEventPupilByID(t, tc.req.PupilId, tc.req.EventId)
+				pupilInRepo := testGetEventPupilByID(t, tc.req.PupilId, tc.req.EventId)
 				repoResBrough := pupilInRepo.ResourcesBrought
 				if reqResourcesBrought.Gadgets != repoResBrough[eventssvc.Gadgets] || reqResourcesBrought.
 					Paper != repoResBrough[eventssvc.Paper] || reqResourcesBrought.
@@ -133,7 +133,7 @@ func TestServer_ChangePupilResources(t *testing.T) {
 					t.Errorf("ChangePupilResources() resources don't match")
 				}
 				// change repo's pupil's resources to some other value in order not to break the next test run
-				changePupilResources(t, tc.req.EventId, tc.req.PupilId,
+				testChangePupilResources(t, tc.req.EventId, tc.req.PupilId,
 					eventssvc.ResourceMap{eventssvc.Gadgets: 1000, eventssvc.Paper: 222, eventssvc.Plastic: 5})
 			} else {
 				if err == nil {
@@ -317,7 +317,7 @@ func TestServer_DeleteEvent(t *testing.T) {
 
 func TestServer_FindEventByID(t *testing.T) {
 	ctx := context.Background()
-	eventID := getEventID(t)
+	eventID := testGetEventID(t)
 	testCases := []struct {
 		name string
 		req  *eventsv1pb.FindEventByIDRequest
@@ -379,7 +379,7 @@ func TestServer_FindEventByID(t *testing.T) {
 
 func TestServer_FindEventClasses(t *testing.T) {
 	ctx := context.Background()
-	eventID := getEventID(t)
+	eventID := testGetEventID(t)
 	testCases := []struct {
 		name string
 		req  *eventsv1pb.FindEventClassesRequest
@@ -486,7 +486,7 @@ func TestServer_FindEventClasses(t *testing.T) {
 
 func TestServer_FindEventPupils(t *testing.T) {
 	ctx := context.Background()
-	eventID := getEventID(t)
+	eventID := testGetEventID(t)
 	testCases := []struct {
 		name string
 		req  *eventsv1pb.FindEventPupilsRequest
@@ -593,8 +593,8 @@ func TestServer_FindEventPupils(t *testing.T) {
 
 func TestServer_FindEventPupilByID(t *testing.T) {
 	ctx := context.Background()
-	eventID := getEventID(t)
-	pupilID := getPupilID(t)
+	eventID := testGetEventID(t)
+	pupilID := testGetPupilID(t)
 	testCases := []struct {
 		name string
 		req  *eventsv1pb.FindEventPupilByIDRequest
@@ -673,7 +673,8 @@ func TestServer_FindEventPupilByID(t *testing.T) {
 	}
 }
 
-func getEventID(t *testing.T) string {
+func testGetEventID(t *testing.T) string {
+	t.Helper()
 	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{}, sorting.NameDes, 1, 0)
 	if err != nil || len(events) == 0 {
 		t.Fatalf("couldn't find an event: %v", err)
@@ -681,7 +682,8 @@ func getEventID(t *testing.T) string {
 	return events[0].ID
 }
 
-func getEventIDWithResourcesAllowed(t *testing.T, resourcesAllowed []eventssvc.Resource) string {
+func testGetEventIDWithResourcesAllowed(t *testing.T, resourcesAllowed []eventssvc.Resource) string {
+	t.Helper()
 	events, _, err := aggregatingRepo.Events(context.Background(), aggregating.EventFilters{
 		ResourcesAllowed: resourcesAllowed,
 	}, sorting.NameDes, 1, 0)
@@ -691,7 +693,8 @@ func getEventIDWithResourcesAllowed(t *testing.T, resourcesAllowed []eventssvc.R
 	return events[0].ID
 }
 
-func getEventPupilByID(t *testing.T, pupilID, eventID string) *eventing.Pupil {
+func testGetEventPupilByID(t *testing.T, pupilID, eventID string) *eventing.Pupil {
+	t.Helper()
 	pupil, err := eventingRepo.PupilByID(context.Background(), pupilID, eventID)
 	if err != nil {
 		t.Fatalf("couldn't get a pupil: %v", err)
@@ -699,7 +702,8 @@ func getEventPupilByID(t *testing.T, pupilID, eventID string) *eventing.Pupil {
 	return pupil
 }
 
-func changePupilResources(t *testing.T, eventID, pupilID string, resources eventssvc.ResourceMap) {
+func testChangePupilResources(t *testing.T, eventID, pupilID string, resources eventssvc.ResourceMap) {
+	t.Helper()
 	err := eventingRepo.ChangePupilResources(context.Background(), eventID, pupilID, resources)
 	if err != nil {
 		t.Fatalf("wasn't able to change pupil's resources back: %v", err)
@@ -707,6 +711,7 @@ func changePupilResources(t *testing.T, eventID, pupilID string, resources event
 }
 
 func testDeleteEvent(t *testing.T, eventID string) {
+	t.Helper()
 	err := eventingRepo.DeleteEvent(context.Background(), eventID)
 	if err != nil {
 		t.Fatalf("event wasn't deleted: %v", err)
@@ -714,6 +719,7 @@ func testDeleteEvent(t *testing.T, eventID string) {
 }
 
 func testCreateEvent(t *testing.T) string {
+	t.Helper()
 	eventID := "qwertylopki"
 	err := eventingRepo.StoreEvent(context.Background(), &eventssvc.Event{
 		ID:               eventID,

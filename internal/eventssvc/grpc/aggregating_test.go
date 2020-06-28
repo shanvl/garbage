@@ -347,7 +347,7 @@ func TestServer_FindPupils(t *testing.T) {
 
 func TestServer_FindPupilByID(t *testing.T) {
 	ctx := context.Background()
-	pupilID := getPupilID(t)
+	pupilID := testGetPupilID(t)
 	testCases := []struct {
 		name string
 		req  *eventsv1pb.FindPupilByIDRequest
@@ -441,7 +441,8 @@ func TestServer_FindPupilByID(t *testing.T) {
 	}
 }
 
-func getPupilID(t *testing.T) string {
+func testGetPupilID(t *testing.T) string {
+	t.Helper()
 	pupils, _, err := aggregatingRepo.Pupils(context.Background(), aggregating.PupilFilters{}, sorting.NameDes,
 		sorting.NameDes, 1, 0)
 	if err != nil || len(pupils) == 0 {
@@ -452,6 +453,7 @@ func getPupilID(t *testing.T) string {
 }
 
 func testTimeToProto(t *testing.T, ts time.Time) *timestamp.Timestamp {
+	t.Helper()
 	protoTS, err := ptypes.TimestampProto(ts)
 	if err != nil {
 		t.Fatalf("couldn't convert timestamp to protoTS: %v", err)

@@ -140,7 +140,7 @@ func TestServer_AddPupils(t *testing.T) {
 
 func TestServer_ChangePupilClass(t *testing.T) {
 	ctx := context.Background()
-	pupilID := getPupilID(t)
+	pupilID := testGetPupilID(t)
 	testCases := []struct {
 		name string
 		req  *eventsv1pb.ChangePupilClassRequest
@@ -268,6 +268,7 @@ func TestServer_RemovePupils(t *testing.T) {
 }
 
 func testDeletePupils(t *testing.T, ids []string) {
+	t.Helper()
 	err := schoolingRepo.RemovePupils(context.Background(), ids)
 	if err != nil {
 		t.Fatalf("could't delete pupils: %v", err)
@@ -275,6 +276,7 @@ func testDeletePupils(t *testing.T, ids []string) {
 }
 
 func testAddPupils(t *testing.T) []string {
+	t.Helper()
 	ids := []string{"xxxxxx", "yyyyyyy", "zzzzzzzz"}
 	err := schoolingRepo.StorePupils(context.Background(), []*schooling.Pupil{
 		{
