@@ -5,7 +5,7 @@ networks:
     driver: bridge
 
 services:
-  eventssvc:
+  eventsvc:
     build:
       context: ../
       dockerfile: ./docker/Dockerfile

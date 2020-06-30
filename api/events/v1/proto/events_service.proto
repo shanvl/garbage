@@ -1,0 +1,274 @@
+syntax = "proto3";
+
+package shanvl.garbage.events.v1;
+
+import "events.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = ".;eventsv1pb";
+
+// EventsService is responsible for everything related to events. An event is a gathering of pupils who bring in
+// recyclable materials. The goal of an event is to gather as many recyclable materials (resources) as possible.
+// The service allows CRUD operations on a single event, provides information on how pupils and classes performed on
+// the events and allows to add/remove/change credentials of the pupils who can participate in the events
+service EventsService {
+    // AddPupils adds the given pupils and returns the ids of the added
+    rpc AddPupils (AddPupilsRequest) returns (AddPupilsResponse) {
+        option (google.api.http) = {
+            post: "/v1/pupils"
+            body: "*"
+        };
+    }
+    // ChangePupilClass changes the class of the pupil
+    rpc ChangePupilClass (ChangePupilClassRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/pupils/{pupil_id}"
+            body: "*"
+        };
+    }
+    // ChangePupilResources changes the amount of resources brought by the pupil to the event
+    rpc ChangePupilResources (ChangePupilResourcesRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/events/{event_id}/pupils/{pupil_id}"
+            body: "*"
+        };
+    }
+    // CreateEvent creates and stores the event
+    rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
+        option (google.api.http) = {
+            post: "/v1/events"
+            body: "*"
+        };
+    }
+    // DeleteEvent deletes the event
+    rpc DeleteEvent (DeleteEventRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/events/{id}"
+        };
+    }
+    // FindClasses returns a list of sorted classes, each of which has a list of events that passed the given filters
+    rpc FindClasses (FindClassesRequest) returns (FindClassesResponse) {
+        option (google.api.http) = {
+            get: "/v1/classes"
+        };
+    }
+    // FindEvents returns a list of sorted events that passed the provided filters
+    rpc FindEvents (FindEventsRequest) returns (FindEventsResponse) {
+        option (google.api.http) = {
+            get: "/v1/events"
+        };
+    }
+    // FindEventByID returns an event with the given id and all resources collected at that event
+    rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{id}"
+        };
+    }
+    // FindEventClasses returns an array of sorted classes with the resources they brought to the specified event
+    rpc FindEventClasses (FindEventClassesRequest) returns (FindEventClassesResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{event_id}/classes"
+        };
+    }
+    // FindEventPupils returns an array of sorted pupils with the resources they brought to the specified event
+    rpc FindEventPupils (FindEventPupilsRequest) returns (FindEventPupilsResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{event_id}/pupils"
+        };
+    }
+    // FindPupilByID returns a pupil with the given id with the resources they brought to that event
+    rpc FindEventPupilByID (FindEventPupilByIDRequest) returns (FindEventPupilByIDResponse) {
+        option (google.api.http) = {
+            get: "/v1/events/{event_id}/pupils/{pupil_id}"
+        };
+    }
+    // FindPupilByID returns a pupil with the given ID and a list of events they has attended
+    rpc FindPupilByID (FindPupilByIDRequest) returns (FindPupilByIDResponse) {
+        option (google.api.http) = {
+            get: "/v1/pupils/{id}"
+        };
+    }
+    // FindPupils returns a list of sorted classes, each of which has a list of events that passed the given filters
+    rpc FindPupils (FindPupilsRequest) returns (FindPupilsResponse) {
+        option (google.api.http) = {
+            get: "/v1/pupils"
+        };
+    }
+    // RemovePupils removes the pupils with the given IDs
+    rpc RemovePupils (RemovePupilsRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/pupils"
+        };
+    }
+}
+
+message AddPupilsRequest {
+    message Pupil {
+        string first_name = 1;
+        string last_name = 2;
+        // class name as it is now (class name changes depending on the date)
+        string class = 3;
+    }
+    // pupils to be added
+    repeated Pupil pupils = 1;
+}
+
+message AddPupilsResponse {
+    // ids of the pupils added
+    repeated string pupil_ids = 1;
+}
+
+message ChangePupilClassRequest {
+    string pupil_id = 1;
+    // class name as it is now (class name changes depending on the date)
+    string class = 2;
+}
+
+message ChangePupilResourcesRequest {
+    string event_id = 1;
+    string pupil_id = 2;
+    // amount of resources brought by the pupil to the event
+    ResourcesBrought resources_brought = 3;
+}
+
+message CreateEventRequest {
+    // event date
+    google.protobuf.Timestamp date = 1;
+    string name = 2;
+    // resources permitted on the event
+    repeated Resource resources_allowed = 3;
+}
+
+message CreateEventResponse {
+    string id = 1;
+}
+
+message DeleteEventRequest {
+    string id = 1;
+}
+
+// Note, that we can't use the class name here because it changes depending on the event's date. So the class' letter
+// the date it was formed on used instead
+message FindClassesRequest {
+    // letter of the class
+    string letter = 1;
+    // date the class was formed on
+    google.protobuf.Timestamp date_formed = 2;
+    EventFilters event_filters = 3;
+    ClassSorting sorting = 4;
+    EventSorting event_sorting = 5;
+    uint32 amount = 6;
+    uint32 skip = 7;
+}
+
+message FindClassesResponse {
+    // list of classes with aggregated info about the resources a class has brought to every event that
+    // passed the filters and a list of those events for each class
+    repeated ClassAggr classes = 1;
+    // total classes found
+    uint32 total = 2;
+}
+
+message FindEventsRequest {
+    EventFilters filters = 1;
+    EventSorting sorting = 2;
+    uint32 amount = 3;
+    uint32 skip = 4;
+}
+
+message FindEventsResponse {
+    // list of the events that passed the provided filters
+    repeated Event events = 1;
+    // total events found
+    uint32 total = 2;
+}
+
+message FindPupilByIDRequest {
+    string id = 1;
+    EventFilters event_filters = 2;
+    EventSorting event_sorting = 3;
+}
+
+message FindPupilByIDResponse {
+    // pupil with aggregated info about the resources the pupil brought to every event that
+    // passed the filters and a list of those events
+    PupilAggr pupil = 1;
+}
+
+message FindPupilsRequest {
+    // text search field that can be a combination of the name of a pupil and the name of their class
+    string name_and_class = 1;
+    EventFilters event_filters = 2;
+    PupilSorting sorting = 3;
+    EventSorting event_sorting = 4;
+    uint32 amount = 5;
+    uint32 skip = 6;
+}
+
+message FindPupilsResponse {
+    // list of pupils with aggregated info about the resources a pupil has brought to every event that
+    // passed the filters and a list of those events for each pupil
+    repeated PupilAggr pupils = 1;
+    // total pupils found
+    uint32 total = 2;
+}
+
+message FindEventByIDRequest {
+    string id = 1;
+}
+
+message FindEventByIDResponse {
+    // event's info with the resources collected on that event
+    Event event = 1;
+}
+
+message FindEventClassesRequest {
+    string event_id = 1;
+    // text search field with a class name as it was on the date of the event (class name changes depending on the
+    // event's date)
+    string class_name = 2;
+    ClassSorting sorting = 3;
+    uint32 amount = 4;
+    uint32 skip = 5;
+}
+
+message FindEventClassesResponse {
+    // list of found classes with the resources each class brought to the event
+    repeated Class classes = 1;
+    // total classes found
+    uint32 total = 2;
+}
+
+message FindEventPupilsRequest {
+    string event_id = 1;
+    // text search field with the combination of pupils names and classes names as they were on the date of the event
+    // (class name changes depending on the event's date)
+    string name_and_class = 2;
+    PupilSorting sorting = 3;
+    uint32 amount = 4;
+    uint32 skip = 5;
+}
+
+message FindEventPupilsResponse {
+    // list of found pupils with the resources each pupil brought to the event
+    repeated Pupil pupils = 1;
+    // total pupils found
+    uint32 total = 2;
+}
+
+message FindEventPupilByIDRequest {
+    string event_id = 1;
+    string pupil_id = 2;
+}
+
+message FindEventPupilByIDResponse {
+    // pupil info with the resources they brought to the event
+    Pupil pupil = 1;
+}
+
+message RemovePupilsRequest {
+    // ids of the pupils deleted
+    repeated string pupil_ids = 1;
+}

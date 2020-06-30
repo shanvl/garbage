@@ -10,5 +10,5 @@ FROM alpine
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 USER notroot
-COPY --from=builder /garbage/bin/eventssvc /eventssvc
-CMD ["/eventssvc"]
+COPY --from=builder /garbage/bin/eventsvc /eventsvc
+CMD ["/eventsvc"]

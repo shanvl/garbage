@@ -23,12 +23,12 @@ db-only-down:
 
 build:
 	GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build \
-		-o bin/eventssvc ./cmd/eventssvc
+		-o bin/eventsvc ./cmd/eventsvc
 
 check: local-test vet
 
 run: build
-	./bin/eventssvc
+	./bin/eventsvc
 
 local-test:
 	go test -v -race -timeout 30s ./...
@@ -48,7 +48,8 @@ gen-auth:
 
 gen-events:
 	 protoc --proto_path=api/events/v1/proto --proto_path=third_party --go_out=plugins=grpc:api/events/v1/pb \
-	 --grpc-gateway_out=:api/events/v1/pb --openapiv2_out=:api/events/v1/swagger api/events/v1/proto/*.proto
+	 --grpc-gateway_out=:api/events/v1/pb --openapiv2_out=allow_merge=true:api/events/v1/swagger \
+	 api/events/v1/proto/*.proto
 
 gen-health:
 	protoc --proto_path=api/health/v1/proto --go_out=plugins=grpc:api/health/v1/pb api/health/v1/proto/*.proto
