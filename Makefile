@@ -44,7 +44,7 @@ docker-push:
 
 gen-auth:
 	 protoc --proto_path=api/auth/v1/proto --proto_path=third_party --go_out=plugins=grpc:api/auth/v1/pb \
-	 --grpc-gateway_out=:api/auth/v1/pb --openapiv2_out=:api/auth/v1/swagger api/auth/v1/proto/*.proto
+	 --grpc-gateway_out=:api/auth/v1/pb --openapiv2_out=allow_merge=true:api/auth/v1/swagger api/auth/v1/proto/*.proto
 
 gen-events:
 	 protoc --proto_path=api/events/v1/proto --proto_path=third_party --go_out=plugins=grpc:api/events/v1/pb \

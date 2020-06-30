@@ -3,16 +3,39 @@ syntax = "proto3";
 import "auth.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
+import "protoc-gen-swagger/options/annotations.proto";
 
 package shanvl.garbage.auth.v1;
 
 option go_package = ".;authv1pb";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+    security_definitions: {
+        security: {
+            key: "bearer"
+            value: {
+                type: TYPE_API_KEY
+                in: IN_HEADER
+                name: "Authorization"
+                description: "Authentication token, prefixed by Bearer: 'Bearer <token>'"
+            }
+        }
+    }
+    security: {
+        security_requirement: {
+            key: "bearer";
+        }
+    }
+};
 
 service AuthService {
     rpc ActivateUser (ActivateUserRequest) returns (ActivateUserResponse) {
         option (google.api.http) = {
             post: "/v1/me"
             body: "*"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security: {}
         };
     }
     rpc ChangeUserRole (ChangeUserRoleRequest) returns (google.protobuf.Empty) {
@@ -37,6 +60,9 @@ service AuthService {
         option (google.api.http) = {
             post: "/v1/me/clients"
             body: "*"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security: {}
         };
     }
     rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
@@ -71,8 +97,7 @@ message CreateUserRequest {
 }
 
 message CreateUserResponse {
-    string id = 1;
-    string email = 2;
+    User user = 1;
     string verify_token = 3;
 }
 
