@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package shanvl.garbage.auth.v1;
+
+option go_package = ".;authv1pb";
+
+enum Role {
+    ROLE_UNKNOWN = 0;
+    ROLE_ADMIN = 1;
+    ROLE_USER = 2;
+}
+
+message Tokens {
+    string access_token = 1;
+    string refresh_token = 3;
+    string client_id = 2;
+}
+
+message User {
+    string id = 1;
+    string email = 2;
+}

@@ -13,7 +13,7 @@
   "paths": {
     "/v1/classes": {
       "get": {
-        "summary": "FindClasses returns a list of sorted classes with the list of resources they have brought to the events\nthat passed the given filters",
+        "summary": "FindClasses returns a list of sorted classes, each of which has a list of events that passed the given filters",
         "operationId": "AggregatingService_FindClasses",
         "responses": {
           "200": {
@@ -235,7 +235,7 @@
     },
     "/v1/pupils": {
       "get": {
-        "summary": "FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that\npassed the given filters",
+        "summary": "FindPupils returns a list of sorted classes, each of which has a list of events that passed the given filters",
         "operationId": "AggregatingService_FindPupils",
         "responses": {
           "200": {
@@ -353,7 +353,7 @@
     },
     "/v1/pupils/{id}": {
       "get": {
-        "summary": "FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events\nthat passed the provided filters",
+        "summary": "FindPupilByID returns a pupil with the given ID and a list of events they has attended",
         "operationId": "AggregatingService_FindPupilByID",
         "responses": {
           "200": {

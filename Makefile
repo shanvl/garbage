@@ -42,6 +42,10 @@ docker-build:
 docker-push:
 	docker push ${DOCKER_IMAGE_NAME}
 
+gen-auth:
+	 protoc --proto_path=api/auth/v1/proto --proto_path=third_party --go_out=plugins=grpc:api/auth/v1/pb \
+	 --grpc-gateway_out=:api/auth/v1/pb --openapiv2_out=:api/auth/v1/swagger api/auth/v1/proto/*.proto
+
 gen-events:
 	 protoc --proto_path=api/events/v1/proto --proto_path=third_party --go_out=plugins=grpc:api/events/v1/pb \
 	 --grpc-gateway_out=:api/events/v1/pb --openapiv2_out=:api/events/v1/swagger api/events/v1/proto/*.proto
@@ -49,7 +53,7 @@ gen-events:
 gen-health:
 	protoc --proto_path=api/health/v1/proto --go_out=plugins=grpc:api/health/v1/pb api/health/v1/proto/*.proto
 
-gen-all: gen-events gen-health
+gen-all: gen-auth gen-events gen-health
 
 .PHONY: up down stop test test-db-up test-db-down build check run test vet docker-build docker-push gen-events \
 gen-health gen-all

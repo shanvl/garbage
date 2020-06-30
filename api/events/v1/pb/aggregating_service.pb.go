@@ -914,16 +914,13 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AggregatingServiceClient interface {
-	// FindClasses returns a list of sorted classes with the list of resources they have brought to the events
-	// that passed the given filters
+	// FindClasses returns a list of sorted classes, each of which has a list of events that passed the given filters
 	FindClasses(ctx context.Context, in *FindClassesRequest, opts ...grpc.CallOption) (*FindClassesResponse, error)
 	// FindEvents returns a list of sorted events that passed the provided filters
 	FindEvents(ctx context.Context, in *FindEventsRequest, opts ...grpc.CallOption) (*FindEventsResponse, error)
-	// FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
-	// that passed the provided filters
+	// FindPupilByID returns a pupil with the given ID and a list of events they has attended
 	FindPupilByID(ctx context.Context, in *FindPupilByIDRequest, opts ...grpc.CallOption) (*FindPupilByIDResponse, error)
-	// FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
-	// passed the given filters
+	// FindPupils returns a list of sorted classes, each of which has a list of events that passed the given filters
 	FindPupils(ctx context.Context, in *FindPupilsRequest, opts ...grpc.CallOption) (*FindPupilsResponse, error)
 }
 
@@ -973,16 +970,13 @@ func (c *aggregatingServiceClient) FindPupils(ctx context.Context, in *FindPupil
 
 // AggregatingServiceServer is the server API for AggregatingService service.
 type AggregatingServiceServer interface {
-	// FindClasses returns a list of sorted classes with the list of resources they have brought to the events
-	// that passed the given filters
+	// FindClasses returns a list of sorted classes, each of which has a list of events that passed the given filters
 	FindClasses(context.Context, *FindClassesRequest) (*FindClassesResponse, error)
 	// FindEvents returns a list of sorted events that passed the provided filters
 	FindEvents(context.Context, *FindEventsRequest) (*FindEventsResponse, error)
-	// FindPupilByID returns a pupil with the given ID with the list of all resources they has brought to the events
-	// that passed the provided filters
+	// FindPupilByID returns a pupil with the given ID and a list of events they has attended
 	FindPupilByID(context.Context, *FindPupilByIDRequest) (*FindPupilByIDResponse, error)
-	// FindPupils returns a list of sorted pupils with the list of resources they have brought to the events that
-	// passed the given filters
+	// FindPupils returns a list of sorted classes, each of which has a list of events that passed the given filters
 	FindPupils(context.Context, *FindPupilsRequest) (*FindPupilsResponse, error)
 }
 
