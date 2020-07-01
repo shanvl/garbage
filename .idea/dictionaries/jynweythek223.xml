@@ -7,6 +7,7 @@
       <w>dups</w>
       <w>eventssvc</w>
       <w>eventsv</w>
+      <w>eventsvc</w>
       <w>funcs</w>
       <w>gonanoid</w>
       <w>grpc</w>
@@ -14,6 +15,7 @@
       <w>marshaler</w>
       <w>openapiv</w>
       <w>protoc</w>
+      <w>shanvl</w>
       <w>sqlx</w>
       <w>structs</w>
       <w>tsquery</w>
