@@ -6,8 +6,28 @@ import "events.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "protoc-gen-swagger/options/annotations.proto";
 
 option go_package = ".;eventsv1pb";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+    security_definitions: {
+        security: {
+            key: "bearer"
+            value: {
+                type: TYPE_API_KEY
+                in: IN_HEADER
+                name: "Authorization"
+                description: "Authentication token, prefixed by Bearer: 'Bearer <token>'"
+            }
+        }
+    }
+    security: {
+        security_requirement: {
+            key: "bearer";
+        }
+    }
+};
 
 // EventsService is responsible for everything related to events. An event is a gathering of pupils who bring in
 // recyclable materials. The goal of an event is to gather as many recyclable materials (resources) as possible.
