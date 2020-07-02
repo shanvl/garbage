@@ -66,7 +66,7 @@ func main() {
 
 	// connect to auth server and create its client
 	authSrvAddr := env.String("GRPC_AUTH_SERVICE_ADDR", "")
-	cc, err := goGRPC.Dial(authSrvAddr)
+	cc, err := goGRPC.Dial(authSrvAddr, goGRPC.WithInsecure())
 	if err != nil {
 		logger.Fatal("auth server connection error", zap.Error(err), zap.String("addr", authSrvAddr))
 	}

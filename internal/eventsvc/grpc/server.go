@@ -55,12 +55,16 @@ func (s *Server) Run(port int) error {
 	// add interceptors
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpcMiddleware.ChainUnaryServer(
+			// authorization interceptor
+			s.authUnaryInterceptor(),
 			// logging
 			grpc_zap.UnaryServerInterceptor(s.log),
 			// panic recovery
 			grpcRecovery.UnaryServerInterceptor(grpcRecovery.WithRecoveryHandler(s.handleRecovery)),
 		)),
 		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(
+			// authorization interceptor
+			s.authStreamInterceptor(),
 			// logging
 			grpc_zap.StreamServerInterceptor(s.log),
 			// panic recovery
