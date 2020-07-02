@@ -64,13 +64,12 @@ func main() {
 	eventingRepo := postgres.NewEventingRepo(postgresPool)
 	schoolingRepo := postgres.NewSchoolingRepo(postgresPool)
 
-	// connect to auth server and create its client
+	// get conn to auth server and create its client
 	authSrvAddr := env.String("GRPC_AUTH_SERVICE_ADDR", "")
 	cc, err := goGRPC.Dial(authSrvAddr, goGRPC.WithInsecure())
 	if err != nil {
 		logger.Fatal("auth server connection error", zap.Error(err), zap.String("addr", authSrvAddr))
 	}
-	// create auth
 	authClient := authv1pb.NewAuthServiceClient(cc)
 
 	// create services

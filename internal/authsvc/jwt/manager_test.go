@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/shanvl/garbage/internal/authsvc"
 )
 
 func TestManagerRSA_Generate(t *testing.T) {
@@ -13,7 +14,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 		tokenType TokenType
 		clientID  string
 		userID    string
-		role      string
+		role      authsvc.Role
 	}
 	tests := []struct {
 		name    string
@@ -26,7 +27,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 				tokenType: Refresh,
 				clientID:  "",
 				userID:    "userid",
-				role:      "admin",
+				role:      authsvc.Admin,
 			},
 			wantErr: true,
 		},
@@ -36,17 +37,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 				tokenType: Refresh,
 				clientID:  "clientid",
 				userID:    "",
-				role:      "admin",
-			},
-			wantErr: true,
-		},
-		{
-			name: "no role",
-			args: args{
-				tokenType: Refresh,
-				clientID:  "clientid",
-				userID:    "userid",
-				role:      "",
+				role:      authsvc.Admin,
 			},
 			wantErr: true,
 		},
@@ -56,7 +47,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 				tokenType: Refresh,
 				clientID:  "clientid",
 				userID:    "userid",
-				role:      "admin",
+				role:      authsvc.Admin,
 			},
 			wantErr: false,
 		},
@@ -66,7 +57,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 				tokenType: Access,
 				clientID:  "clientid",
 				userID:    "userid",
-				role:      "admin",
+				role:      authsvc.Admin,
 			},
 			wantErr: false,
 		},
@@ -92,7 +83,7 @@ func TestManagerRSA_Verify(t *testing.T) {
 		tokenType TokenType
 		clientID  string
 		userID    string
-		role      string
+		role      authsvc.Role
 	}
 	tests := []struct {
 		name    string
@@ -105,7 +96,7 @@ func TestManagerRSA_Verify(t *testing.T) {
 				tokenType: Access,
 				clientID:  "clientID",
 				userID:    "userID",
-				role:      "admin",
+				role:      authsvc.Admin,
 			},
 			wantErr: false,
 		},
@@ -115,7 +106,7 @@ func TestManagerRSA_Verify(t *testing.T) {
 				tokenType: Refresh,
 				clientID:  "clientID",
 				userID:    "userID",
-				role:      "admin",
+				role:      authsvc.Admin,
 			},
 			wantErr: false,
 		},
@@ -133,7 +124,7 @@ func TestManagerRSA_Verify(t *testing.T) {
 				return
 			}
 			if err == nil && (claims.Subject != tt.args.userID || claims.Type != tt.args.tokenType.String() || claims.
-				ClientID != tt.args.clientID || claims.Role != tt.args.role) {
+				ClientID != tt.args.clientID || claims.Role != tt.args.role.String()) {
 				t.Errorf("Verify() no error, claims don't match")
 			}
 		})

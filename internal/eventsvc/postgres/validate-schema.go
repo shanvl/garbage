@@ -7,8 +7,7 @@ import (
 )
 
 // a query to create tables and indices if they don't already exist.
-// Can be extracted into a separate sql file and used in conjunction with the migration tools.
-// But I don't think there's a need for such complexity in this project
+// Can be extracted into a separate sql file and used in conjunction with migration tools
 const schema = `
 -- create resource enum type
 do

@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/shanvl/garbage/internal/authsvc"
 )
 
 // Manager is used to generate and verify jwt
 type Manager interface {
-	Generate(tokenType TokenType, clientID, userID, role string) (string, error)
+	Generate(tokenType TokenType, clientID, userID string, role authsvc.Role) (string, error)
 	Verify(token string) (*UserClaims, error)
 }
 
@@ -36,15 +37,12 @@ func NewManagerRSA(accessTokenDuration, refreshTokenDuration time.Duration, priv
 }
 
 // Generate generates jwt
-func (m *managerRSA) Generate(tokenType TokenType, clientID, userID, role string) (string, error) {
+func (m *managerRSA) Generate(tokenType TokenType, clientID, userID string, role authsvc.Role) (string, error) {
 	if clientID == "" {
 		return "", errors.New("clientID must be provided")
 	}
 	if userID == "" {
 		return "", errors.New("userID must be provided")
-	}
-	if role == "" {
-		return "", errors.New("role must be provided")
 	}
 	var expAt int64
 	if tokenType == Access {
@@ -59,7 +57,7 @@ func (m *managerRSA) Generate(tokenType TokenType, clientID, userID, role string
 			ExpiresAt: expAt,
 		},
 		ClientID: clientID,
-		Role:     role,
+		Role:     role.String(),
 		Type:     tokenType.String(),
 	}
 

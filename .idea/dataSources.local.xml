@@ -14,18 +14,19 @@
             <node kind="database" qname="@">
               <node kind="schema" qname="@" />
             </node>
+            <node kind="database">
+              <name qname="authsvc" />
+              <name qname="garbage" />
+              <name qname="garbage1" />
+              <name qname="jynweythek223" />
+              <node kind="schema" qname="public" />
+            </node>
             <node kind="database" qname="videoezy">
               <node kind="schema">
                 <name qname="public" />
                 <name qname="eco" />
                 <name qname="pg_catalog" />
               </node>
-            </node>
-            <node kind="database">
-              <name qname="jynweythek223" />
-              <name qname="garbage" />
-              <name qname="garbage1" />
-              <node kind="schema" qname="public" />
             </node>
           </node>
         </introspection-scope>

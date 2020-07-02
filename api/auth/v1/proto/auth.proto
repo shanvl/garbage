@@ -7,7 +7,7 @@ option go_package = ".;authv1pb";
 enum Role {
     ROLE_UNKNOWN = 0;
     ROLE_ADMIN = 1;
-    ROLE_USER = 2;
+    ROLE_MEMBER = 2;
 }
 
 message Tokens {
