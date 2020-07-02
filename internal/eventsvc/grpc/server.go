@@ -21,18 +21,26 @@ import (
 )
 
 type Server struct {
-	agSvc aggregating.Service
-	evSvc eventing.Service
-	scSvc schooling.Service
-	log   *zap.Logger
+	authSvc AuthorizationService
+	aggrSvc aggregating.Service
+	evSvc   eventing.Service
+	scSvc   schooling.Service
+	log     *zap.Logger
 }
 
-func NewServer(agSvc aggregating.Service, evSvc eventing.Service, scSvc schooling.Service, log *zap.Logger) *Server {
+func NewServer(
+	authSvc AuthorizationService,
+	agSvc aggregating.Service,
+	evSvc eventing.Service,
+	scSvc schooling.Service,
+	log *zap.Logger,
+) *Server {
 	server := &Server{
-		agSvc: agSvc,
-		evSvc: evSvc,
-		scSvc: scSvc,
-		log:   log,
+		authSvc: authSvc,
+		aggrSvc: agSvc,
+		evSvc:   evSvc,
+		scSvc:   scSvc,
+		log:     log,
 	}
 	return server
 }

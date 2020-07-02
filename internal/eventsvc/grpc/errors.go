@@ -17,7 +17,7 @@ import (
 // time.Time
 var ErrInvalidTimestamp = errors.New("invalid timestamp")
 
-// handle error transforms a service's error into appropriate grpc error. It also logs all unrecognized errors
+// handle error transforms a svc's error into appropriate grpc error. It also logs all unrecognized errors
 func (s *Server) handleError(err error) error {
 	var validErr *valid.ErrValidation
 	switch {
@@ -39,7 +39,7 @@ func (s *Server) handleError(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	default:
 		s.log.Error("internal error", zap.Error(err))
-		return status.Error(codes.Internal, "internal service error")
+		return status.Error(codes.Internal, "internal svc error")
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/log/zapadapter"
+	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
 	"github.com/shanvl/garbage/internal/eventsvc/aggregating"
 	"github.com/shanvl/garbage/internal/eventsvc/eventing"
 	"github.com/shanvl/garbage/internal/eventsvc/grpc"
@@ -18,6 +19,7 @@ import (
 	"github.com/shanvl/garbage/pkg/env"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	goGRPC "google.golang.org/grpc"
 )
 
 func main() {
@@ -62,7 +64,18 @@ func main() {
 	eventingRepo := postgres.NewEventingRepo(postgresPool)
 	schoolingRepo := postgres.NewSchoolingRepo(postgresPool)
 
+	// connect to auth server and create its client
+	authSrvAddr := env.String("GRPC_AUTH_SERVICE_ADDR", "")
+	cc, err := goGRPC.Dial(authSrvAddr)
+	if err != nil {
+		logger.Fatal("auth server connection error", zap.Error(err), zap.String("addr", authSrvAddr))
+	}
+	// create auth
+	authClient := authv1pb.NewAuthServiceClient(cc)
+
 	// create services
+	authSvcTimeout := env.Duration("GRPC_AUTH_SERVICE_TIMEOUT", 500*time.Millisecond)
+	authorizationService := grpc.NewAuthService(authClient, authSvcTimeout)
 	aggregatingService := aggregating.NewService(aggregatingRepo)
 	eventingService := eventing.NewService(eventingRepo)
 	schoolingService := schooling.NewService(schoolingRepo)
@@ -81,7 +94,13 @@ func main() {
 		}
 	}()
 	// run gRPC server
-	if err := grpc.NewServer(aggregatingService, eventingService, schoolingService, logger).Run(grpcPort); err != nil {
+	if err := grpc.NewServer(
+		authorizationService,
+		aggregatingService,
+		eventingService,
+		schoolingService,
+		logger,
+	).Run(grpcPort); err != nil {
 
 		logger.Fatal("gRPC server error",
 			zap.Error(err),

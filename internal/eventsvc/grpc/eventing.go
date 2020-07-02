@@ -37,7 +37,7 @@ func (s *Server) CreateEvent(ctx context.Context, req *eventsv1pb.CreateEventReq
 		return nil, s.handleError(err)
 	}
 
-	// call the service
+	// call the svc
 	eventID, err := s.evSvc.CreateEvent(ctx, eventDate, req.GetName(), resourcesAllowed)
 	if err != nil {
 		return nil, s.handleError(err)
@@ -75,7 +75,7 @@ func (s *Server) FindEventByID(ctx context.Context, req *eventsv1pb.FindEventByI
 func (s *Server) FindEventClasses(ctx context.Context, req *eventsv1pb.FindEventClassesRequest) (*eventsv1pb.
 	FindEventClassesResponse, error) {
 
-	// call the service
+	// call the svc
 	classes, total, err := s.evSvc.EventClasses(
 		ctx,
 		req.GetEventId(),
@@ -103,7 +103,7 @@ func (s *Server) FindEventClasses(ctx context.Context, req *eventsv1pb.FindEvent
 func (s *Server) FindEventPupils(ctx context.Context, req *eventsv1pb.FindEventPupilsRequest) (*eventsv1pb.
 	FindEventPupilsResponse, error) {
 
-	// call the service
+	// call the svc
 	pupils, total, err := s.evSvc.EventPupils(
 		ctx,
 		req.GetEventId(),

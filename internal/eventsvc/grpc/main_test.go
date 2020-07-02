@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	"log"
 	"os"
 	"testing"
@@ -47,10 +48,21 @@ func testMain(m *testing.M) int {
 	eventingRepo = postgres.NewEventingRepo(db)
 	schoolingRepo = postgres.NewSchoolingRepo(db)
 	// create services
+	authService := newTestAuthService()
 	aggregatingService := aggregating.NewService(aggregatingRepo)
 	eventingService := eventing.NewService(eventingRepo)
 	schoolingService := schooling.NewService(schoolingRepo)
 	// create gRPC server
-	server = NewServer(aggregatingService, eventingService, schoolingService, nil)
+	server = NewServer(authService, aggregatingService, eventingService, schoolingService, nil)
 	return m.Run()
+}
+
+func newTestAuthService() AuthorizationService {
+	return &testAuthService{}
+}
+
+type testAuthService struct{}
+
+func (t testAuthService) Authorize(_ context.Context, _, _ string) (string, error) {
+	return "", nil
 }

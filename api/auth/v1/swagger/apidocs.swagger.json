@@ -290,6 +290,14 @@
         }
       }
     },
+    "v1AuthorizeResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
     "v1ChangeUserRoleRequest": {
       "type": "object",
       "properties": {

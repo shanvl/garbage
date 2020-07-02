@@ -38,6 +38,7 @@ service AuthService {
             security: {}
         };
     }
+    rpc Authorize (AuthorizeRequest) returns (AuthorizeResponse) {}
     rpc ChangeUserRole (ChangeUserRoleRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             put: "/v1/users/{id}"
@@ -62,8 +63,7 @@ service AuthService {
             body: "*"
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-            security: {}
-        };
+            security: {} };
     }
     rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
@@ -85,6 +85,15 @@ message ActivateUserRequest {
 message ActivateUserResponse {
     Tokens tokens = 2;
     User user = 1;
+}
+
+message AuthorizeRequest {
+    string method = 1;
+    string token = 2;
+}
+
+message AuthorizeResponse {
+    string user_id = 1;
 }
 
 message ChangeUserRoleRequest {

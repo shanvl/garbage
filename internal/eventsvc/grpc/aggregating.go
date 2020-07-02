@@ -25,8 +25,8 @@ func (s *Server) FindClasses(ctx context.Context, req *eventsv1pb.FindClassesReq
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	// call the service
-	classes, total, err := s.agSvc.Classes(
+	// call the svc
+	classes, total, err := s.aggrSvc.Classes(
 		ctx,
 		aggregating.ClassFilters{
 			EventFilters: eventFilters,
@@ -65,8 +65,8 @@ func (s *Server) FindEvents(ctx context.Context, req *eventsv1pb.FindEventsReque
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	// call the service
-	events, total, err := s.agSvc.Events(ctx, eventFilters, protoEventSortingMap[req.GetSorting()], int(req.GetAmount()),
+	// call the svc
+	events, total, err := s.aggrSvc.Events(ctx, eventFilters, protoEventSortingMap[req.GetSorting()], int(req.GetAmount()),
 		int(req.GetSkip()))
 	if err != nil {
 		return nil, s.handleError(err)
@@ -95,8 +95,8 @@ func (s *Server) FindPupils(ctx context.Context, req *eventsv1pb.FindPupilsReque
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	// call the service
-	pupils, total, err := s.agSvc.Pupils(ctx,
+	// call the svc
+	pupils, total, err := s.aggrSvc.Pupils(ctx,
 		aggregating.PupilFilters{
 			EventFilters: eventFilters,
 			NameAndClass: req.GetNameAndClass(),
@@ -129,8 +129,8 @@ func (s *Server) FindPupilByID(ctx context.Context, req *eventsv1pb.FindPupilByI
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	// call the service
-	pupil, err := s.agSvc.PupilByID(ctx, req.GetId(), eventFilters, protoEventSortingMap[req.GetEventSorting()])
+	// call the svc
+	pupil, err := s.aggrSvc.PupilByID(ctx, req.GetId(), eventFilters, protoEventSortingMap[req.GetEventSorting()])
 	if err != nil {
 		return nil, s.handleError(err)
 	}

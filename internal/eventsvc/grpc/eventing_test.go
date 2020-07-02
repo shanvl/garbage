@@ -171,7 +171,7 @@ func TestServer_CreateEvent(t *testing.T) {
 			code: codes.InvalidArgument,
 		},
 		{
-			name: "unknown resource",
+			name: "testUnknown resource",
 			req: &eventsv1pb.CreateEventRequest{
 				Date:             testTimeToProto(t, time.Now().AddDate(1, 0, 0)),
 				Name:             "event name",
@@ -441,7 +441,7 @@ func TestServer_FindEventClasses(t *testing.T) {
 			code: codes.OK,
 		},
 		{
-			name: "sorting unknown",
+			name: "sorting testUnknown",
 			req: &eventsv1pb.FindEventClassesRequest{
 				EventId:   eventID,
 				ClassName: "12bb",
@@ -548,7 +548,7 @@ func TestServer_FindEventPupils(t *testing.T) {
 			code: codes.OK,
 		},
 		{
-			name: "sorting unknown",
+			name: "sorting testUnknown",
 			req: &eventsv1pb.FindEventPupilsRequest{
 				EventId:      eventID,
 				NameAndClass: "a 1a",

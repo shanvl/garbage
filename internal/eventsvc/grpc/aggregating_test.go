@@ -80,7 +80,7 @@ func TestServer_FindClasses(t *testing.T) {
 			code: codes.InvalidArgument,
 		},
 		{
-			name: "unknown resource",
+			name: "testUnknown resource",
 			req: &eventsv1pb.FindClassesRequest{
 				Letter:     "bb",
 				DateFormed: nil,
@@ -296,7 +296,7 @@ func TestServer_FindPupils(t *testing.T) {
 			code: codes.OK,
 		},
 		{
-			name: "unknown resource",
+			name: "testUnknown resource",
 			req: &eventsv1pb.FindPupilsRequest{
 				NameAndClass: "an a",
 				EventFilters: &eventsv1pb.EventFilters{

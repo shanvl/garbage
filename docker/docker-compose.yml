@@ -13,6 +13,8 @@ services:
       - db
     environment:
       - GRPC_PORT=3000
+      - GRPC_AUTH_SERVICE_ADDR=authsvc
+      - GRPC_AUTH_SERVICE_TIMEOUT=500ms
       - REST_PORT=4000
       - POSTGRES_DB=garbage
       - POSTGRES_HOST=db

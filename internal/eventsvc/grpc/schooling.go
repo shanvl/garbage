@@ -23,7 +23,7 @@ func (s *Server) AddPupils(ctx context.Context, req *eventsv1pb.AddPupilsRequest
 		}
 	}
 
-	// call the service
+	// call the svc
 	pupilIDS, err := s.scSvc.AddPupils(ctx, pupilsBio)
 	if err != nil {
 		return nil, s.handleError(err)
