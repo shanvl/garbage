@@ -8,7 +8,7 @@ services:
   eventsvc:
     build:
       context: ../
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/eventsvc/Dockerfile
     depends_on:
       - db
     environment:
@@ -42,4 +42,4 @@ services:
       - garbage
     restart: on-failure
     volumes:
-      - ./postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
+      - ./eventsvc/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql

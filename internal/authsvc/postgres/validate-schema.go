@@ -1,5 +1,11 @@
 package postgres
 
+import (
+	"context"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+)
+
 // a query to create tables and indices if they don't already exist.
 // Can be extracted into a separate sql file and used in conjunction with migration tools
 const schema = `
@@ -54,3 +60,11 @@ create table if not exists user_client
         on update cascade
 );
 `
+
+// ValidateSchema creates tables and indices if they don't already exist
+func ValidateSchema(ctx context.Context, db *pgxpool.Pool) error {
+	if _, err := db.Exec(ctx, schema); err != nil {
+		return err
+	}
+	return nil
+}

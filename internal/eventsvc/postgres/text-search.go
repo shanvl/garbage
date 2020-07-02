@@ -7,21 +7,8 @@ import (
 	"unicode"
 
 	"github.com/shanvl/garbage/internal/eventsvc"
+	pgtextsearch "github.com/shanvl/garbage/pkg/pg-text-search"
 )
-
-// prepareTextSearchClass processes the query so as to make it a valid argument for to_tsquery,
-// adding ':*' to the end of each word and concatenating the words with ' & '. If the input contains invalid symbols,
-// it simply returns an empty string
-func prepareTextSearch(q string) string {
-	ss := strings.Fields(q)
-	for i, s := range ss {
-		if !isValidInput(s) {
-			return ""
-		}
-		ss[i] = s + ":*"
-	}
-	return strings.Join(ss, " & ")
-}
 
 // prepareTextSearchClass processes the query to make it a valid argument for to_tsquery,
 // adding ':*' at the end of each word, concatenating the words with ' & ' and,
@@ -32,7 +19,7 @@ func prepareTextSearch(q string) string {
 func prepareTextSearchClass(q string, t time.Time) string {
 	ss := strings.Fields(q)
 	for i, s := range ss {
-		if !isValidInput(s) {
+		if !pgtextsearch.IsValidInput(s) {
 			return ""
 		}
 		// if the word starts with a number, try to parse it as a class name and concatenate with itself
@@ -54,14 +41,4 @@ func prepareTextSearchClass(q string, t time.Time) string {
 		ss[i] = s + ":*"
 	}
 	return strings.Join(ss, " & ")
-}
-
-// isValidInput checks if the given string consists only of digits, letters, "'" and "-"
-func isValidInput(s string) bool {
-	for _, r := range s {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '\'' && r != '-' {
-			return false
-		}
-	}
-	return true
 }

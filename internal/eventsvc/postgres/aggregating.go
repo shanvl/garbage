@@ -12,6 +12,7 @@ import (
 	"github.com/shanvl/garbage/internal/eventsvc"
 	"github.com/shanvl/garbage/internal/eventsvc/aggregating"
 	"github.com/shanvl/garbage/internal/eventsvc/sorting"
+	pgtextsearch "github.com/shanvl/garbage/pkg/pg-text-search"
 )
 
 // AggregatingRepo is a repository used by Aggregating service
@@ -100,7 +101,7 @@ func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.Class
 	}
 	// event's name text search
 	if filters.Name != "" {
-		eventTextSearch := prepareTextSearch(filters.Name)
+		eventTextSearch := pgtextsearch.PrepareQuery(filters.Name)
 		where.WriteString("and e.text_search @@ to_tsquery('simple', ?) ")
 		args = append(args, eventTextSearch)
 	}
@@ -283,13 +284,13 @@ func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilF
 	}
 	// event's name text search
 	if filters.Name != "" {
-		eventTextSearch := prepareTextSearch(filters.Name)
+		eventTextSearch := pgtextsearch.PrepareQuery(filters.Name)
 		where.WriteString("and e.text_search @@ to_tsquery('simple', ?) ")
 		args = append(args, eventTextSearch)
 	}
 	// pupil's name and class text search
 	if filters.NameAndClass != "" {
-		pupilTextSearch := prepareTextSearch(filters.NameAndClass)
+		pupilTextSearch := pgtextsearch.PrepareQuery(filters.NameAndClass)
 		where.WriteString("and p.text_search @@ to_tsquery('simple', ?)")
 		args = append(args, pupilTextSearch)
 	}
@@ -428,7 +429,7 @@ func (a *AggregatingRepo) PupilByID(ctx context.Context, id string, filters aggr
 		args = append(args, eventsvc.ResourceSliceToStringSlice(filters.ResourcesAllowed))
 	}
 	if filters.Name != "" {
-		eventTextSearch := prepareTextSearch(filters.Name)
+		eventTextSearch := pgtextsearch.PrepareQuery(filters.Name)
 		joinOn.WriteString("and e.text_search @@ to_tsquery('simple', ?) ")
 		args = append(args, eventTextSearch)
 	}
@@ -548,7 +549,7 @@ func (a *AggregatingRepo) Events(ctx context.Context, filters aggregating.EventF
 		args = append(args, eventsvc.ResourceSliceToStringSlice(filters.ResourcesAllowed))
 	}
 	if filters.Name != "" {
-		textSearch := prepareTextSearch(filters.Name)
+		textSearch := pgtextsearch.PrepareQuery(filters.Name)
 		where.WriteString("and e.text_search @@ to_tsquery('simple', ?) ")
 		args = append(args, textSearch)
 	}
