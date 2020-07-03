@@ -8,6 +8,7 @@ enum Role {
     ROLE_UNKNOWN = 0;
     ROLE_ADMIN = 1;
     ROLE_MEMBER = 2;
+    ROLE_ROOT = 3;
 }
 
 message Tokens {
@@ -19,4 +20,7 @@ message Tokens {
 message User {
     string id = 1;
     string email = 2;
+    string first_name = 3;
+    string last_name = 4;
+    Role role = 5;
 }

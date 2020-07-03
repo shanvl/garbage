@@ -11,12 +11,6 @@ import (
 	"github.com/shanvl/garbage/internal/authsvc"
 )
 
-// Manager is used to generate and verify jwt
-type Manager interface {
-	Generate(tokenType TokenType, clientID, userID string, role authsvc.Role) (string, error)
-	Verify(token string) (*UserClaims, error)
-}
-
 // managerRSA is an implementation of Manager which uses RSA method to sign and verify jwt
 type managerRSA struct {
 	accessTokenDuration  time.Duration
@@ -26,7 +20,7 @@ type managerRSA struct {
 }
 
 func NewManagerRSA(accessTokenDuration, refreshTokenDuration time.Duration, privateKey *rsa.PrivateKey,
-	publicKey *rsa.PublicKey) Manager {
+	publicKey *rsa.PublicKey) authsvc.TokenManager {
 
 	return &managerRSA{
 		accessTokenDuration:  accessTokenDuration,
@@ -37,7 +31,7 @@ func NewManagerRSA(accessTokenDuration, refreshTokenDuration time.Duration, priv
 }
 
 // Generate generates jwt
-func (m *managerRSA) Generate(tokenType TokenType, clientID, userID string, role authsvc.Role) (string, error) {
+func (m *managerRSA) Generate(tokenType authsvc.TokenType, clientID, userID string, role authsvc.Role) (string, error) {
 	if clientID == "" {
 		return "", errors.New("clientID must be provided")
 	}
@@ -45,13 +39,13 @@ func (m *managerRSA) Generate(tokenType TokenType, clientID, userID string, role
 		return "", errors.New("userID must be provided")
 	}
 	var expAt int64
-	if tokenType == Access {
+	if tokenType == authsvc.Access {
 		expAt = time.Now().Add(m.accessTokenDuration).Unix()
 	}
-	if tokenType == Refresh {
+	if tokenType == authsvc.Refresh {
 		expAt = time.Now().Add(m.refreshTokenDuration).Unix()
 	}
-	claims := UserClaims{
+	claims := authsvc.UserClaims{
 		StandardClaims: jwt.StandardClaims{
 			Subject:   userID,
 			ExpiresAt: expAt,
@@ -66,8 +60,8 @@ func (m *managerRSA) Generate(tokenType TokenType, clientID, userID string, role
 }
 
 // Verify verifies jwt
-func (m *managerRSA) Verify(token string) (*UserClaims, error) {
-	t, err := jwt.ParseWithClaims(token, &UserClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (m *managerRSA) Verify(token string) (*authsvc.UserClaims, error) {
+	t, err := jwt.ParseWithClaims(token, &authsvc.UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodRSA)
 		if !ok {
 			return nil, errors.New("unexpected signing algorithm")
@@ -78,21 +72,21 @@ func (m *managerRSA) Verify(token string) (*UserClaims, error) {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
 
-	claims, ok := t.Claims.(*UserClaims)
+	claims, ok := t.Claims.(*authsvc.UserClaims)
 	if !ok {
 		return nil, errors.New("invalid claims")
 	}
 	return claims, nil
 }
 
-// UserClaims are a jwt payload
-type UserClaims struct {
-	jwt.StandardClaims
-	// ClientID is used to distinguish between different user's clients (browsers,
-	// apps) in order to have an option to revoke the refresh token and thus sign the user out of that client
-	ClientID string
-	// Role is a string representation of a user's role
-	Role string
-	// Type is a string representation of the token's type
-	Type string
-}
+// // authsvc.UserClaims are a jwt payload
+// type authsvc.UserClaims struct {
+// 	jwt.StandardClaims
+// 	// ClientID is used to distinguish between different user's clients (browsers,
+// 	// apps) in order to have an option to revoke the refresh token and thus sign the user out of that client
+// 	ClientID string
+// 	// Role is a string representation of a user's role
+// 	Role string
+// 	// Type is a string representation of the token's type
+// 	Type string
+// }

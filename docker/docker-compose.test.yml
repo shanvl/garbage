@@ -1,31 +1,59 @@
 version: '3'
 
 networks:
-  garbage-test:
+  eventsvc-test:
+    driver: bridge
+  authsvc-test:
     driver: bridge
 
 services:
-  garbage_test:
+
+  authsvc_test:
+    build:
+      context: ../
+      dockerfile: ./docker/authsvc/Dockerfile.test
+    depends_on:
+      - authsvc_db
+    networks:
+      - authsvc-test
+    volumes:
+      - $PWD:/garbage
+
+  eventsvc_test:
     build:
       context: ../
       dockerfile: ./docker/eventsvc/Dockerfile.test
     depends_on:
-      - db
+      - eventsvc_db
     networks:
-      - garbage-test
+      - eventsvc-test
     volumes:
       - $PWD:/garbage
 
-  db:
+  authsvc_db:
     image: postgres:12.2
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: testdb
     networks:
-      - garbage-test
+      - authsvc-test
     ports:
-      - "5433:5432"
+      - "5432"
+    restart: always
+    volumes:
+      - ./authsvc/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
+
+  eventsvc_db:
+    image: postgres:12.2
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: testdb
+    networks:
+      - eventsvc-test
+    ports:
+      - "5432"
     restart: always
     volumes:
       - ./eventsvc/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql

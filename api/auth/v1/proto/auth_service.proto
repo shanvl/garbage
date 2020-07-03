@@ -29,7 +29,7 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 };
 
 service AuthService {
-    rpc ActivateUser (ActivateUserRequest) returns (ActivateUserResponse) {
+    rpc ActivateUser (ActivateUserRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/v1/me"
             body: "*"
@@ -38,7 +38,8 @@ service AuthService {
             security: {}
         };
     }
-    rpc Authorize (AuthorizeRequest) returns (AuthorizeResponse) {}
+    rpc Authorize (AuthorizeRequest) returns (AuthorizeResponse) {
+    }
     rpc ChangeUserRole (ChangeUserRoleRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             put: "/v1/users/{id}"
@@ -55,6 +56,16 @@ service AuthService {
         option (google.api.http) = {
             post: "/v1/users/{id}"
             body: "*"
+        };
+    }
+    rpc FindUser (FindUserRequest) returns (FindUserResponse) {
+        option (google.api.http) = {
+            get: "/v1/users/{id}"
+        };
+    }
+    rpc FindUsers (FindUsersRequest) returns (FindUsersResponse) {
+        option (google.api.http) = {
+            get: "/v1/users"
         };
     }
     rpc Login (LoginRequest) returns (LoginResponse) {
@@ -78,13 +89,10 @@ service AuthService {
 }
 
 message ActivateUserRequest {
-    string verify_token = 2;
-    string password = 3;
-}
-
-message ActivateUserResponse {
-    Tokens tokens = 2;
-    User user = 1;
+    string activate_token = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string password = 4;
 }
 
 message AuthorizeRequest {
@@ -106,12 +114,28 @@ message CreateUserRequest {
 }
 
 message CreateUserResponse {
-    User user = 1;
-    string verify_token = 3;
+    string id = 1;
+    string activation_token = 2;
 }
 
 message DeleteUserRequest {
     string id = 1;
+}
+
+message FindUserRequest {
+   string id = 1;
+}
+
+message FindUserResponse {
+    User user = 1;
+}
+
+message FindUsersRequest {
+    string name_and_email = 1;
+}
+
+message FindUsersResponse {
+    repeated User users = 1;
 }
 
 message LoginRequest {

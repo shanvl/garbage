@@ -134,7 +134,7 @@ func (s *service) ChangePupilClass(ctx context.Context, pupilID string, classNam
 	if err != nil {
 		return valid.NewError("class", err.Error())
 	}
-	// if the pupil is already in the class, return their id
+	// if the pupil is already in the class, return
 	if class == pupil.Class {
 		return nil
 	}

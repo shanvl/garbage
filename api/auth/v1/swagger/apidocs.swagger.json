@@ -18,7 +18,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ActivateUserResponse"
+              "properties": {}
             }
           },
           "default": {
@@ -128,6 +128,34 @@
       }
     },
     "/v1/users": {
+      "get": {
+        "operationId": "AuthService_FindUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nameAndEmail",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      },
       "post": {
         "operationId": "AuthService_CreateUser",
         "responses": {
@@ -160,6 +188,34 @@
       }
     },
     "/v1/users/{id}": {
+      "get": {
+        "operationId": "AuthService_FindUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      },
       "post": {
         "operationId": "AuthService_DeleteUser",
         "responses": {
@@ -271,22 +327,17 @@
     "v1ActivateUserRequest": {
       "type": "object",
       "properties": {
-        "verifyToken": {
+        "activateToken": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
           "type": "string"
         },
         "password": {
           "type": "string"
-        }
-      }
-    },
-    "v1ActivateUserResponse": {
-      "type": "object",
-      "properties": {
-        "tokens": {
-          "$ref": "#/definitions/v1Tokens"
-        },
-        "user": {
-          "$ref": "#/definitions/v1User"
         }
       }
     },
@@ -320,10 +371,10 @@
     "v1CreateUserResponse": {
       "type": "object",
       "properties": {
-        "user": {
-          "$ref": "#/definitions/v1User"
+        "id": {
+          "type": "string"
         },
-        "verifyToken": {
+        "activationToken": {
           "type": "string"
         }
       }
@@ -333,6 +384,25 @@
       "properties": {
         "id": {
           "type": "string"
+        }
+      }
+    },
+    "v1FindUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    },
+    "v1FindUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1User"
+          }
         }
       }
     },
@@ -363,7 +433,8 @@
       "enum": [
         "ROLE_UNKNOWN",
         "ROLE_ADMIN",
-        "ROLE_USER"
+        "ROLE_MEMBER",
+        "ROLE_ROOT"
       ],
       "default": "ROLE_UNKNOWN"
     },
@@ -389,6 +460,15 @@
         },
         "email": {
           "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/v1Role"
         }
       }
     }
