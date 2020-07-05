@@ -15,13 +15,15 @@ type Repository interface {
 	DeleteUser(ctx context.Context, id string) error
 	// Upsert
 	StoreUser(ctx context.Context, user *authsvc.User) error
+	UserByActivationToken(ctx context.Context, activationToken string) (*authsvc.User, error)
 	UserByID(ctx context.Context, id string) (*authsvc.User, error)
 	Users(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error)
 }
 
 // Service manages users
 type Service interface {
-	ActivateUser(ctx context.Context, activateToken, firstName, lastName, password string) error
+	// ActivateUser changes the active state of the user to active and populates it with the provided additional info
+	ActivateUser(ctx context.Context, activationToken, firstName, lastName, password string) (userID string, err error)
 	ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error
 	// CreateUser creates and stores a user, which must then be activated with the returned activation token
 	// Note, that the user's password is not needed here, it is required on the activation step
@@ -39,8 +41,53 @@ func NewService(repo Repository) Service {
 	return &service{repo}
 }
 
-func (service) ActivateUser(ctx context.Context, activateToken, firstName, lastName, password string) error {
-	panic("implement me")
+// ActivateUser changes the active state of the user to active and populates it with the provided additional info
+func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, lastName,
+	password string) (userID string, err error) {
+	// validate the arguments
+	validErr := valid.EmptyError()
+	if activationToken == "" {
+		validErr.Add("activation token", "activation token is not provided")
+	}
+	if firstName == "" {
+		validErr.Add("first name", "first name is not provided")
+	}
+	if lastName == "" {
+		validErr.Add("last name", "last name is not provided")
+	}
+	if password == "" {
+		validErr.Add("password", "password is not provided")
+	}
+	if !validErr.IsEmpty() {
+		return "", validErr
+	}
+
+	// get the user
+	user, err := s.repo.UserByActivationToken(ctx, activationToken)
+	if err != nil {
+		return "", fmt.Errorf("activate user: %w", err)
+	}
+
+	// activate the user
+	err = user.Activate(activationToken)
+	if err != nil {
+		return "", fmt.Errorf("activate user: %w", err)
+	}
+
+	// set the user's password, first name and last name
+	err = user.ChangePassword(password)
+	if err != nil {
+		return "", fmt.Errorf("activate user: %w", err)
+	}
+	user.FirstName = firstName
+	user.LastName = lastName
+
+	// store the user
+	err = s.repo.StoreUser(ctx, user)
+	if err != nil {
+		return "", fmt.Errorf("activate user: %w", err)
+	}
+	return user.ID, nil
 }
 
 func (service) ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error {

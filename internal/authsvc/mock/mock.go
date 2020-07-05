@@ -20,6 +20,9 @@ type UsersRepo struct {
 	UserByIDFn      func(ctx context.Context, id string) (*authsvc.User, error)
 	UserByIDInvoked bool
 
+	UserByActivationTokenFn      func(ctx context.Context, activationToken string) (*authsvc.User, error)
+	UserByActivationTokenInvoked bool
+
 	UsersFn      func(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error)
 	UsersInvoked bool
 }
@@ -40,6 +43,15 @@ func (u *UsersRepo) StoreUser(ctx context.Context, user *authsvc.User) error {
 	u.StoreUserInvoked = true
 	err := u.StoreUserFn(ctx, user)
 	return err
+}
+
+func (u *UsersRepo) UserByActivationToken(ctx context.Context, activationToken string) (*authsvc.User, error) {
+	u.UserByActivationTokenInvoked = true
+	user, err := u.UserByActivationTokenFn(ctx, activationToken)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (u *UsersRepo) UserByID(ctx context.Context, id string) (*authsvc.User, error) {
