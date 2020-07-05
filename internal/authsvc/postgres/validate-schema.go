@@ -26,8 +26,8 @@ create table if not exists users
     active           bool        not null,
     activation_token text        not null,
     email            varchar(50) not null unique,
-    first_name       varchar(25) not null,
-    last_name        varchar(25) not null,
+    first_name       varchar(35) not null,
+    last_name        varchar(35) not null,
     password_hash    text        not null,
     role             role        not null,
     text_search      tsvector generated always as (to_tsvector('simple', first_name || ' ' || last_name || ' ' ||

@@ -24,6 +24,7 @@ type Repository interface {
 type Service interface {
 	// ActivateUser changes the active state of the user to active and populates it with the provided additional info
 	ActivateUser(ctx context.Context, activationToken, firstName, lastName, password string) (userID string, err error)
+	// ChangeUserRole changes the user's role to the provided role
 	ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error
 	// CreateUser creates and stores a user, which must then be activated with the returned activation token
 	// Note, that the user's password is not needed here, it is required on the activation step
@@ -47,16 +48,25 @@ func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, 
 	// validate the arguments
 	validErr := valid.EmptyError()
 	if activationToken == "" {
-		validErr.Add("activation token", "activation token is not provided")
+		validErr.Add("activation token", "activation token is required")
 	}
 	if firstName == "" {
-		validErr.Add("first name", "first name is not provided")
+		validErr.Add("first name", "first name is required")
+	}
+	if len(firstName) > 35 {
+		validErr.Add("first name", "length of the first name can't be more than 35")
 	}
 	if lastName == "" {
-		validErr.Add("last name", "last name is not provided")
+		validErr.Add("last name", "last name is required")
+	}
+	if len(lastName) > 35 {
+		validErr.Add("last name", "length of the last name can't be more than 35")
 	}
 	if password == "" {
-		validErr.Add("password", "password is not provided")
+		validErr.Add("password", "password is required")
+	}
+	if len(password) > 50 {
+		validErr.Add("password", "length of the password can't be more than 50")
 	}
 	if !validErr.IsEmpty() {
 		return "", validErr
@@ -90,8 +100,28 @@ func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, 
 	return user.ID, nil
 }
 
-func (service) ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error {
-	panic("implement me")
+// ChangeUserRole changes the user's role to the provided role
+func (s *service) ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error {
+	// validate the arguments
+	if id == "" {
+		return valid.NewError("id", "id is required")
+	}
+
+	// get the user
+	user, err := s.repo.UserByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("change user role: %w", err)
+	}
+
+	// change the user's role
+	user.ChangeRole(role)
+
+	// store the user
+	err = s.repo.StoreUser(ctx, user)
+	if err != nil {
+		return fmt.Errorf("change user role: %w", err)
+	}
+	return nil
 }
 
 // CreateUser creates and stores a user, which must then be activated with the returned activation token
@@ -99,6 +129,9 @@ func (service) ChangeUserRole(ctx context.Context, id string, role authsvc.Role)
 func (s *service) CreateUser(ctx context.Context, email string) (string, string, error) {
 	if email == "" {
 		return "", "", valid.NewError("email", "email is required")
+	}
+	if len(email) > 50 {
+		return "", "", valid.NewError("email", "length of the email can't be more than 50")
 	}
 	// create activation token
 	activationToken, err := gonanoid.Nanoid(14)
