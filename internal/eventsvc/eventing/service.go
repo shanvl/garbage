@@ -118,6 +118,9 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 	if len(resourcesAllowed) == 0 {
 		errVld.Add("resourcesAllowed", "at least one resource must be specified")
 	}
+	if len(name) > 25 {
+		errVld.Add("name", "length of the name can't be more than 25")
+	}
 	// if there are validation errors, return them
 	if !errVld.IsEmpty() {
 		return "", errVld

@@ -122,8 +122,22 @@ func Test_service_AddPupils(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "first name is too long",
+			pupils: []schooling.PupilBio{{"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "ln",
+				"8B"}},
+			wantLen: 0,
+			wantErr: true,
+		},
+		{
 			name:    "empty last name",
 			pupils:  []schooling.PupilBio{{"fn", "", "8B"}},
+			wantLen: 0,
+			wantErr: true,
+		},
+		{
+			name: "last name is too long",
+			pupils: []schooling.PupilBio{{"fn", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+				"8B"}},
 			wantLen: 0,
 			wantErr: true,
 		},

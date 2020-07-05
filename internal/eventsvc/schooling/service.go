@@ -64,8 +64,14 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]string
 		if len(bio.FirstName) == 0 {
 			errVld.Add(fmt.Sprintf("%s[firstName]", f), "first name must be provided")
 		}
+		if len(bio.FirstName) > 35 {
+			errVld.Add(fmt.Sprintf("%s[firstName]", f), "length of the first name can't be more than 35")
+		}
 		if len(bio.LastName) == 0 {
 			errVld.Add(fmt.Sprintf("%s[lastName]", f), "last name must be provided")
+		}
+		if len(bio.LastName) > 35 {
+			errVld.Add(fmt.Sprintf("%s[lastName]", f), "length of the last name can't be more than 35")
 		}
 		if len(bio.ClassName) == 0 {
 			errVld.Add(fmt.Sprintf("%s[class]", f), "class must be provided")

@@ -38,8 +38,8 @@ create table if not exists pupil
     id                varchar(25) not null primary key,
     class_letter      char        not null,
     class_date_formed date        not null,
-    first_name        varchar(25) not null,
-    last_name         varchar(25) not null,
+    first_name        varchar(35) not null,
+    last_name         varchar(35) not null,
     text_search       tsvector generated always as (to_tsvector('simple', first_name || ' ' || last_name || ' ' ||
                                                                           extract(year from class_date_formed)::text ||
                                                                           class_letter ||

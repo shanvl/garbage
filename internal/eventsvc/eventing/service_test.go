@@ -58,6 +58,17 @@ func Test_service_CreateEvent(t *testing.T) {
 			wantErr:  true,
 		},
 		{
+			name: "name is too long",
+			args: args{
+				ctx:              ctx,
+				date:             time.Now().AddDate(0, 0, 1),
+				name:             "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+				resourcesAllowed: []eventsvc.Resource{eventsvc.Plastic, eventsvc.Gadgets},
+			},
+			idLenGT0: false,
+			wantErr:  true,
+		},
+		{
 			name: "no name but that's ok",
 			args: args{
 				ctx:              ctx,

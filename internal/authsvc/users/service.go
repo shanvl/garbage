@@ -45,22 +45,23 @@ func NewService(repo Repository) Service {
 // ActivateUser changes the active state of the user to active and populates it with the provided additional info
 func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, lastName,
 	password string) (userID string, err error) {
+
 	// validate the arguments
 	validErr := valid.EmptyError()
 	if activationToken == "" {
 		validErr.Add("activation token", "activation token is required")
 	}
 	if firstName == "" {
-		validErr.Add("first name", "first name is required")
+		validErr.Add("firstName", "first name is required")
 	}
 	if len(firstName) > 35 {
-		validErr.Add("first name", "length of the first name can't be more than 35")
+		validErr.Add("lastName", "length of the first name can't be more than 35")
 	}
 	if lastName == "" {
-		validErr.Add("last name", "last name is required")
+		validErr.Add("lastName", "last name is required")
 	}
 	if len(lastName) > 35 {
-		validErr.Add("last name", "length of the last name can't be more than 35")
+		validErr.Add("lastName", "length of the last name can't be more than 35")
 	}
 	if password == "" {
 		validErr.Add("password", "password is required")
