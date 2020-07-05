@@ -29,7 +29,9 @@ type Service interface {
 	// CreateUser creates and stores a user, which must then be activated with the returned activation token
 	// Note, that the user's password is not needed here, it is required on the activation step
 	CreateUser(ctx context.Context, email string) (id string, activationToken string, err error)
+	// DeleteUser deletes the user
 	DeleteUser(ctx context.Context, id string) error
+	// UserByID returns the user with the specified id
 	UserByID(ctx context.Context, id string) (*authsvc.User, error)
 	Users(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error)
 }
@@ -157,12 +159,20 @@ func (s *service) CreateUser(ctx context.Context, email string) (string, string,
 	return userID, activationToken, nil
 }
 
-func (service) DeleteUser(ctx context.Context, id string) error {
-	panic("implement me")
+// DeleteUser deletes the user
+func (s *service) DeleteUser(ctx context.Context, id string) error {
+	if id == "" {
+		return valid.NewError("id", "id is required")
+	}
+	return s.repo.DeleteUser(ctx, id)
 }
 
-func (service) UserByID(ctx context.Context, id string) (*authsvc.User, error) {
-	panic("implement me")
+// UserByID returns the user with the specified id
+func (s *service) UserByID(ctx context.Context, id string) (*authsvc.User, error) {
+	if id == "" {
+		return nil, valid.NewError("id", "id is required")
+	}
+	return s.repo.UserByID(ctx, id)
 }
 
 func (service) Users(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error) {

@@ -277,3 +277,113 @@ func Test_service_ChangeUserRole(t *testing.T) {
 		})
 	}
 }
+
+func Test_service_DeleteUser(t *testing.T) {
+	ctx := context.Background()
+	const repoError = "repo error"
+	repo := &mock.UsersRepo{}
+	repo.DeleteUserFn = func(ctx context.Context, id string) error {
+		if id == repoError {
+			return errors.New("error")
+		}
+		return nil
+	}
+	s := NewService(repo)
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "no id",
+			args: args{
+				id: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "repo error",
+			args: args{
+				id: repoError,
+			},
+			wantErr: true,
+		},
+		{
+			name: "ok",
+			args: args{
+				id: "id",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := s.DeleteUser(ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DeleteUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_service_UserByID(t *testing.T) {
+	ctx := context.Background()
+	const repoError = "repo error"
+	repo := &mock.UsersRepo{}
+	repo.UserByIDFn = func(ctx context.Context, id string) (*authsvc.User, error) {
+		if id == repoError {
+			return nil, errors.New("error")
+		}
+		return &authsvc.User{
+			ID:     "id",
+			Active: false,
+			Email:  "email",
+			Role:   authsvc.Member,
+		}, nil
+	}
+	s := NewService(repo)
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "no id",
+			args: args{
+				id: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "repo error",
+			args: args{
+				id: repoError,
+			},
+			wantErr: true,
+		},
+		{
+			name: "ok",
+			args: args{
+				id: "id",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user, err := s.UserByID(ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserByID() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err == nil && user == nil {
+				t.Errorf("UserByID() error == nil, user == nil")
+			}
+		})
+	}
+}
