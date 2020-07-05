@@ -17,7 +17,7 @@ type Repository interface {
 	StoreUser(ctx context.Context, user *authsvc.User) error
 	UserByActivationToken(ctx context.Context, activationToken string) (*authsvc.User, error)
 	UserByID(ctx context.Context, id string) (*authsvc.User, error)
-	Users(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error)
+	Users(ctx context.Context, nameAndEmail string, sorting Sorting, amount, skip int) ([]*authsvc.User, int, error)
 }
 
 // Service manages users
@@ -33,8 +33,15 @@ type Service interface {
 	DeleteUser(ctx context.Context, id string) error
 	// UserByID returns the user with the specified id
 	UserByID(ctx context.Context, id string) (*authsvc.User, error)
-	Users(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error)
+	// Users returns a sorted list of users
+	Users(ctx context.Context, nameAndEmail string, sorting Sorting, amount, skip int) (users []*authsvc.User,
+		total int, err error)
 }
+
+const (
+	DefaultAmount = 50
+	MaxAmount     = 1000
+)
 
 type service struct {
 	repo Repository
@@ -175,6 +182,20 @@ func (s *service) UserByID(ctx context.Context, id string) (*authsvc.User, error
 	return s.repo.UserByID(ctx, id)
 }
 
-func (service) Users(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error) {
-	panic("implement me")
+// Users returns a sorted list of users
+func (s *service) Users(ctx context.Context, nameAndEmail string, sorting Sorting, amount, skip int) ([]*authsvc.User,
+	int, error) {
+
+	// validate sorting
+	if sorting == Unspecified {
+		sorting = NameDes
+	}
+	// validate amount and skip
+	if amount <= 0 || amount > MaxAmount {
+		amount = DefaultAmount
+	}
+	if skip < 0 {
+		skip = 0
+	}
+	return s.repo.Users(ctx, nameAndEmail, sorting, amount, skip)
 }

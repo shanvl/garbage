@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shanvl/garbage/internal/authsvc"
+	"github.com/shanvl/garbage/internal/authsvc/users"
 )
 
 // UsersRepo is a mock repository for users service
@@ -23,7 +24,8 @@ type UsersRepo struct {
 	UserByActivationTokenFn      func(ctx context.Context, activationToken string) (*authsvc.User, error)
 	UserByActivationTokenInvoked bool
 
-	UsersFn      func(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error)
+	UsersFn func(ctx context.Context, nameAndEmail string, sorting users.Sorting, amount,
+		skip int) ([]*authsvc.User, int, error)
 	UsersInvoked bool
 }
 
@@ -60,8 +62,9 @@ func (u *UsersRepo) UserByID(ctx context.Context, id string) (*authsvc.User, err
 	return user, err
 }
 
-func (u *UsersRepo) Users(ctx context.Context, nameAndEmail string) ([]*authsvc.User, error) {
+func (u *UsersRepo) Users(ctx context.Context, nameAndEmail string, sorting users.Sorting, amount,
+	skip int) ([]*authsvc.User, int, error) {
 	u.UsersInvoked = true
-	users, err := u.UsersFn(ctx, nameAndEmail)
-	return users, err
+	usrs, total, err := u.UsersFn(ctx, nameAndEmail, sorting, amount, skip)
+	return usrs, total, err
 }

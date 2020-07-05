@@ -1,4 +1,4 @@
-package users
+package users_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/shanvl/garbage/internal/authsvc"
 	"github.com/shanvl/garbage/internal/authsvc/mock"
+	"github.com/shanvl/garbage/internal/authsvc/users"
 )
 
 func Test_service_CreateUser(t *testing.T) {
@@ -19,7 +20,7 @@ func Test_service_CreateUser(t *testing.T) {
 		}
 		return nil
 	}
-	s := NewService(repo)
+	s := users.NewService(repo)
 	type args struct {
 		email string
 	}
@@ -95,7 +96,7 @@ func Test_service_ActivateUser(t *testing.T) {
 		}
 		return nil
 	}
-	s := NewService(repo)
+	s := users.NewService(repo)
 	type args struct {
 		activationToken string
 		firstName       string
@@ -233,7 +234,7 @@ func Test_service_ChangeUserRole(t *testing.T) {
 		}
 		return nil
 	}
-	s := NewService(repo)
+	s := users.NewService(repo)
 	type args struct {
 		id   string
 		role authsvc.Role
@@ -288,7 +289,7 @@ func Test_service_DeleteUser(t *testing.T) {
 		}
 		return nil
 	}
-	s := NewService(repo)
+	s := users.NewService(repo)
 	type args struct {
 		id string
 	}
@@ -344,7 +345,7 @@ func Test_service_UserByID(t *testing.T) {
 			Role:   authsvc.Member,
 		}, nil
 	}
-	s := NewService(repo)
+	s := users.NewService(repo)
 	type args struct {
 		id string
 	}
@@ -383,6 +384,98 @@ func Test_service_UserByID(t *testing.T) {
 			}
 			if err == nil && user == nil {
 				t.Errorf("UserByID() error == nil, user == nil")
+			}
+		})
+	}
+}
+
+func Test_service_Users(t *testing.T) {
+	ctx := context.Background()
+	const repoError = "repo error"
+	repo := &mock.UsersRepo{}
+	uu := []*authsvc.User{{}, {}, {}}
+	repo.UsersFn = func(ctx context.Context, nameAndEmail string, sorting users.Sorting, amount, skip int) ([]*authsvc.User,
+		int, error) {
+		if nameAndEmail == repoError {
+			return nil, 0, errors.New("error")
+		}
+		return uu, 3, nil
+	}
+	s := users.NewService(repo)
+	type args struct {
+		nameAndEmail string
+		sorting      users.Sorting
+		amount, skip int
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantErr   bool
+		wantTotal int
+	}{
+		{
+			name: "negative amount",
+			args: args{
+				nameAndEmail: "name",
+				sorting:      users.NameDes,
+				amount:       -50,
+				skip:         0,
+			},
+			wantErr:   false,
+			wantTotal: len(uu),
+		},
+		{
+			name: "negative skip",
+			args: args{
+				nameAndEmail: "name",
+				sorting:      users.NameDes,
+				amount:       10,
+				skip:         -50,
+			},
+			wantErr:   false,
+			wantTotal: len(uu),
+		},
+		{
+			name: "unspecified sorting",
+			args: args{
+				nameAndEmail: "name",
+				sorting:      users.Unspecified,
+				amount:       10,
+				skip:         0,
+			},
+			wantErr:   false,
+			wantTotal: len(uu),
+		},
+		{
+			name: "ok",
+			args: args{
+				nameAndEmail: "name",
+				sorting:      users.NameDes,
+				amount:       10,
+				skip:         0,
+			},
+			wantErr:   false,
+			wantTotal: len(uu),
+		},
+		{
+			name: "repo error",
+			args: args{
+				nameAndEmail: repoError,
+				amount:       10,
+				skip:         0,
+			},
+			wantErr:   true,
+			wantTotal: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, total, err := s.Users(ctx, tt.args.nameAndEmail, tt.args.sorting, tt.args.amount, tt.args.skip)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Users() error == %v, wantErr == %v", err, tt.wantErr)
+			}
+			if total != tt.wantTotal {
+				t.Errorf("Users() total == %d, wantTotal == %d", total, tt.wantTotal)
 			}
 		})
 	}
