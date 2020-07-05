@@ -78,15 +78,3 @@ func (m *managerRSA) Verify(token string) (*authsvc.UserClaims, error) {
 	}
 	return claims, nil
 }
-
-// // authsvc.UserClaims are a jwt payload
-// type authsvc.UserClaims struct {
-// 	jwt.StandardClaims
-// 	// ClientID is used to distinguish between different user's clients (browsers,
-// 	// apps) in order to have an option to revoke the refresh token and thus sign the user out of that client
-// 	ClientID string
-// 	// Role is a string representation of a user's role
-// 	Role string
-// 	// Type is a string representation of the token's type
-// 	Type string
-// }

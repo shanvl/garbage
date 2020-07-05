@@ -11,7 +11,7 @@ import (
 
 func TestManagerRSA_Generate(t *testing.T) {
 	type args struct {
-		tokenType TokenType
+		tokenType authsvc.TokenType
 		clientID  string
 		userID    string
 		role      authsvc.Role
@@ -24,7 +24,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 		{
 			name: "no client id",
 			args: args{
-				tokenType: Refresh,
+				tokenType: authsvc.Refresh,
 				clientID:  "",
 				userID:    "userid",
 				role:      authsvc.Admin,
@@ -34,7 +34,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 		{
 			name: "no user id",
 			args: args{
-				tokenType: Refresh,
+				tokenType: authsvc.Refresh,
 				clientID:  "clientid",
 				userID:    "",
 				role:      authsvc.Admin,
@@ -44,7 +44,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 		{
 			name: "refresh",
 			args: args{
-				tokenType: Refresh,
+				tokenType: authsvc.Refresh,
 				clientID:  "clientid",
 				userID:    "userid",
 				role:      authsvc.Admin,
@@ -54,7 +54,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 		{
 			name: "access",
 			args: args{
-				tokenType: Access,
+				tokenType: authsvc.Access,
 				clientID:  "clientid",
 				userID:    "userid",
 				role:      authsvc.Admin,
@@ -80,7 +80,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 
 func TestManagerRSA_Verify(t *testing.T) {
 	type args struct {
-		tokenType TokenType
+		tokenType authsvc.TokenType
 		clientID  string
 		userID    string
 		role      authsvc.Role
@@ -93,7 +93,7 @@ func TestManagerRSA_Verify(t *testing.T) {
 		{
 			name: "access",
 			args: args{
-				tokenType: Access,
+				tokenType: authsvc.Access,
 				clientID:  "clientID",
 				userID:    "userID",
 				role:      authsvc.Admin,
@@ -103,7 +103,7 @@ func TestManagerRSA_Verify(t *testing.T) {
 		{
 			name: "refresh",
 			args: args{
-				tokenType: Refresh,
+				tokenType: authsvc.Refresh,
 				clientID:  "clientID",
 				userID:    "userID",
 				role:      authsvc.Admin,
@@ -131,7 +131,7 @@ func TestManagerRSA_Verify(t *testing.T) {
 	}
 }
 
-func newTestManagerRSA(t *testing.T) Manager {
+func newTestManagerRSA(t *testing.T) authsvc.TokenManager {
 	prB, err := ioutil.ReadFile("./keys_test/test.rsa")
 	if err != nil {
 		t.Fatalf("couldn't read key file: %v", err)

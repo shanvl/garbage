@@ -22,9 +22,9 @@ func testMain(m *testing.M) int {
 	// connect to the test db. Config values are hardcoded in order not to corrupt production db in case the wrong
 	// compose file is used
 	d, err := postgres.Connect(postgres.Config{
-		Host:            "authsvc_db",
-		Database:        "testdb",
-		User:            "root",
+		Host:            "localhost",
+		Database:        "authsvc",
+		User:            "jynweythek223",
 		Password:        "root",
 		Port:            5432,
 		MaxConns:        20,
