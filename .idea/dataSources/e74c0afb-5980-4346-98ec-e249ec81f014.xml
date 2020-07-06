@@ -789,7 +789,7 @@ true posixrules
     <database id="2" parent="1" name="authsvc">
       <ObjectId>53412</ObjectId>
       <Owner>jynweythek223</Owner>
-      <IntrospectionStateNumber>52442</IntrospectionStateNumber>
+      <IntrospectionStateNumber>52569</IntrospectionStateNumber>
     </database>
     <database id="3" parent="1" name="garbage">
       <ObjectId>52978</ObjectId>
@@ -869,7 +869,7 @@ true posixrules
       <Comment>standard public schema</Comment>
       <StateNumber>275</StateNumber>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>52443</IntrospectionStateNumber>
+      <IntrospectionStateNumber>52570</IntrospectionStateNumber>
       <Current>1</Current>
     </schema>
     <access-method id="21" parent="2" name="heap">
@@ -1137,19 +1137,33 @@ client_id</ColNames>
       <StateNumber>52217</StateNumber>
       <ColNames>email</ColNames>
     </index>
-    <index id="61" parent="36" name="users_text_search_idx">
+    <index id="61" parent="36" name="users_name_asc_index">
+      <ObjectId>53512</ObjectId>
+      <StateNumber>52568</StateNumber>
+      <ColNames>last_name
+first_name</ColNames>
+    </index>
+    <index id="62" parent="36" name="users_name_desc_index">
+      <ObjectId>53511</ObjectId>
+      <StateNumber>52565</StateNumber>
+      <ColNames>last_name
+first_name</ColNames>
+      <ReverseColNames>last_name
+first_name</ReverseColNames>
+    </index>
+    <index id="63" parent="36" name="users_text_search_idx">
       <ObjectId>53470</ObjectId>
       <StateNumber>52215</StateNumber>
       <ColNames>text_search</ColNames>
     </index>
-    <key id="62" parent="36" name="users_pkey">
+    <key id="64" parent="36" name="users_pkey">
       <ObjectId>53469</ObjectId>
       <StateNumber>52214</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>users_pkey</UnderlyingIndexName>
     </key>
-    <key id="63" parent="36" name="unique_email">
+    <key id="65" parent="36" name="unique_email">
       <ObjectId>53504</ObjectId>
       <StateNumber>52426</StateNumber>
       <ColNames>email</ColNames>

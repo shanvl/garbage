@@ -6,6 +6,6 @@ const (
 	NameAsc Sorting = iota
 	NameDes
 	EmailAsc
-	EmailDesc
+	EmailDes
 	Unspecified
 )

@@ -7,6 +7,7 @@ import (
 
 	"github.com/shanvl/garbage/internal/authsvc"
 	"github.com/shanvl/garbage/internal/authsvc/postgres"
+	usersSvc "github.com/shanvl/garbage/internal/authsvc/users"
 )
 
 func TestRepository_ChangeUserRole(t *testing.T) {
@@ -182,6 +183,96 @@ func TestRepository_UserByID(t *testing.T) {
 			}
 			if !reflect.DeepEqual(u, tt.wantUser) {
 				t.Errorf("UserByID() user == %+v, want == %+v", u, tt.wantUser)
+			}
+		})
+	}
+}
+
+func TestRepository_Users(t *testing.T) {
+	r := postgres.NewUsersRepo(db)
+	ctx := context.Background()
+	uu := []*authsvc.User{
+		{ID: "someid1", FirstName: "FN1", LastName: "LN1", Email: "EMAIL1"},
+		{ID: "someid2", FirstName: "FN2", LastName: "LN2", Email: "EMAIL2"},
+		{ID: "someid3", FirstName: "FN3", LastName: "LN3", Email: "EMAIL3"},
+	}
+	for _, user := range uu {
+		u := user
+		storeUser(t, u)
+		defer deleteUserByID(t, u.ID)
+	}
+	testCases := []struct {
+		name         string
+		textSearch   string
+		sorting      usersSvc.Sorting
+		amount, skip int
+		wantErr      bool
+		wantUsers    []*authsvc.User
+	}{
+		{
+			name:       "name asc sorting and filled text search",
+			textSearch: "fn ln email",
+			sorting:    usersSvc.NameAsc,
+			amount:     10,
+			skip:       0,
+			wantErr:    false,
+			wantUsers:  []*authsvc.User{uu[0], uu[1], uu[2]},
+		},
+		{
+			name:       "name desc sorting and filled text search",
+			textSearch: "fn ln email",
+			sorting:    usersSvc.NameDes,
+			amount:     10,
+			skip:       0,
+			wantErr:    false,
+			wantUsers:  []*authsvc.User{uu[2], uu[1], uu[0]},
+		},
+		{
+			name:       "email asc sorting and filled text search",
+			textSearch: "fn ln email",
+			sorting:    usersSvc.EmailAsc,
+			amount:     10,
+			skip:       0,
+			wantErr:    false,
+			wantUsers:  []*authsvc.User{uu[0], uu[1], uu[2]},
+		},
+		{
+			name:       "email des sorting and filled text search",
+			textSearch: "fn ln email",
+			sorting:    usersSvc.EmailDes,
+			amount:     10,
+			skip:       0,
+			wantErr:    false,
+			wantUsers:  []*authsvc.User{uu[2], uu[1], uu[0]},
+		},
+		{
+			name:       "skip 2",
+			textSearch: "fn ln email",
+			sorting:    usersSvc.EmailAsc,
+			amount:     10,
+			skip:       2,
+			wantErr:    false,
+			wantUsers:  []*authsvc.User{uu[2]},
+		},
+		{
+			name:       "no text search",
+			textSearch: "",
+			sorting:    usersSvc.EmailAsc,
+			amount:     200,
+			skip:       150,
+			wantErr:    false,
+			// will be ignored for this test
+			wantUsers: []*authsvc.User{},
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			users, _, err := r.Users(ctx, tt.textSearch, tt.sorting, tt.amount, tt.skip)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Users() error == %v, want == %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(users, tt.wantUsers) && tt.name != "no text search" {
+				t.Errorf("Users() users == %+v, want == %+v", users, tt.wantUsers)
 			}
 		})
 	}

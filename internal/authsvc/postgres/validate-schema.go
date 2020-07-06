@@ -35,6 +35,8 @@ create table if not exists users
 );
 
 create index if not exists users_text_search_idx on users using gin (text_search);
+create index if not exists users_name_asc_index on users (last_name asc, first_name asc);
+create index if not exists users_name_desc_index on users (last_name desc, first_name desc);
 create index if not exists users_active_idx on users (active);
 create index if not exists users_activation_token_idx on users (activation_token);
 

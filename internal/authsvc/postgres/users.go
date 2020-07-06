@@ -3,19 +3,31 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jmoiron/sqlx"
 	"github.com/shanvl/garbage/internal/authsvc"
-	"github.com/shanvl/garbage/internal/authsvc/users"
+	usersSvc "github.com/shanvl/garbage/internal/authsvc/users"
+	pgtextsearch "github.com/shanvl/garbage/pkg/pg-text-search"
 )
 
 type usersRepo struct {
 	db *pgxpool.Pool
 }
 
-func NewUsersRepo(db *pgxpool.Pool) users.Repository {
+func NewUsersRepo(db *pgxpool.Pool) usersSvc.Repository {
 	return &usersRepo{db}
+}
+
+var sortingToOrderMap = map[usersSvc.Sorting]string{
+	usersSvc.NameAsc:  "last_name asc, first_name asc",
+	usersSvc.NameDes:  "last_name desc, first_name desc",
+	usersSvc.EmailAsc: "email asc",
+	usersSvc.EmailDes: "email desc",
 }
 
 const changeUserRoleQuery = `
@@ -114,7 +126,92 @@ func (u *usersRepo) UserByID(ctx context.Context, id string) (*authsvc.User, err
 	return user, nil
 }
 
-func (u *usersRepo) Users(ctx context.Context, nameAndEmail string, sorting users.Sorting, amount,
+const usersQuery = `
+	with query as (
+    select id, active, activation_token, email, first_name, last_name, password_hash, role
+    from users
+	where 1=1 %s
+	),  pagination as (
+		select *
+		from query
+		order by %s
+		limit ? offset ?
+	)
+	select *
+	from pagination
+			 right join (select count(*) FROM query) as c(total) on true;
+`
+
+// Users returns a list of sorted users
+func (u *usersRepo) Users(ctx context.Context, nameAndEmail string, sorting usersSvc.Sorting, amount,
 	skip int) ([]*authsvc.User, int, error) {
-	panic("implement me")
+
+	// get the "order by" part of the query
+	orderBy := sortingToOrderMap[sorting]
+	// create the "where" part of the query
+	where := strings.Builder{}
+	var args []interface{}
+	if nameAndEmail != "" {
+		textSearch := pgtextsearch.PrepareQuery(nameAndEmail)
+		where.WriteString("and text_search @@ to_tsquery('simple', ?) ")
+		args = append(args, textSearch)
+	}
+	// add limit and offset
+	args = append(args, amount, skip)
+	// embed the "where" and the "order by" parts to the query
+	q := fmt.Sprintf(usersQuery, where.String(), orderBy)
+	// change "?" to "$" in the query
+	q = sqlx.Rebind(sqlx.BindType("pgx"), q)
+
+	rows, err := u.db.Query(ctx, q, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+	// "total" column will always be returned, so other columns might be null
+	var (
+		id       pgtype.Varchar
+		active   pgtype.Bool
+		actToken pgtype.Text
+		email    pgtype.Varchar
+		fN       pgtype.Varchar
+		lN       pgtype.Varchar
+		pasH     pgtype.Text
+		role     pgtype.Text
+		total    int
+	)
+	users := []*authsvc.User{}
+	for rows.Next() {
+		err := rows.Scan(&id, &active, &actToken, &email, &fN, &lN, &pasH, &role, &total)
+		if err != nil {
+			return nil, 0, err
+		}
+		// next will happen if the offset >= total rows found or no users matching the provided criteria have been
+		// found. In that case we simply return total w/o additional work
+		if id.Status != pgtype.Present {
+			return nil, 0, nil
+		}
+		// create user
+		user := &authsvc.User{
+			ID:              id.String,
+			Active:          active.Bool,
+			ActivationToken: actToken.String,
+			Email:           email.String,
+			FirstName:       fN.String,
+			LastName:        lN.String,
+			PasswordHash:    pasH.String,
+		}
+		// convert role string to Role type
+		r, err := authsvc.StringToRole(role.String)
+		if err != nil {
+			return nil, 0, err
+		}
+		user.Role = r
+		// push the user to the users
+		users = append(users, user)
+	}
+	if rows.Err() != nil {
+		return nil, 0, nil
+	}
+	return users, total, nil
 }
