@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -57,6 +58,11 @@ func main() {
 			zap.String("protocol", "postgres"),
 			zap.String("addr", fmt.Sprintf("%s:%d", postgresConf.Host, postgresConf.Port)),
 		)
+	}
+	// apply migrations
+	err = postgres.ValidateSchema(context.Background(), postgresPool)
+	if err != nil {
+		logger.Fatal("migrations failed", zap.Error(err), zap.String("protocol", "postgres"))
 	}
 
 	// create repos
