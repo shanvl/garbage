@@ -7,7 +7,7 @@ import (
 	"github.com/shanvl/garbage/internal/authsvc/users"
 )
 
-// UsersRepo is a mock repository for users service
+// UsersRepo mocks users service's repository
 type UsersRepo struct {
 	ChangeUserRoleFn      func(ctx context.Context, id string, role authsvc.Role) error
 	ChangeUserRoleInvoked bool
@@ -31,40 +31,65 @@ type UsersRepo struct {
 
 func (u *UsersRepo) ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error {
 	u.ChangeUserRoleInvoked = true
-	err := u.ChangeUserRoleFn(ctx, id, role)
-	return err
+	return u.ChangeUserRoleFn(ctx, id, role)
 }
 
 func (u *UsersRepo) DeleteUser(ctx context.Context, id string) error {
 	u.DeleteUserInvoked = true
-	err := u.DeleteUserFn(ctx, id)
-	return err
+	return u.DeleteUserFn(ctx, id)
 }
 
 func (u *UsersRepo) StoreUser(ctx context.Context, user *authsvc.User) error {
 	u.StoreUserInvoked = true
-	err := u.StoreUserFn(ctx, user)
-	return err
+	return u.StoreUserFn(ctx, user)
 }
 
 func (u *UsersRepo) UserByActivationToken(ctx context.Context, activationToken string) (*authsvc.User, error) {
 	u.UserByActivationTokenInvoked = true
-	user, err := u.UserByActivationTokenFn(ctx, activationToken)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
+	return u.UserByActivationTokenFn(ctx, activationToken)
 }
 
 func (u *UsersRepo) UserByID(ctx context.Context, id string) (*authsvc.User, error) {
 	u.UserByIDInvoked = true
-	user, err := u.UserByIDFn(ctx, id)
-	return user, err
+	return u.UserByIDFn(ctx, id)
 }
 
 func (u *UsersRepo) Users(ctx context.Context, nameAndEmail string, sorting users.Sorting, amount,
 	skip int) ([]*authsvc.User, int, error) {
 	u.UsersInvoked = true
-	usrs, total, err := u.UsersFn(ctx, nameAndEmail, sorting, amount, skip)
-	return usrs, total, err
+	return u.UsersFn(ctx, nameAndEmail, sorting, amount, skip)
+}
+
+type AuthRepo struct {
+	DeleteClientFn      func(ctx context.Context, clientID string) error
+	DeleteClientInvoked bool
+
+	DeleteUserClientsFn      func(ctx context.Context, userID string) error
+	DeleteUserClientsInvoked bool
+
+	StoreClientFn      func(ctx context.Context, clientID string, refreshToken string) error
+	StoreClientInvoked bool
+
+	UserByIDFn      func(ctx context.Context, userID string) (*authsvc.User, error)
+	UserByIDInvoked bool
+}
+
+func (a *AuthRepo) DeleteClient(ctx context.Context, clientID string) error {
+	a.DeleteClientInvoked = true
+	return a.DeleteClientFn(ctx, clientID)
+}
+
+func (a *AuthRepo) DeleteUserClients(ctx context.Context, userID string) error {
+	a.DeleteUserClientsInvoked = true
+	return a.DeleteUserClientsFn(ctx, userID)
+}
+
+func (a *AuthRepo) StoreClient(ctx context.Context, clientID string, refreshToken string) error {
+	a.StoreClientInvoked = true
+	return a.StoreClientFn(ctx, clientID, refreshToken)
+}
+
+func (a *AuthRepo) UserByID(ctx context.Context, userID string) (*authsvc.User, error) {
+	a.UserByIDInvoked = true
+	return a.UserByID(ctx, userID)
 }
