@@ -12,6 +12,7 @@ import (
 )
 
 func Test_service_RemovePupils(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ids := []string{"000", "001", "002"}
 
@@ -80,6 +81,7 @@ func Test_service_RemovePupils(t *testing.T) {
 }
 
 func Test_service_AddPupils(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	var repo mock.SchoolingRepository
@@ -205,6 +207,7 @@ func Test_service_AddPupils(t *testing.T) {
 }
 
 func Test_service_ChangePupilClass(t *testing.T) {
+	t.Parallel()
 	const (
 		pupilIDPupilNotFound           = "pupil not found"
 		pupilIDStoreError              = "store error"

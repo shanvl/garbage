@@ -5,6 +5,7 @@ import (
 )
 
 func TestEvent_IsResourceAllowed(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name             string
 		resource         Resource

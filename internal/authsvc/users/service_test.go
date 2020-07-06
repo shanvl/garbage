@@ -11,6 +11,7 @@ import (
 )
 
 func Test_service_CreateUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	const repoError = "repo error"
 	repo := &mock.UsersRepo{}
@@ -75,6 +76,7 @@ func Test_service_CreateUser(t *testing.T) {
 }
 
 func Test_service_ActivateUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	const repoError = "repo error"
 	const activationToken = "token"
@@ -214,6 +216,7 @@ func Test_service_ActivateUser(t *testing.T) {
 }
 
 func Test_service_ChangeUserRole(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	const repoError = "repo error"
 	repo := &mock.UsersRepo{}
@@ -269,6 +272,7 @@ func Test_service_ChangeUserRole(t *testing.T) {
 }
 
 func Test_service_DeleteUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	const repoError = "repo error"
 	repo := &mock.UsersRepo{}
@@ -320,6 +324,7 @@ func Test_service_DeleteUser(t *testing.T) {
 }
 
 func Test_service_UserByID(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	const repoError = "repo error"
 	repo := &mock.UsersRepo{}
@@ -379,6 +384,7 @@ func Test_service_UserByID(t *testing.T) {
 }
 
 func Test_service_Users(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	const repoError = "repo error"
 	repo := &mock.UsersRepo{}

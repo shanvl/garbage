@@ -12,6 +12,7 @@ import (
 )
 
 func Test_service_Classes(t *testing.T) {
+	t.Parallel()
 	const (
 		repoError    = "e"
 		totalClasses = 25
@@ -141,6 +142,7 @@ func Test_service_Classes(t *testing.T) {
 }
 
 func Test_service_Events(t *testing.T) {
+	t.Parallel()
 	const (
 		totalEvents = 55
 		sortBy      = sorting.DateDes
@@ -249,6 +251,7 @@ func Test_service_Events(t *testing.T) {
 }
 
 func Test_service_Pupils(t *testing.T) {
+	t.Parallel()
 	const (
 		repoError   = "e"
 		totalPupils = 25
@@ -365,6 +368,7 @@ func Test_service_Pupils(t *testing.T) {
 }
 
 func Test_service_PupilByID(t *testing.T) {
+	t.Parallel()
 	const (
 		repoError = "e"
 	)

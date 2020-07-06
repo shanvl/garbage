@@ -6,6 +6,7 @@ import (
 )
 
 func TestStringSliceToResourceSlice(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		ss []string
 	}
@@ -55,6 +56,7 @@ func TestStringSliceToResourceSlice(t *testing.T) {
 }
 
 func TestResourceSliceToStringSlice(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		resources []Resource

@@ -10,6 +10,7 @@ import (
 )
 
 func TestManagerRSA_Generate(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		tokenType authsvc.TokenType
 		clientID  string
@@ -79,6 +80,7 @@ func TestManagerRSA_Generate(t *testing.T) {
 }
 
 func TestManagerRSA_Verify(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		tokenType authsvc.TokenType
 		clientID  string

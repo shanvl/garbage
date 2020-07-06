@@ -6,6 +6,7 @@ import (
 )
 
 func TestNewUser(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		activationToken string
 		id              string
@@ -62,6 +63,7 @@ func TestNewUser(t *testing.T) {
 }
 
 func TestUser_Activate(t *testing.T) {
+	t.Parallel()
 	activationToken := "token"
 	user := &User{
 		ID:              "id",
@@ -114,6 +116,7 @@ func TestUser_Activate(t *testing.T) {
 }
 
 func TestUser_ChangePassword(t *testing.T) {
+	t.Parallel()
 	user := &User{}
 	tests := []struct {
 		name     string
@@ -142,6 +145,7 @@ func TestUser_ChangePassword(t *testing.T) {
 }
 
 func TestUser_Deactivate(t *testing.T) {
+	t.Parallel()
 	user := &User{
 		Active: true,
 	}
@@ -184,6 +188,7 @@ func TestUser_Deactivate(t *testing.T) {
 }
 
 func TestUser_IsCorrectPassword(t *testing.T) {
+	t.Parallel()
 	password := "password"
 	hash := testCreatePassword(t, password)
 	user := &User{PasswordHash: hash}

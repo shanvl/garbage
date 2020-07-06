@@ -7,6 +7,7 @@ import (
 )
 
 func TestClass_NameFromDate(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		Formed time.Time
 		Letter string
@@ -111,6 +112,7 @@ func newDate(year int, month int, day int, hour int) time.Time {
 }
 
 func TestClassFromClassName(t *testing.T) {
+	t.Parallel()
 	date := newDate(2010, 10, 10, 1)
 
 	type args struct {
@@ -211,6 +213,7 @@ func TestClassFromClassName(t *testing.T) {
 }
 
 func TestParseClassName(t *testing.T) {
+	t.Parallel()
 	date := newDate(2010, 10, 10, 1)
 	type args struct {
 		className string

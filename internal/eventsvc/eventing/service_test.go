@@ -14,6 +14,7 @@ import (
 )
 
 func Test_service_CreateEvent(t *testing.T) {
+	t.Parallel()
 	var repository mock.EventingRepository
 	repository.StoreEventFn = func(ctx context.Context, e *eventsvc.Event) error {
 		return nil
@@ -107,6 +108,7 @@ func Test_service_CreateEvent(t *testing.T) {
 }
 
 func Test_service_DeleteEvent(t *testing.T) {
+	t.Parallel()
 	const repoErrorEventID = "error"
 	var repository mock.EventingRepository
 	repository.DeleteEventFn = func(ctx context.Context, eventID string) error {
@@ -165,6 +167,7 @@ func Test_service_DeleteEvent(t *testing.T) {
 }
 
 func Test_service_EventByID(t *testing.T) {
+	t.Parallel()
 	var repository mock.EventingRepository
 	repository.EventByIDFn = func(ctx context.Context, id string) (event *eventing.Event, err error) {
 		if id == "not_found" {
@@ -241,6 +244,7 @@ func Test_service_EventByID(t *testing.T) {
 }
 
 func Test_service_ChangePupilResources(t *testing.T) {
+	t.Parallel()
 	const (
 		eventID                = "123"
 		eventIDErrNoEventPupil = "errornoeventpupil"
@@ -375,6 +379,7 @@ func Test_service_ChangePupilResources(t *testing.T) {
 }
 
 func Test_service_EventPupils(t *testing.T) {
+	t.Parallel()
 	const (
 		totalPupils = 75
 		sortBy      = sorting.NameAsc
@@ -531,6 +536,7 @@ func Test_service_EventPupils(t *testing.T) {
 }
 
 func Test_service_EventClasses(t *testing.T) {
+	t.Parallel()
 	const (
 		totalClasses = 75
 		sortBy       = sorting.NameAsc
@@ -687,6 +693,7 @@ func Test_service_EventClasses(t *testing.T) {
 }
 
 func Test_service_PupilByID(t *testing.T) {
+	t.Parallel()
 	const pupilIDPupilNotFound = "not found"
 	foundPupil := &eventing.Pupil{
 		Pupil: eventsvc.Pupil{
