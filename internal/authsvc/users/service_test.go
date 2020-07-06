@@ -217,19 +217,8 @@ func Test_service_ChangeUserRole(t *testing.T) {
 	ctx := context.Background()
 	const repoError = "repo error"
 	repo := &mock.UsersRepo{}
-	repo.UserByIDFn = func(ctx context.Context, id string) (*authsvc.User, error) {
+	repo.ChangeUserRoleFn = func(ctx context.Context, id string, role authsvc.Role) error {
 		if id == repoError {
-			return nil, errors.New("error")
-		}
-		return &authsvc.User{
-			ID:     "id",
-			Active: false,
-			Email:  "email",
-			Role:   authsvc.Member,
-		}, nil
-	}
-	repo.StoreUserFn = func(ctx context.Context, user *authsvc.User) error {
-		if user.Email == repoError {
 			return errors.New("error")
 		}
 		return nil

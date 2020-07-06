@@ -13,7 +13,6 @@ import (
 type Repository interface {
 	ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error
 	DeleteUser(ctx context.Context, id string) error
-	// Upsert
 	StoreUser(ctx context.Context, user *authsvc.User) error
 	UserByActivationToken(ctx context.Context, activationToken string) (*authsvc.User, error)
 	UserByID(ctx context.Context, id string) (*authsvc.User, error)
@@ -110,28 +109,14 @@ func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, 
 	return user.ID, nil
 }
 
-// ChangeUserRole changes the user's role to the provided role
+// ChangeUserRole changes the user's role to the provided one
 func (s *service) ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error {
 	// validate the arguments
 	if id == "" {
 		return valid.NewError("id", "id is required")
 	}
 
-	// get the user
-	user, err := s.repo.UserByID(ctx, id)
-	if err != nil {
-		return fmt.Errorf("change user role: %w", err)
-	}
-
-	// change the user's role
-	user.ChangeRole(role)
-
-	// store the user
-	err = s.repo.StoreUser(ctx, user)
-	if err != nil {
-		return fmt.Errorf("change user role: %w", err)
-	}
-	return nil
+	return s.repo.ChangeUserRole(ctx, id, role)
 }
 
 // CreateUser creates and stores a user, which must then be activated with the returned activation token

@@ -20,6 +20,7 @@
       <w>sqlx</w>
       <w>structs</w>
       <w>tsquery</w>
+      <w>upserts</w>
       <w>usecase</w>
       <w>usecases</w>
       <w>usrs</w>

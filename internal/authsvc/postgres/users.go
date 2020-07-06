@@ -47,8 +47,19 @@ func (u *usersRepo) DeleteUser(ctx context.Context, id string) error {
 	return err
 }
 
+const storeUserQuery = `
+	insert into users (id, active, activation_token, email, first_name, last_name, password_hash, role)
+	values ($1, $2, $3, $4, $5, $6, $7, $8)
+	on conflict (id) do update
+		set (active, activation_token, email, first_name, last_name, password_hash, role)
+				= ($2, $3, $4, $5, $6, $7, $8);
+`
+
+// StoreUser upserts the given to user to the db
 func (u *usersRepo) StoreUser(ctx context.Context, user *authsvc.User) error {
-	panic("implement me")
+	_, err := u.db.Exec(ctx, storeUserQuery, user.ID, user.Active, user.ActivationToken, user.Email, user.FirstName,
+		user.LastName, user.PasswordHash, user.Role.String())
+	return err
 }
 
 func (u *usersRepo) UserByActivationToken(ctx context.Context, activationToken string) (*authsvc.User, error) {

@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/shanvl/garbage/internal/authsvc"
@@ -67,6 +68,43 @@ func TestRepository_DeleteUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRepository_StoreUser(t *testing.T) {
+	r := postgres.NewUsersRepo(db)
+	ctx := context.Background()
+	u := &authsvc.User{
+		ID:              "someid",
+		Active:          true,
+		ActivationToken: "token",
+		Email:           "email",
+		FirstName:       "fn",
+		LastName:        "ln",
+		PasswordHash:    "ph",
+		Role:            authsvc.Member,
+	}
+	defer deleteUserByID(t, u.ID)
+	t.Run("new user", func(t *testing.T) {
+		err := r.StoreUser(ctx, u)
+		if err != nil {
+			t.Errorf("StoreUser() error == %v, wantErr == false", err)
+		}
+		savedUser := userByID(t, u.ID)
+		if !reflect.DeepEqual(savedUser, u) {
+			t.Errorf("StoreUser() saved user == %+v, want == %+v", savedUser, u)
+		}
+	})
+	t.Run("update user", func(t *testing.T) {
+		u.FirstName = "changed name"
+		err := r.StoreUser(ctx, u)
+		if err != nil {
+			t.Errorf("StoreUser() error == %v, wantErr == false", err)
+		}
+		savedUser := userByID(t, u.ID)
+		if !reflect.DeepEqual(savedUser, u) {
+			t.Errorf("StoreUser() saved user == %+v, want == %+v", savedUser, u)
+		}
+	})
 }
 
 const storeUserQ = `
