@@ -136,8 +136,7 @@ func (t testAuthSvc) Authorize(_ context.Context, req *authv1pb.AuthorizeRequest
 	return &authv1pb.AuthorizeResponse{UserId: testUserID}, nil
 }
 
-func (t testAuthSvc) ActivateUser(_ context.Context, _ *authv1pb.ActivateUserRequest) (*authv1pb.
-	ActivateUserResponse, error) {
+func (t testAuthSvc) ActivateUser(_ context.Context, _ *authv1pb.ActivateUserRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 

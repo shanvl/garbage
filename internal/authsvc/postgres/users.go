@@ -143,6 +143,7 @@ const usersQuery = `
 `
 
 // Users returns a list of sorted users
+// "nameAndEmail" may consist of any combination of the email, first name and last name parts
 func (u *usersRepo) Users(ctx context.Context, nameAndEmail string, sorting usersSvc.Sorting, amount,
 	skip int) ([]*authsvc.User, int, error) {
 

@@ -60,7 +60,7 @@ func StringToRole(s string) (Role, error) {
 // NewUser creates a new user
 func NewUser(activationToken, id, email string) (*User, error) {
 	if activationToken == "" {
-		return nil, fmt.Errorf("new user: %w", ErrInvalidActivationToken)
+		return nil, ErrInvalidActivationToken
 	}
 	return &User{
 		ID:              id,
@@ -100,7 +100,7 @@ func (u *User) ChangeRole(role Role) {
 // It requires an activation token which can be used later to activate the user
 func (u *User) Deactivate(activationToken string) error {
 	if activationToken == "" {
-		return fmt.Errorf("deactivate user: %w", ErrInvalidActivationToken)
+		return ErrInvalidActivationToken
 	}
 	u.Active = false
 	u.ActivationToken = activationToken

@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"fmt"
 
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/shanvl/garbage/internal/authsvc"
@@ -33,6 +32,7 @@ type Service interface {
 	// UserByID returns the user with the specified id
 	UserByID(ctx context.Context, id string) (*authsvc.User, error)
 	// Users returns a sorted list of users
+	// "nameAndEmail" may consist of any combination of the email, first name and last name parts
 	Users(ctx context.Context, nameAndEmail string, sorting Sorting, amount, skip int) (users []*authsvc.User,
 		total int, err error)
 }
@@ -84,19 +84,19 @@ func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, 
 	// get the user
 	user, err := s.repo.UserByActivationToken(ctx, activationToken)
 	if err != nil {
-		return "", fmt.Errorf("activate user: %w", err)
+		return "", err
 	}
 
 	// activate the user
 	err = user.Activate(activationToken)
 	if err != nil {
-		return "", fmt.Errorf("activate user: %w", err)
+		return "", err
 	}
 
 	// set the user's password, first name and last name
 	err = user.ChangePassword(password)
 	if err != nil {
-		return "", fmt.Errorf("activate user: %w", err)
+		return "", err
 	}
 	user.FirstName = firstName
 	user.LastName = lastName
@@ -104,7 +104,7 @@ func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, 
 	// store the user
 	err = s.repo.StoreUser(ctx, user)
 	if err != nil {
-		return "", fmt.Errorf("activate user: %w", err)
+		return "", err
 	}
 	return user.ID, nil
 }
@@ -131,22 +131,22 @@ func (s *service) CreateUser(ctx context.Context, email string) (string, string,
 	// create activation token
 	activationToken, err := gonanoid.Nanoid(14)
 	if err != nil {
-		return "", "", fmt.Errorf("create user: create activation token: %w", err)
+		return "", "", err
 	}
 	// create id
 	userID, err := gonanoid.Nanoid(14)
 	if err != nil {
-		return "", "", fmt.Errorf("create user: creat id: %w", err)
+		return "", "", err
 	}
 	// create a new user
 	user, err := authsvc.NewUser(activationToken, userID, email)
 	if err != nil {
-		return "", "", fmt.Errorf("create user: %w", err)
+		return "", "", err
 	}
 	// store the user
 	err = s.repo.StoreUser(ctx, user)
 	if err != nil {
-		return "", "", fmt.Errorf("create user: %w", err)
+		return "", "", err
 	}
 	return userID, activationToken, nil
 }
@@ -168,6 +168,7 @@ func (s *service) UserByID(ctx context.Context, id string) (*authsvc.User, error
 }
 
 // Users returns a sorted list of users
+// "nameAndEmail" may consist of any combination of the email, first name and last name parts
 func (s *service) Users(ctx context.Context, nameAndEmail string, sorting Sorting, amount, skip int) ([]*authsvc.User,
 	int, error) {
 
