@@ -11,7 +11,7 @@ import (
 
 // Repository is a repo required by Service
 type Repository interface {
-	ChangeUserRole(ctx context.Context, id, role authsvc.Role) error
+	ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error
 	DeleteUser(ctx context.Context, id string) error
 	// Upsert
 	StoreUser(ctx context.Context, user *authsvc.User) error

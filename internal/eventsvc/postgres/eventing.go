@@ -16,14 +16,14 @@ import (
 	"github.com/shanvl/garbage/internal/eventsvc/sorting"
 )
 
-// EventingRepo is a repository used by Eventing service
-type EventingRepo struct {
+// eventingRepo is a repository used by Eventing service
+type eventingRepo struct {
 	db *pgxpool.Pool
 }
 
-// NewEventingRepo returns an instance of EventingRepo
-func NewEventingRepo(db *pgxpool.Pool) *EventingRepo {
-	return &EventingRepo{db}
+// NewEventingRepo returns an instance of eventingRepo
+func NewEventingRepo(db *pgxpool.Pool) eventing.Repository {
+	return &eventingRepo{db}
 }
 
 const changePupilResourcesQuery = `
@@ -34,7 +34,7 @@ const changePupilResourcesQuery = `
 `
 
 // ChangePupilResources adds/subtracts resources brought by a pupil to/from the event, updating `resources` table
-func (e *EventingRepo) ChangePupilResources(ctx context.Context, eventID string, pupilID string,
+func (e *eventingRepo) ChangePupilResources(ctx context.Context, eventID string, pupilID string,
 	resources eventsvc.ResourceMap) error {
 
 	_, err := e.db.Exec(ctx, changePupilResourcesQuery, pupilID, eventID, resources[eventsvc.Gadgets],
@@ -57,7 +57,7 @@ const deleteEventQuery = `
 `
 
 // DeleteEvent deletes an event with the id passed
-func (e *EventingRepo) DeleteEvent(ctx context.Context, eventID string) error {
+func (e *eventingRepo) DeleteEvent(ctx context.Context, eventID string) error {
 	_, err := e.db.Exec(ctx, deleteEventQuery, eventID)
 	return err
 }
@@ -77,7 +77,7 @@ const eventByIDQuery = `
 `
 
 // EventByID returns an event by its ID
-func (e *EventingRepo) EventByID(ctx context.Context, eventID string) (*eventing.Event, error) {
+func (e *eventingRepo) EventByID(ctx context.Context, eventID string) (*eventing.Event, error) {
 	ev := &eventing.Event{}
 	// need this one in order to scan resources_allowed into it
 	var (
@@ -133,7 +133,7 @@ const eventClassesQuery = `
 `
 
 // EventClasses returns a sorted and paginated list of classes that match the passed filters
-func (e *EventingRepo) EventClasses(ctx context.Context, eventID string,
+func (e *eventingRepo) EventClasses(ctx context.Context, eventID string,
 	filters eventing.EventClassFilters, sortBy sorting.By, amount int, skip int) (classes []*eventing.Class,
 	total int, err error) {
 
@@ -268,7 +268,7 @@ const eventPupilsQuery = `
 `
 
 // EventPupils returns a paginated and sorted list of the pupils who have participated in the specified event
-func (e *EventingRepo) EventPupils(ctx context.Context, eventID string, filters eventing.EventPupilFilters,
+func (e *eventingRepo) EventPupils(ctx context.Context, eventID string, filters eventing.EventPupilFilters,
 	sortBy sorting.By, amount int, skip int) (pupils []*eventing.Pupil, total int, err error) {
 
 	var q string
@@ -388,7 +388,7 @@ const evPupilByIDQuery = `
 	where p.id = $2;
 `
 
-func (e *EventingRepo) PupilByID(ctx context.Context, pupilID string,
+func (e *eventingRepo) PupilByID(ctx context.Context, pupilID string,
 	eventID string) (*eventing.Pupil, error) {
 
 	p := &eventing.Pupil{}
@@ -452,7 +452,7 @@ const storeEventQuery = `
 `
 
 // StoreEvent stores event into the db
-func (e *EventingRepo) StoreEvent(ctx context.Context, event *eventsvc.Event) error {
+func (e *eventingRepo) StoreEvent(ctx context.Context, event *eventsvc.Event) error {
 	_, err := e.db.Exec(ctx, storeEventQuery, event.ID, event.Name, event.Date,
 		eventsvc.ResourceSliceToStringSlice(event.ResourcesAllowed))
 	return err

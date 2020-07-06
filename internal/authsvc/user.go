@@ -8,6 +8,8 @@ import (
 )
 
 var ErrInvalidActivationToken = errors.New("invalid activation token")
+var ErrUnknownUser = errors.New("unknown user")
+var ErrUnknownRole = errors.New("unknown role")
 
 // User is a user of the app
 type User struct {
@@ -30,10 +32,29 @@ const (
 	Root
 )
 
-var stringValues = []string{"admin", "member", "root"}
+var roleStringValues = []string{"admin", "member", "root"}
 
+// String returns the string value of a role
 func (r Role) String() string {
-	return stringValues[r]
+	if r < 0 || int(r) >= len(roleStringValues) {
+		return "unknown"
+	}
+	return roleStringValues[r]
+}
+
+var stringToRoleMap = map[string]Role{
+	"admin":  Admin,
+	"member": Member,
+	"root":   Root,
+}
+
+// StringToRole converts a string to a role
+func StringToRole(s string) (Role, error) {
+	role, ok := stringToRoleMap[s]
+	if !ok {
+		return 0, fmt.Errorf("%w: %s", ErrUnknownRole, s)
+	}
+	return role, nil
 }
 
 // NewUser creates a new user

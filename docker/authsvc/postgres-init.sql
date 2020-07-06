@@ -3,7 +3,7 @@ do
 $$
     begin
         if not exists(select 1 from pg_type where typname = 'role') then
-            create type role as enum ('admin', 'member');
+            create type role as enum ('admin', 'member', 'root');
         end if;
     end
 $$;

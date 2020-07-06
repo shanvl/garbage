@@ -13,12 +13,12 @@ import (
 	"github.com/shanvl/garbage/internal/eventsvc/schooling"
 )
 
-type SchoolingRepo struct {
+type schoolingRepo struct {
 	db *pgxpool.Pool
 }
 
-func NewSchoolingRepo(db *pgxpool.Pool) *SchoolingRepo {
-	return &SchoolingRepo{db}
+func NewSchoolingRepo(db *pgxpool.Pool) schooling.Repository {
+	return &schoolingRepo{db}
 }
 
 const pupilByIDQuery = `
@@ -28,7 +28,7 @@ const pupilByIDQuery = `
 `
 
 // returns pupils with the given id
-func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID string) (*schooling.Pupil, error) {
+func (s *schoolingRepo) PupilByID(ctx context.Context, pupilID string) (*schooling.Pupil, error) {
 	p := &schooling.Pupil{}
 	err := s.db.QueryRow(ctx, pupilByIDQuery, pupilID).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Class.Letter,
 		&p.Class.DateFormed)
@@ -45,7 +45,7 @@ func (s *SchoolingRepo) PupilByID(ctx context.Context, pupilID string) (*schooli
 const removePupilsQuery = `delete from pupil where id in(?)`
 
 // removes pupils with the given ids
-func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []string) error {
+func (s *schoolingRepo) RemovePupils(ctx context.Context, pupilIDs []string) error {
 	// create the query with some magic of sqlx
 	q, args, err := sqlx.In(removePupilsQuery, pupilIDs)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s *SchoolingRepo) RemovePupils(ctx context.Context, pupilIDs []string) err
 const storePupilsQuery = `insert into pupil (id, first_name, last_name, class_letter, class_date_formed) values`
 
 // saves the given pupils
-func (s *SchoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pupil) error {
+func (s *schoolingRepo) StorePupils(ctx context.Context, pupils []*schooling.Pupil) error {
 	pupilsLen := len(pupils)
 	// params placeholders to pass to the query
 	queryParams := make([]string, pupilsLen)
@@ -95,7 +95,7 @@ const updatePupilQuery = `
 `
 
 // updates the given pupil
-func (s *SchoolingRepo) UpdatePupil(ctx context.Context, pupil *schooling.Pupil) error {
+func (s *schoolingRepo) UpdatePupil(ctx context.Context, pupil *schooling.Pupil) error {
 	var id string
 	err := s.db.QueryRow(ctx, updatePupilQuery, pupil.ID, pupil.FirstName, pupil.LastName, pupil.Class.Letter,
 		pupil.Class.DateFormed).Scan(&id)

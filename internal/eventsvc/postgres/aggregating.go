@@ -15,14 +15,14 @@ import (
 	pgtextsearch "github.com/shanvl/garbage/pkg/pg-text-search"
 )
 
-// AggregatingRepo is a repository used by Aggregating service
-type AggregatingRepo struct {
+// aggregatingRepo is a repository used by Aggregating service
+type aggregatingRepo struct {
 	db *pgxpool.Pool
 }
 
-// NewAggregatingRepo returns an instance of AggregatingRepo
-func NewAggregatingRepo(db *pgxpool.Pool) *AggregatingRepo {
-	return &AggregatingRepo{db}
+// NewAggregatingRepo returns an instance of aggregatingRepo
+func NewAggregatingRepo(db *pgxpool.Pool) aggregating.Repository {
+	return &aggregatingRepo{db}
 }
 
 const classesQuery = `
@@ -79,7 +79,7 @@ const classesQuery = `
 
 // Classes returns a sorted list of the classes that passed the classes filters with a sorted list of the events that
 // passed the event filters
-func (a *AggregatingRepo) Classes(ctx context.Context, filters aggregating.ClassFilters, classesSorting,
+func (a *aggregatingRepo) Classes(ctx context.Context, filters aggregating.ClassFilters, classesSorting,
 	eventsSorting sorting.By, amount, skip int) (classes []*aggregating.Class, total int, err error) {
 
 	// create the "order by" parts of the query
@@ -262,7 +262,7 @@ order by %s;
 
 // Pupils returns a sorted list of the pupils that passed the pupil filters with a sorted list of the events that
 // passed the event filters
-func (a *AggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilFilters, pupilsSorting,
+func (a *aggregatingRepo) Pupils(ctx context.Context, filters aggregating.PupilFilters, pupilsSorting,
 	eventsSorting sorting.By, amount, skip int) (pupils []*aggregating.Pupil, total int, err error) {
 
 	// create the "order by" parts of the query
@@ -413,7 +413,7 @@ const pupilByIDQueryA = `
 
 // PupilByID returns a pupil with the given ID, with a list of all the resources they has brought to every event that
 // passed the provided filter
-func (a *AggregatingRepo) PupilByID(ctx context.Context, id string, filters aggregating.EventFilters,
+func (a *aggregatingRepo) PupilByID(ctx context.Context, id string, filters aggregating.EventFilters,
 	eventsSorting sorting.By) (*aggregating.Pupil, error) {
 
 	// create the "left join event e on" part of the query
@@ -528,7 +528,7 @@ const eventsQuery = `
 `
 
 // Events returns a list of sorted events that passed the provided filters
-func (a *AggregatingRepo) Events(ctx context.Context, filters aggregating.EventFilters, sortBy sorting.By, amount,
+func (a *aggregatingRepo) Events(ctx context.Context, filters aggregating.EventFilters, sortBy sorting.By, amount,
 	skip int) (events []*aggregating.Event, total int, err error) {
 
 	// get the "order by" part of the query

@@ -9,7 +9,7 @@ import (
 
 // UsersRepo is a mock repository for users service
 type UsersRepo struct {
-	ChangeUserRoleFn      func(ctx context.Context, id, role authsvc.Role) error
+	ChangeUserRoleFn      func(ctx context.Context, id string, role authsvc.Role) error
 	ChangeUserRoleInvoked bool
 
 	DeleteUserFn      func(ctx context.Context, id string) error
@@ -29,7 +29,7 @@ type UsersRepo struct {
 	UsersInvoked bool
 }
 
-func (u *UsersRepo) ChangeUserRole(ctx context.Context, id, role authsvc.Role) error {
+func (u *UsersRepo) ChangeUserRole(ctx context.Context, id string, role authsvc.Role) error {
 	u.ChangeUserRoleInvoked = true
 	err := u.ChangeUserRoleFn(ctx, id, role)
 	return err
