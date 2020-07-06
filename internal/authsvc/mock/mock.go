@@ -60,6 +60,7 @@ func (u *UsersRepo) Users(ctx context.Context, nameAndEmail string, sorting user
 	return u.UsersFn(ctx, nameAndEmail, sorting, amount, skip)
 }
 
+// AuthRepo mocks auth service's repository
 type AuthRepo struct {
 	DeleteClientFn      func(ctx context.Context, clientID string) error
 	DeleteClientInvoked bool
@@ -92,4 +93,23 @@ func (a *AuthRepo) StoreClient(ctx context.Context, clientID string, refreshToke
 func (a *AuthRepo) UserByID(ctx context.Context, userID string) (*authsvc.User, error) {
 	a.UserByIDInvoked = true
 	return a.UserByID(ctx, userID)
+}
+
+// TokenManager mocks authsvc.TokenManager
+type TokenManager struct {
+	GenerateFn      func(tokenType authsvc.TokenType, clientID, userID string, role authsvc.Role) (string, error)
+	GenerateInvoked bool
+
+	VerifyFn      func(token string) (*authsvc.UserClaims, error)
+	VerifyInvoked bool
+}
+
+func (t *TokenManager) Generate(tokenType authsvc.TokenType, clientID, userID string, role authsvc.Role) (string, error) {
+	t.GenerateInvoked = true
+	return t.GenerateFn(tokenType, clientID, userID, role)
+}
+
+func (t *TokenManager) Verify(token string) (*authsvc.UserClaims, error) {
+	t.VerifyInvoked = true
+	return t.VerifyFn(token)
 }
