@@ -36,8 +36,15 @@ func (u *usersRepo) ChangeUserRole(ctx context.Context, id string, role authsvc.
 	return nil
 }
 
+const deleteUserQuery = `
+	delete from users
+	where id = $1;
+`
+
+// DeleteUser deletes the user
 func (u *usersRepo) DeleteUser(ctx context.Context, id string) error {
-	panic("implement me")
+	_, err := u.db.Exec(ctx, deleteUserQuery, id)
+	return err
 }
 
 func (u *usersRepo) StoreUser(ctx context.Context, user *authsvc.User) error {

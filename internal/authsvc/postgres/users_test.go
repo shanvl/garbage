@@ -35,6 +35,40 @@ func TestRepository_ChangeUserRole(t *testing.T) {
 	})
 }
 
+func TestRepository_DeleteUser(t *testing.T) {
+	r := postgres.NewUsersRepo(db)
+	ctx := context.Background()
+	u := &authsvc.User{
+		ID: "id",
+	}
+	storeUser(t, u)
+	defer deleteUserByID(t, u.ID)
+	testCases := []struct {
+		name    string
+		id      string
+		wantErr bool
+	}{
+		{
+			name:    "known user",
+			id:      u.ID,
+			wantErr: false,
+		},
+		{
+			name:    "unknown user",
+			id:      "unknownid",
+			wantErr: false,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			err := r.DeleteUser(ctx, tt.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DeleteUser() error == %v, wantErr == %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 const storeUserQ = `
 	insert into users (id, active, activation_token, email, first_name, last_name, password_hash, role)
 	values ($1, $2, $3, $4, $5, $6, $7, $8);

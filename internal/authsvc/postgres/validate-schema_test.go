@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shanvl/garbage/internal/eventsvc/postgres"
+	"github.com/shanvl/garbage/internal/authsvc/postgres"
 )
 
 func TestValidateSchema(t *testing.T) {
