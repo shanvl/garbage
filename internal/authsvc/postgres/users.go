@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/shanvl/garbage/internal/authsvc"
 	"github.com/shanvl/garbage/internal/authsvc/users"
@@ -62,12 +64,54 @@ func (u *usersRepo) StoreUser(ctx context.Context, user *authsvc.User) error {
 	return err
 }
 
+const userByActivationTokenQuery = `
+	select id, active, activation_token, email, first_name, last_name, password_hash, role
+	from users
+	where activation_token = $1;
+`
+
+// UserByActivationToken gets a user with provided activation token
 func (u *usersRepo) UserByActivationToken(ctx context.Context, activationToken string) (*authsvc.User, error) {
-	panic("implement me")
+	user := &authsvc.User{}
+	var roleStr string
+	err := u.db.QueryRow(ctx, userByActivationTokenQuery, activationToken).Scan(&user.ID, &user.Active, &user.ActivationToken,
+		&user.Email, &user.FirstName, &user.LastName, &user.PasswordHash, &roleStr)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, authsvc.ErrUnknownUser
+		}
+		return nil, err
+	}
+	user.Role, err = authsvc.StringToRole(roleStr)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
+const userByIDQuery = `
+	select id, active, activation_token, email, first_name, last_name, password_hash, role
+	from users
+	where id = $1;
+`
+
+// UserByID gets a user with the given id
 func (u *usersRepo) UserByID(ctx context.Context, id string) (*authsvc.User, error) {
-	panic("implement me")
+	user := &authsvc.User{}
+	var roleStr string
+	err := u.db.QueryRow(ctx, userByIDQuery, id).Scan(&user.ID, &user.Active, &user.ActivationToken,
+		&user.Email, &user.FirstName, &user.LastName, &user.PasswordHash, &roleStr)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, authsvc.ErrUnknownUser
+		}
+		return nil, err
+	}
+	user.Role, err = authsvc.StringToRole(roleStr)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (u *usersRepo) Users(ctx context.Context, nameAndEmail string, sorting users.Sorting, amount,

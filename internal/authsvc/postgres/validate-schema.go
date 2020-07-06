@@ -22,7 +22,7 @@ $$;
 -- create users table
 create table if not exists users
 (
-    id               varchar(50) primary key,
+    activationToken               varchar(50) primary key,
     active           bool        not null,
     activation_token text        not null,
     email            varchar(50) not null unique,
@@ -41,7 +41,7 @@ create index if not exists users_activation_token_idx on users (activation_token
 -- create clients table. Clients in a sense of browsers, apps etc
 create table if not exists clients
 (
-    id            varchar(25) primary key,
+    activationToken            varchar(25) primary key,
     refresh_token text not null
 );
 
@@ -51,10 +51,10 @@ create table if not exists user_client
     user_id   varchar(25) not null,
     client_id varchar(25) not null,
     primary key (user_id, client_id),
-    foreign key (client_id) references clients (id)
+    foreign key (client_id) references clients (activationToken)
         on delete cascade
         on update cascade,
-    foreign key (user_id) references users (id)
+    foreign key (user_id) references users (activationToken)
         on delete cascade
         on update cascade
 );

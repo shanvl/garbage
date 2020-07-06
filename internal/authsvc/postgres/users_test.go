@@ -13,13 +13,12 @@ func TestRepository_ChangeUserRole(t *testing.T) {
 	r := postgres.NewUsersRepo(db)
 	ctx := context.Background()
 	t.Run("member to admin", func(t *testing.T) {
-		id := "someid"
-		defer deleteUserByID(t, id)
 		u := &authsvc.User{
-			ID:   id,
+			ID:   "someid",
 			Role: authsvc.Member,
 		}
 		storeUser(t, u)
+		defer deleteUserByID(t, u.ID)
 		if err := r.ChangeUserRole(ctx, u.ID, authsvc.Admin); err != nil {
 			t.Errorf("ChangeUserRole() error == %v, wantErr == false", err)
 		}
@@ -40,7 +39,7 @@ func TestRepository_DeleteUser(t *testing.T) {
 	r := postgres.NewUsersRepo(db)
 	ctx := context.Background()
 	u := &authsvc.User{
-		ID: "id",
+		ID: "someid",
 	}
 	storeUser(t, u)
 	defer deleteUserByID(t, u.ID)
@@ -105,6 +104,87 @@ func TestRepository_StoreUser(t *testing.T) {
 			t.Errorf("StoreUser() saved user == %+v, want == %+v", savedUser, u)
 		}
 	})
+}
+
+func TestRepository_UserByActivationToken(t *testing.T) {
+	r := postgres.NewUsersRepo(db)
+	ctx := context.Background()
+	u := &authsvc.User{
+		ID:              "someid",
+		ActivationToken: "sometoken",
+	}
+	storeUser(t, u)
+	defer deleteUserByID(t, u.ID)
+	testCases := []struct {
+		name            string
+		activationToken string
+		wantErr         bool
+		wantUser        *authsvc.User
+	}{
+		{
+			name:            "existing user",
+			activationToken: u.ActivationToken,
+			wantErr:         false,
+			wantUser:        u,
+		},
+		{
+			name:            "unknown token",
+			activationToken: "unknowntoken",
+			wantErr:         true,
+			wantUser:        nil,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			u, err := r.UserByActivationToken(ctx, tt.activationToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserByActivationToken() error == %v, wantErr == %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(u, tt.wantUser) {
+				t.Errorf("UserByActivationToken() user == %+v, want == %+v", u, tt.wantUser)
+			}
+		})
+	}
+}
+
+func TestRepository_UserByID(t *testing.T) {
+	r := postgres.NewUsersRepo(db)
+	ctx := context.Background()
+	u := &authsvc.User{
+		ID: "someid",
+	}
+	storeUser(t, u)
+	defer deleteUserByID(t, u.ID)
+	testCases := []struct {
+		name     string
+		id       string
+		wantErr  bool
+		wantUser *authsvc.User
+	}{
+		{
+			name:     "existing user",
+			id:       u.ID,
+			wantErr:  false,
+			wantUser: u,
+		},
+		{
+			name:     "unknown id",
+			id:       "unknownid",
+			wantErr:  true,
+			wantUser: nil,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			u, err := r.UserByID(ctx, tt.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserByID() error == %v, wantErr == %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(u, tt.wantUser) {
+				t.Errorf("UserByID() user == %+v, want == %+v", u, tt.wantUser)
+			}
+		})
+	}
 }
 
 const storeUserQ = `
