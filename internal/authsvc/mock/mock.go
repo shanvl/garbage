@@ -62,6 +62,9 @@ func (u *UsersRepo) Users(ctx context.Context, nameAndEmail string, sorting user
 
 // AuthRepo mocks auth service's repository
 type AuthRepo struct {
+	ClientByIDFn      func(ctx context.Context, clientID string) (id string, refreshToken string, err error)
+	ClientByIDInvoked bool
+
 	DeleteClientFn      func(ctx context.Context, clientID string) error
 	DeleteClientInvoked bool
 
@@ -73,6 +76,11 @@ type AuthRepo struct {
 
 	UserByEmailFn      func(ctx context.Context, email string) (*authsvc.User, error)
 	UserByEmailInvoked bool
+}
+
+func (a *AuthRepo) ClientByID(ctx context.Context, clientID string) (id string, refreshToken string, err error) {
+	a.ClientByIDInvoked = true
+	return a.ClientByIDFn(ctx, clientID)
 }
 
 func (a *AuthRepo) DeleteClient(ctx context.Context, clientID string) error {

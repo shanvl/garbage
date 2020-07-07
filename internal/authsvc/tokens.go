@@ -1,6 +1,13 @@
 package authsvc
 
-import "github.com/dgrijalva/jwt-go"
+import (
+	"errors"
+
+	"github.com/dgrijalva/jwt-go"
+)
+
+var ErrInvalidAccessToken = errors.New("invalid access token")
+var ErrInvalidRefreshToken = errors.New("invalid refresh token")
 
 // TokenManager is used for generation and verification of tokens
 type TokenManager interface {
