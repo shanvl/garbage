@@ -89,7 +89,10 @@ func (s *service) Logout(ctx context.Context, clientID string) error {
 }
 
 func (s *service) LogoutAllClients(ctx context.Context, userID string) error {
-	panic("implement me")
+	if userID == "" {
+		return valid.NewError("userID", "userID is required")
+	}
+	return s.repo.DeleteUserClients(ctx, userID)
 }
 
 // RefreshTokens verifies the given refresh token and then creates, saves and returns new auth credentials
