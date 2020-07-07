@@ -7,7 +7,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var ErrInactiveUser = errors.New("inactive user")
 var ErrInvalidActivationToken = errors.New("invalid activation token")
+var ErrInvalidPassword = errors.New("invalid password")
 var ErrUnknownUser = errors.New("unknown user")
 var ErrUnknownRole = errors.New("unknown role")
 

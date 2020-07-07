@@ -71,8 +71,8 @@ type AuthRepo struct {
 	StoreClientFn      func(ctx context.Context, clientID string, refreshToken string) error
 	StoreClientInvoked bool
 
-	UserByIDFn      func(ctx context.Context, userID string) (*authsvc.User, error)
-	UserByIDInvoked bool
+	UserByEmailFn      func(ctx context.Context, email string) (*authsvc.User, error)
+	UserByEmailInvoked bool
 }
 
 func (a *AuthRepo) DeleteClient(ctx context.Context, clientID string) error {
@@ -90,9 +90,9 @@ func (a *AuthRepo) StoreClient(ctx context.Context, clientID string, refreshToke
 	return a.StoreClientFn(ctx, clientID, refreshToken)
 }
 
-func (a *AuthRepo) UserByID(ctx context.Context, userID string) (*authsvc.User, error) {
-	a.UserByIDInvoked = true
-	return a.UserByID(ctx, userID)
+func (a *AuthRepo) UserByEmail(ctx context.Context, userID string) (*authsvc.User, error) {
+	a.UserByEmailInvoked = true
+	return a.UserByEmailFn(ctx, userID)
 }
 
 // TokenManager mocks authsvc.TokenManager

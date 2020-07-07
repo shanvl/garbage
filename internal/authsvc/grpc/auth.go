@@ -7,7 +7,7 @@ import (
 	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
 )
 
-// repo.GetUserByID
+// repo.GetUserByEmail
 // repo.StoreClient
 // repo.DeleteClient
 // repo.DeleteUserClients
