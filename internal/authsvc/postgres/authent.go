@@ -59,7 +59,7 @@ const storeClientQuery = `
 	insert into clients (id, user_id, refresh_token)
 	values ($1, $2, $3)
 	on conflict (id) do update
-		set (refresh_token) = ($2);
+		set (user_id, refresh_token) = ($2, $3);
 `
 
 func (a *authentRepo) StoreClient(ctx context.Context, client authent.Client) error {
