@@ -43,23 +43,15 @@ create index if not exists users_activation_token_idx on users (activation_token
 -- create clients table. Clients in a sense of browsers, apps etc
 create table if not exists clients
 (
-    activationToken            varchar(25) primary key,
+    id            varchar(50) primary key,
+    user_id       varchar(50) references users (id)
+        on update cascade
+        on delete cascade,
     refresh_token text not null
 );
 
--- create user_client table
-create table if not exists user_client
-(
-    user_id   varchar(25) not null,
-    client_id varchar(25) not null,
-    primary key (user_id, client_id),
-    foreign key (client_id) references clients (activationToken)
-        on delete cascade
-        on update cascade,
-    foreign key (user_id) references users (activationToken)
-        on delete cascade
-        on update cascade
-);
+create index if not exists clients_user_id_idx on clients (user_id);
+
 `
 
 // ValidateSchema creates tables and indices if they don't already exist

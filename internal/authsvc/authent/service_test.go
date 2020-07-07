@@ -49,8 +49,8 @@ func Test_service_Login(t *testing.T) {
 		}
 		return u, nil
 	}
-	r.StoreClientFn = func(ctx context.Context, clientID string, refreshToken string) error {
-		if refreshToken == repoStoreError {
+	r.StoreClientFn = func(ctx context.Context, client authent.Client) error {
+		if client.RefreshToken == repoStoreError {
 			return errors.New("error")
 		}
 		return nil
@@ -258,22 +258,24 @@ func Test_service_LogoutAllClients(t *testing.T) {
 func Test_service_RefreshTokens(t *testing.T) {
 	t.Parallel()
 	const (
-		repoGetError   = "repogeterror"
-		repoStoreError = "repostoreerror"
-		verifyError    = "verifyerror"
-		generateError  = "generateerror"
-		userID         = "userID"
+		repoGetError      = "repogeterror"
+		repoStoreError    = "repostoreerror"
+		verifyError       = "verifyerror"
+		generateError     = "generateerror"
+		userID            = "userID"
+		validRefreshToken = "token"
+		clientID          = "clientID"
 	)
 	ctx := context.Background()
 	r := &mock.AuthRepo{}
-	r.ClientByIDFn = func(ctx context.Context, id string) (clientID string, refreshToken string, err error) {
+	r.ClientByIDFn = func(ctx context.Context, id string) (client authent.Client, err error) {
 		if id == repoGetError {
-			return "", "", errors.New("error")
+			return authent.Client{}, errors.New("error")
 		}
-		return id, id, nil
+		return authent.Client{clientID, userID, validRefreshToken}, nil
 	}
-	r.StoreClientFn = func(ctx context.Context, clientID string, refreshToken string) error {
-		if clientID == repoStoreError {
+	r.StoreClientFn = func(ctx context.Context, client authent.Client) error {
+		if client.ID == repoStoreError {
 			return errors.New("error")
 		}
 		return nil
@@ -283,13 +285,13 @@ func Test_service_RefreshTokens(t *testing.T) {
 		if clientID == generateError {
 			return "", errors.New("error")
 		}
-		return "token", nil
+		return validRefreshToken, nil
 	}
 	tm.VerifyFn = func(token string) (*authsvc.UserClaims, error) {
 		if token == verifyError {
 			return nil, errors.New("error")
 		}
-		return &authsvc.UserClaims{ClientID: token, StandardClaims: jwt.StandardClaims{Subject: userID},
+		return &authsvc.UserClaims{ClientID: clientID, StandardClaims: jwt.StandardClaims{Subject: userID},
 			Role: "member"}, nil
 	}
 	s := authent.NewService(r, tm)
@@ -349,7 +351,6 @@ func Test_service_RefreshTokens(t *testing.T) {
 			creds, err := s.RefreshTokens(ctx, tt.args.refreshToken)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RefreshTokens() error = %v, wantErr %v", err, tt.wantErr)
-				return
 			}
 			if err == nil && (creds.ClientID == "" || creds.Refresh == "" || creds.Access == "") {
 				t.Errorf("RefreshTokens() err == nil, invalid creds == %+v", creds)

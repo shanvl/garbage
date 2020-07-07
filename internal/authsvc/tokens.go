@@ -8,6 +8,7 @@ import (
 
 var ErrInvalidAccessToken = errors.New("invalid access token")
 var ErrInvalidRefreshToken = errors.New("invalid refresh token")
+var ErrUnknownClient = errors.New("unknown client")
 
 // TokenManager is used for generation and verification of tokens
 type TokenManager interface {

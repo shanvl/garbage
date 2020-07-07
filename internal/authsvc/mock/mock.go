@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shanvl/garbage/internal/authsvc"
+	"github.com/shanvl/garbage/internal/authsvc/authent"
 	"github.com/shanvl/garbage/internal/authsvc/users"
 )
 
@@ -62,7 +63,7 @@ func (u *UsersRepo) Users(ctx context.Context, nameAndEmail string, sorting user
 
 // AuthRepo mocks auth service's repository
 type AuthRepo struct {
-	ClientByIDFn      func(ctx context.Context, clientID string) (id string, refreshToken string, err error)
+	ClientByIDFn      func(ctx context.Context, clientID string) (client authent.Client, err error)
 	ClientByIDInvoked bool
 
 	DeleteClientFn      func(ctx context.Context, clientID string) error
@@ -71,14 +72,14 @@ type AuthRepo struct {
 	DeleteUserClientsFn      func(ctx context.Context, userID string) error
 	DeleteUserClientsInvoked bool
 
-	StoreClientFn      func(ctx context.Context, clientID string, refreshToken string) error
+	StoreClientFn      func(ctx context.Context, client authent.Client) error
 	StoreClientInvoked bool
 
 	UserByEmailFn      func(ctx context.Context, email string) (*authsvc.User, error)
 	UserByEmailInvoked bool
 }
 
-func (a *AuthRepo) ClientByID(ctx context.Context, clientID string) (id string, refreshToken string, err error) {
+func (a *AuthRepo) ClientByID(ctx context.Context, clientID string) (client authent.Client, err error) {
 	a.ClientByIDInvoked = true
 	return a.ClientByIDFn(ctx, clientID)
 }
@@ -93,9 +94,9 @@ func (a *AuthRepo) DeleteUserClients(ctx context.Context, userID string) error {
 	return a.DeleteUserClientsFn(ctx, userID)
 }
 
-func (a *AuthRepo) StoreClient(ctx context.Context, clientID string, refreshToken string) error {
+func (a *AuthRepo) StoreClient(ctx context.Context, client authent.Client) error {
 	a.StoreClientInvoked = true
-	return a.StoreClientFn(ctx, clientID, refreshToken)
+	return a.StoreClientFn(ctx, client)
 }
 
 func (a *AuthRepo) UserByEmail(ctx context.Context, userID string) (*authsvc.User, error) {

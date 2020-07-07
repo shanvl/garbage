@@ -33,22 +33,13 @@ create index if not exists users_activation_token_idx on users (activation_token
 create table if not exists clients
 (
     id            varchar(50) primary key,
+    user_id       varchar(50) references users (id)
+        on update cascade
+        on delete cascade,
     refresh_token text not null
 );
 
--- create user_client table
-create table if not exists user_client
-(
-    user_id   varchar(50) not null,
-    client_id varchar(50) not null,
-    primary key (user_id, client_id),
-    foreign key (client_id) references clients (id)
-        on delete cascade
-        on update cascade,
-    foreign key (user_id) references users (id)
-        on delete cascade
-        on update cascade
-);
+create index if not exists clients_user_id_idx on clients (user_id);
 
 -- populate users
 insert into users (id, first_name, last_name, email, role, active, activation_token, password_hash)

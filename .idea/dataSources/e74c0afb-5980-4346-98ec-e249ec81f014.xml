@@ -789,7 +789,7 @@ true posixrules
     <database id="2" parent="1" name="authsvc">
       <ObjectId>53412</ObjectId>
       <Owner>jynweythek223</Owner>
-      <IntrospectionStateNumber>52569</IntrospectionStateNumber>
+      <IntrospectionStateNumber>52670</IntrospectionStateNumber>
     </database>
     <database id="3" parent="1" name="garbage">
       <ObjectId>52978</ObjectId>
@@ -798,6 +798,7 @@ true posixrules
     <database id="4" parent="1" name="garbage1">
       <ObjectId>53052</ObjectId>
       <Owner>jynweythek223</Owner>
+      <IntrospectionStateNumber>52653</IntrospectionStateNumber>
     </database>
     <database id="5" parent="1" name="jynweythek223">
       <ObjectId>16715</ObjectId>
@@ -869,7 +870,7 @@ true posixrules
       <Comment>standard public schema</Comment>
       <StateNumber>275</StateNumber>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>52570</IntrospectionStateNumber>
+      <IntrospectionStateNumber>52671</IntrospectionStateNumber>
       <Current>1</Current>
     </schema>
     <access-method id="21" parent="2" name="heap">
@@ -939,7 +940,93 @@ true posixrules
     <language id="30" parent="2" name="internal"/>
     <language id="31" parent="2" name="plpgsql"/>
     <language id="32" parent="2" name="sql"/>
-    <object-type id="33" parent="20" name="role">
+    <schema id="33" parent="4" name="information_schema">
+      <ObjectId>13390</ObjectId>
+      <StateNumber>281</StateNumber>
+      <Owner>postgres</Owner>
+    </schema>
+    <schema id="34" parent="4" name="pg_catalog">
+      <ObjectId>11</ObjectId>
+      <Comment>system catalog schema</Comment>
+      <StateNumber>274</StateNumber>
+      <Owner>postgres</Owner>
+    </schema>
+    <schema id="35" parent="4" name="public">
+      <ObjectId>2200</ObjectId>
+      <Comment>standard public schema</Comment>
+      <StateNumber>275</StateNumber>
+      <Owner>postgres</Owner>
+      <IntrospectionStateNumber>52654</IntrospectionStateNumber>
+      <Current>1</Current>
+    </schema>
+    <access-method id="36" parent="4" name="heap">
+      <ObjectId>2</ObjectId>
+      <Comment>heap table access method</Comment>
+      <StateNumber>1</StateNumber>
+      <Handler>pg_catalog.heap_tableam_handler</Handler>
+      <HandlerId>3</HandlerId>
+    </access-method>
+    <access-method id="37" parent="4" name="btree">
+      <ObjectId>403</ObjectId>
+      <Comment>b-tree index access method</Comment>
+      <StateNumber>1</StateNumber>
+      <Handler>pg_catalog.bthandler</Handler>
+      <HandlerId>330</HandlerId>
+      <Type>index</Type>
+    </access-method>
+    <access-method id="38" parent="4" name="hash">
+      <ObjectId>405</ObjectId>
+      <Comment>hash index access method</Comment>
+      <StateNumber>1</StateNumber>
+      <Handler>pg_catalog.hashhandler</Handler>
+      <HandlerId>331</HandlerId>
+      <Type>index</Type>
+    </access-method>
+    <access-method id="39" parent="4" name="gist">
+      <ObjectId>783</ObjectId>
+      <Comment>GiST index access method</Comment>
+      <StateNumber>1</StateNumber>
+      <Handler>pg_catalog.gisthandler</Handler>
+      <HandlerId>332</HandlerId>
+      <Type>index</Type>
+    </access-method>
+    <access-method id="40" parent="4" name="gin">
+      <ObjectId>2742</ObjectId>
+      <Comment>GIN index access method</Comment>
+      <StateNumber>1</StateNumber>
+      <Handler>pg_catalog.ginhandler</Handler>
+      <HandlerId>333</HandlerId>
+      <Type>index</Type>
+    </access-method>
+    <access-method id="41" parent="4" name="spgist">
+      <ObjectId>4000</ObjectId>
+      <Comment>SP-GiST index access method</Comment>
+      <StateNumber>1</StateNumber>
+      <Handler>pg_catalog.spghandler</Handler>
+      <HandlerId>334</HandlerId>
+      <Type>index</Type>
+    </access-method>
+    <access-method id="42" parent="4" name="brin">
+      <ObjectId>3580</ObjectId>
+      <Comment>block range index (BRIN) access method</Comment>
+      <StateNumber>1</StateNumber>
+      <Handler>pg_catalog.brinhandler</Handler>
+      <HandlerId>335</HandlerId>
+      <Type>index</Type>
+    </access-method>
+    <extension id="43" parent="4" name="plpgsql">
+      <ObjectId>13676</ObjectId>
+      <Comment>PL/pgSQL procedural language</Comment>
+      <StateNumber>436</StateNumber>
+      <Version>1.0</Version>
+      <SchemaName>pg_catalog</SchemaName>
+      <SchemaId>11</SchemaId>
+    </extension>
+    <language id="44" parent="4" name="c"/>
+    <language id="45" parent="4" name="internal"/>
+    <language id="46" parent="4" name="plpgsql"/>
+    <language id="47" parent="4" name="sql"/>
+    <object-type id="48" parent="20" name="role">
       <ObjectId>53420</ObjectId>
       <Owner>jynweythek223</Owner>
       <StateNumber>52184</StateNumber>
@@ -949,82 +1036,83 @@ member
 root</Labels>
       <SubCategory>enum</SubCategory>
     </object-type>
-    <table id="34" parent="20" name="clients">
-      <ObjectId>53474</ObjectId>
+    <table id="49" parent="20" name="clients">
+      <ObjectId>53545</ObjectId>
       <Owner>jynweythek223</Owner>
-      <StateNumber>52220</StateNumber>
+      <StateNumber>52664</StateNumber>
     </table>
-    <table id="35" parent="20" name="user_client">
-      <ObjectId>53482</ObjectId>
-      <Owner>jynweythek223</Owner>
-      <StateNumber>52220</StateNumber>
-    </table>
-    <table id="36" parent="20" name="users">
+    <table id="50" parent="20" name="users">
       <ObjectId>53461</ObjectId>
       <Owner>jynweythek223</Owner>
       <StateNumber>52220</StateNumber>
     </table>
-    <column id="37" parent="34" name="id">
+    <object-type id="51" parent="35" name="resource">
+      <ObjectId>53054</ObjectId>
+      <Owner>jynweythek223</Owner>
+      <StateNumber>49062</StateNumber>
+      <SubKind>enum</SubKind>
+      <Labels>paper
+plastic
+gadgets</Labels>
+      <SubCategory>enum</SubCategory>
+    </object-type>
+    <table id="52" parent="35" name="event">
+      <ObjectId>53202</ObjectId>
+      <Owner>jynweythek223</Owner>
+      <StateNumber>52027</StateNumber>
+    </table>
+    <table id="53" parent="35" name="pupil">
+      <ObjectId>53214</ObjectId>
+      <Owner>jynweythek223</Owner>
+      <StateNumber>52030</StateNumber>
+    </table>
+    <table id="54" parent="35" name="resources">
+      <ObjectId>53225</ObjectId>
+      <Owner>jynweythek223</Owner>
+      <StateNumber>52036</StateNumber>
+    </table>
+    <column id="55" parent="49" name="id">
       <Position>1</Position>
       <DataType>varchar(50)|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>52219</StateNumber>
+      <StateNumber>52664</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="38" parent="34" name="refresh_token">
+    <column id="56" parent="49" name="user_id">
       <Position>2</Position>
+      <DataType>varchar(50)|0s</DataType>
+      <StateNumber>52664</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="57" parent="49" name="refresh_token">
+      <Position>3</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>52219</StateNumber>
+      <StateNumber>52664</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="39" parent="34" name="clients_pkey">
-      <ObjectId>53480</ObjectId>
-      <StateNumber>52219</StateNumber>
+    <index id="58" parent="49" name="clients_pkey">
+      <ObjectId>53551</ObjectId>
+      <StateNumber>52664</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
     </index>
-    <key id="40" parent="34" name="clients_pkey">
-      <ObjectId>53481</ObjectId>
-      <StateNumber>52219</StateNumber>
+    <index id="59" parent="49" name="clients_user_id_idx">
+      <ObjectId>53558</ObjectId>
+      <StateNumber>52667</StateNumber>
+      <ColNames>user_id</ColNames>
+    </index>
+    <key id="60" parent="49" name="clients_pkey">
+      <ObjectId>53552</ObjectId>
+      <StateNumber>52664</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>clients_pkey</UnderlyingIndexName>
     </key>
-    <column id="41" parent="35" name="user_id">
-      <Position>1</Position>
-      <DataType>varchar(50)|0s</DataType>
-      <NotNull>1</NotNull>
-      <StateNumber>52220</StateNumber>
-      <TypeId>1043</TypeId>
-    </column>
-    <column id="42" parent="35" name="client_id">
-      <Position>2</Position>
-      <DataType>varchar(50)|0s</DataType>
-      <NotNull>1</NotNull>
-      <StateNumber>52220</StateNumber>
-      <TypeId>1043</TypeId>
-    </column>
-    <index id="43" parent="35" name="user_client_pkey">
-      <ObjectId>53485</ObjectId>
-      <StateNumber>52220</StateNumber>
-      <ColNames>user_id
-client_id</ColNames>
-      <Unique>1</Unique>
-      <Primary>1</Primary>
-    </index>
-    <key id="44" parent="35" name="user_client_pkey">
-      <ObjectId>53486</ObjectId>
-      <StateNumber>52220</StateNumber>
-      <ColNames>user_id
-client_id</ColNames>
-      <Primary>1</Primary>
-      <UnderlyingIndexName>user_client_pkey</UnderlyingIndexName>
-    </key>
-    <foreign-key id="45" parent="35" name="user_client_user_id_fkey">
-      <ObjectId>53492</ObjectId>
-      <StateNumber>52220</StateNumber>
+    <foreign-key id="61" parent="49" name="clients_user_id_fkey">
+      <ObjectId>53553</ObjectId>
+      <StateNumber>52664</StateNumber>
       <ColNames>user_id</ColNames>
       <RefTableId>53461</RefTableId>
       <RefColPositions>1</RefColPositions>
@@ -1034,116 +1122,104 @@ client_id</ColNames>
       <OnDelete>cascade</OnDelete>
       <OnUpdate>cascade</OnUpdate>
     </foreign-key>
-    <foreign-key id="46" parent="35" name="user_client_client_id_fkey">
-      <ObjectId>53487</ObjectId>
-      <StateNumber>52220</StateNumber>
-      <ColNames>client_id</ColNames>
-      <RefTableId>53474</RefTableId>
-      <RefColPositions>1</RefColPositions>
-      <RefTableName>clients</RefTableName>
-      <RefKeyName>clients_pkey</RefKeyName>
-      <RefColNames>id</RefColNames>
-      <OnDelete>cascade</OnDelete>
-      <OnUpdate>cascade</OnUpdate>
-    </foreign-key>
-    <column id="47" parent="36" name="id">
+    <column id="62" parent="50" name="id">
       <Position>1</Position>
       <DataType>varchar(50)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52214</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="48" parent="36" name="active">
+    <column id="63" parent="50" name="active">
       <Position>2</Position>
       <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52214</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="49" parent="36" name="activation_token">
+    <column id="64" parent="50" name="activation_token">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52432</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="50" parent="36" name="email">
+    <column id="65" parent="50" name="email">
       <Position>4</Position>
       <DataType>varchar(35)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52214</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="51" parent="36" name="first_name">
+    <column id="66" parent="50" name="first_name">
       <Position>5</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52214</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="52" parent="36" name="last_name">
+    <column id="67" parent="50" name="last_name">
       <Position>6</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52214</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="53" parent="36" name="password_hash">
+    <column id="68" parent="50" name="password_hash">
       <Position>7</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52214</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="54" parent="36" name="role">
+    <column id="69" parent="50" name="role">
       <Position>8</Position>
       <DataType>role|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52214</StateNumber>
       <TypeId>53420</TypeId>
     </column>
-    <column id="55" parent="36" name="text_search">
+    <column id="70" parent="50" name="text_search">
       <Position>9</Position>
       <DataType>tsvector|0s</DataType>
       <StateNumber>52214</StateNumber>
       <DefaultExpression>to_tsvector(&apos;simple&apos;::regconfig, (((((first_name)::text || &apos; &apos;::text) || (last_name)::text) || &apos; &apos;::text) || (email)::text))</DefaultExpression>
       <TypeId>3614</TypeId>
     </column>
-    <index id="56" parent="36" name="users_pkey">
+    <index id="71" parent="50" name="users_pkey">
       <ObjectId>53468</ObjectId>
       <StateNumber>52214</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
     </index>
-    <index id="57" parent="36" name="unique_email">
+    <index id="72" parent="50" name="unique_email">
       <ObjectId>53503</ObjectId>
       <StateNumber>52426</StateNumber>
       <ColNames>email</ColNames>
       <Unique>1</Unique>
     </index>
-    <index id="58" parent="36" name="users_active_idx">
+    <index id="73" parent="50" name="users_active_idx">
       <ObjectId>53471</ObjectId>
       <StateNumber>52216</StateNumber>
       <ColNames>active</ColNames>
     </index>
-    <index id="59" parent="36" name="users_activation_token_idx">
+    <index id="74" parent="50" name="users_activation_token_idx">
       <ObjectId>53505</ObjectId>
       <StateNumber>52435</StateNumber>
       <ColNames>activation_token</ColNames>
     </index>
-    <index id="60" parent="36" name="users_email_idx">
+    <index id="75" parent="50" name="users_email_idx">
       <ObjectId>53472</ObjectId>
       <StateNumber>52217</StateNumber>
       <ColNames>email</ColNames>
     </index>
-    <index id="61" parent="36" name="users_name_asc_index">
+    <index id="76" parent="50" name="users_name_asc_index">
       <ObjectId>53512</ObjectId>
       <StateNumber>52568</StateNumber>
       <ColNames>last_name
 first_name</ColNames>
     </index>
-    <index id="62" parent="36" name="users_name_desc_index">
+    <index id="77" parent="50" name="users_name_desc_index">
       <ObjectId>53511</ObjectId>
       <StateNumber>52565</StateNumber>
       <ColNames>last_name
@@ -1151,23 +1227,290 @@ first_name</ColNames>
       <ReverseColNames>last_name
 first_name</ReverseColNames>
     </index>
-    <index id="63" parent="36" name="users_text_search_idx">
+    <index id="78" parent="50" name="users_text_search_idx">
       <ObjectId>53470</ObjectId>
       <StateNumber>52215</StateNumber>
       <ColNames>text_search</ColNames>
     </index>
-    <key id="64" parent="36" name="users_pkey">
+    <key id="79" parent="50" name="users_pkey">
       <ObjectId>53469</ObjectId>
       <StateNumber>52214</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>users_pkey</UnderlyingIndexName>
     </key>
-    <key id="65" parent="36" name="unique_email">
+    <key id="80" parent="50" name="unique_email">
       <ObjectId>53504</ObjectId>
       <StateNumber>52426</StateNumber>
       <ColNames>email</ColNames>
       <UnderlyingIndexName>unique_email</UnderlyingIndexName>
     </key>
+    <column id="81" parent="52" name="id">
+      <Position>1</Position>
+      <DataType>varchar(25)|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>52027</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="82" parent="52" name="date">
+      <Position>2</Position>
+      <DataType>date|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51008</StateNumber>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="83" parent="52" name="name">
+      <Position>3</Position>
+      <DataType>varchar(25)|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51008</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="84" parent="52" name="resources_allowed">
+      <Position>4</Position>
+      <DataType>resource[]|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51008</StateNumber>
+      <TypeId>53053</TypeId>
+    </column>
+    <column id="85" parent="52" name="text_search">
+      <Position>5</Position>
+      <DataType>tsvector|0s</DataType>
+      <StateNumber>52000</StateNumber>
+      <DefaultExpression>to_tsvector(&apos;simple&apos;::regconfig, (name)::text)</DefaultExpression>
+      <TypeId>3614</TypeId>
+    </column>
+    <index id="86" parent="52" name="event_pkey">
+      <ObjectId>53336</ObjectId>
+      <StateNumber>52027</StateNumber>
+      <ColNames>id</ColNames>
+      <Unique>1</Unique>
+      <Primary>1</Primary>
+    </index>
+    <index id="87" parent="52" name="event_id_date_name_idx">
+      <ObjectId>53338</ObjectId>
+      <StateNumber>52027</StateNumber>
+      <ColNames>id
+date
+name</ColNames>
+    </index>
+    <index id="88" parent="52" name="event_id_name_date_idx">
+      <ObjectId>53339</ObjectId>
+      <StateNumber>52027</StateNumber>
+      <ColNames>id
+name
+date</ColNames>
+    </index>
+    <index id="89" parent="52" name="event_resources_allowed">
+      <ObjectId>53211</ObjectId>
+      <StateNumber>52027</StateNumber>
+      <ColNames>resources_allowed</ColNames>
+    </index>
+    <index id="90" parent="52" name="event_text_search">
+      <ObjectId>53297</ObjectId>
+      <StateNumber>52027</StateNumber>
+      <ColNames>text_search</ColNames>
+    </index>
+    <key id="91" parent="52" name="event_pkey">
+      <ObjectId>53337</ObjectId>
+      <StateNumber>52027</StateNumber>
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>event_pkey</UnderlyingIndexName>
+    </key>
+    <check id="92" parent="52" name="event_resources_allowed_check">
+      <ObjectId>53205</ObjectId>
+      <StateNumber>51008</StateNumber>
+      <ColNames>resources_allowed</ColNames>
+      <Predicate>cardinality(resources_allowed) &gt;= 1</Predicate>
+    </check>
+    <column id="93" parent="53" name="id">
+      <Position>1</Position>
+      <DataType>varchar(25)|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>52030</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="94" parent="53" name="class_letter">
+      <Position>2</Position>
+      <DataType>char|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51012</StateNumber>
+      <TypeId>1042</TypeId>
+    </column>
+    <column id="95" parent="53" name="class_date_formed">
+      <Position>3</Position>
+      <DataType>date|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51012</StateNumber>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="96" parent="53" name="first_name">
+      <Position>4</Position>
+      <DataType>varchar(25)|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51012</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="97" parent="53" name="last_name">
+      <Position>5</Position>
+      <DataType>varchar(25)|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51012</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="98" parent="53" name="text_search">
+      <Position>6</Position>
+      <DataType>tsvector|0s</DataType>
+      <StateNumber>51012</StateNumber>
+      <DefaultExpression>to_tsvector(&apos;simple&apos;::regconfig, ((((((((((first_name)::text || &apos; &apos;::text) || (last_name)::text) || &apos; &apos;::text) || (date_part(&apos;year&apos;::text, class_date_formed))::text) || (class_letter)::text) || &apos; &apos;::text) || (class_letter)::text) || &apos; &apos;::text) || (date_part(&apos;year&apos;::text, class_date_formed))::text))</DefaultExpression>
+      <TypeId>3614</TypeId>
+    </column>
+    <index id="99" parent="53" name="pupil_pkey">
+      <ObjectId>53356</ObjectId>
+      <StateNumber>52030</StateNumber>
+      <ColNames>id</ColNames>
+      <Unique>1</Unique>
+      <Primary>1</Primary>
+    </index>
+    <index id="100" parent="53" name="pupil_class_name_asc_idx">
+      <ObjectId>53284</ObjectId>
+      <StateNumber>52030</StateNumber>
+      <ColNames>class_date_formed
+class_letter
+last_name
+first_name</ColNames>
+      <ReverseColNames>class_date_formed</ReverseColNames>
+    </index>
+    <index id="101" parent="53" name="pupil_class_name_desc_idx">
+      <ObjectId>53285</ObjectId>
+      <StateNumber>52030</StateNumber>
+      <ColNames>class_date_formed
+class_letter
+last_name
+first_name</ColNames>
+      <ReverseColNames>class_letter
+last_name
+first_name</ReverseColNames>
+    </index>
+    <index id="102" parent="53" name="pupil_class_name_idx">
+      <ObjectId>53517</ObjectId>
+      <StateNumber>52638</StateNumber>
+      <ColNames>class_date_formed
+class_letter
+last_name
+first_name</ColNames>
+    </index>
+    <index id="103" parent="53" name="pupil_text_search_idx">
+      <ObjectId>53223</ObjectId>
+      <StateNumber>52030</StateNumber>
+      <ColNames>text_search</ColNames>
+    </index>
+    <key id="104" parent="53" name="pupil_pkey">
+      <ObjectId>53357</ObjectId>
+      <StateNumber>52030</StateNumber>
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>pupil_pkey</UnderlyingIndexName>
+    </key>
+    <column id="105" parent="54" name="pupil_id">
+      <Position>1</Position>
+      <DataType>varchar(25)|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>52036</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="106" parent="54" name="event_id">
+      <Position>2</Position>
+      <DataType>varchar(25)|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>52033</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="107" parent="54" name="paper">
+      <Position>3</Position>
+      <DataType>real|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51974</StateNumber>
+      <DefaultExpression>0</DefaultExpression>
+      <TypeId>700</TypeId>
+    </column>
+    <column id="108" parent="54" name="plastic">
+      <Position>4</Position>
+      <DataType>real|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51977</StateNumber>
+      <DefaultExpression>0</DefaultExpression>
+      <TypeId>700</TypeId>
+    </column>
+    <column id="109" parent="54" name="gadgets">
+      <Position>5</Position>
+      <DataType>real|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>51971</StateNumber>
+      <DefaultExpression>0</DefaultExpression>
+      <TypeId>700</TypeId>
+    </column>
+    <index id="110" parent="54" name="resources_pkey">
+      <ObjectId>53393</ObjectId>
+      <StateNumber>52036</StateNumber>
+      <ColNames>pupil_id
+event_id</ColNames>
+      <Unique>1</Unique>
+      <Primary>1</Primary>
+    </index>
+    <index id="111" parent="54" name="resources_event_id_paper_idx">
+      <ObjectId>53376</ObjectId>
+      <StateNumber>52036</StateNumber>
+      <ColNames>event_id
+paper</ColNames>
+      <ReverseColNames>paper</ReverseColNames>
+    </index>
+    <index id="112" parent="54" name="resources_event_id_plastic_idx">
+      <ObjectId>53377</ObjectId>
+      <StateNumber>52036</StateNumber>
+      <ColNames>event_id
+plastic</ColNames>
+      <ReverseColNames>plastic</ReverseColNames>
+    </index>
+    <index id="113" parent="54" name="resources_event_id_gadgets_idx">
+      <ObjectId>53375</ObjectId>
+      <StateNumber>52036</StateNumber>
+      <ColNames>event_id
+gadgets</ColNames>
+      <ReverseColNames>gadgets</ReverseColNames>
+    </index>
+    <key id="114" parent="54" name="resources_pkey">
+      <ObjectId>53394</ObjectId>
+      <StateNumber>52036</StateNumber>
+      <ColNames>pupil_id
+event_id</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>resources_pkey</UnderlyingIndexName>
+    </key>
+    <foreign-key id="115" parent="54" name="resources_pupil_id_fkey">
+      <ObjectId>53395</ObjectId>
+      <StateNumber>52036</StateNumber>
+      <ColNames>pupil_id</ColNames>
+      <RefTableId>53214</RefTableId>
+      <RefColPositions>1</RefColPositions>
+      <RefTableName>pupil</RefTableName>
+      <RefKeyName>pupil_pkey</RefKeyName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+      <OnUpdate>cascade</OnUpdate>
+    </foreign-key>
+    <foreign-key id="116" parent="54" name="resources_event_id_fkey">
+      <ObjectId>53378</ObjectId>
+      <StateNumber>52033</StateNumber>
+      <ColNames>event_id</ColNames>
+      <RefTableId>53202</RefTableId>
+      <RefColPositions>1</RefColPositions>
+      <RefTableName>event</RefTableName>
+      <RefKeyName>event_pkey</RefKeyName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+      <OnUpdate>cascade</OnUpdate>
+    </foreign-key>
   </database-model>
 </dataSource>
