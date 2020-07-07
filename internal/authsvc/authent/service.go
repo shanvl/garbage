@@ -80,8 +80,12 @@ func (s *service) Login(ctx context.Context, email, password string) (User, Auth
 	}, creds, nil
 }
 
+// Logout deletes the user's client and refresh token from the db, thus, logging the user out
 func (s *service) Logout(ctx context.Context, clientID string) error {
-	panic("implement me")
+	if clientID == "" {
+		return valid.NewError("clientID", "clientID is required")
+	}
+	return s.repo.DeleteClient(ctx, clientID)
 }
 
 func (s *service) LogoutAllClients(ctx context.Context, userID string) error {

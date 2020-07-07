@@ -157,6 +157,55 @@ func Test_service_Login(t *testing.T) {
 	}
 }
 
+func Test_service_Logout(t *testing.T) {
+	t.Parallel()
+	const (
+		repoError = "repoerror"
+	)
+	ctx := context.Background()
+	r := &mock.AuthRepo{}
+	r.DeleteClientFn = func(ctx context.Context, clientID string) error {
+		if clientID == repoError {
+			return errors.New("error")
+		}
+		return nil
+	}
+	tm := &mock.TokenManager{}
+	s := authent.NewService(r, tm)
+	type args struct {
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "no client id",
+			args: args{
+				clientID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "ok",
+			args: args{
+				clientID: "client id",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := s.Logout(ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Login() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func Test_service_RefreshTokens(t *testing.T) {
 	t.Parallel()
 	const (
