@@ -66,6 +66,9 @@ func TestRepository_DeleteUser(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteUser() error == %v, wantErr == %v", err, tt.wantErr)
 			}
+			if _, err = userByIDWithErr(t, tt.id); err == nil {
+				t.Errorf("DeleteUser() user wasn't deleted")
+			}
 		})
 	}
 }
@@ -312,6 +315,22 @@ func userByID(t *testing.T, id string) *authsvc.User {
 		t.Fatalf("test helper: couldn't get a user: %v", err)
 	}
 	return u
+}
+
+func userByIDWithErr(t *testing.T, id string) (*authsvc.User, error) {
+	t.Helper()
+	u := &authsvc.User{}
+	var roleStr string
+	err := db.QueryRow(context.Background(), userByIDQ, id).Scan(&u.ID, &u.Active, &u.ActivationToken, &u.Email,
+		&u.FirstName, &u.LastName, &u.PasswordHash, &roleStr)
+	if err != nil {
+		return nil, err
+	}
+	u.Role, err = authsvc.StringToRole(roleStr)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
 }
 
 func deleteUserByID(t *testing.T, id string) {
