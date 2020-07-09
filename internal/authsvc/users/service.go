@@ -1,3 +1,4 @@
+// package users is responsible for user management
 package users
 
 import (

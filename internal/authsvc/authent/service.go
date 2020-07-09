@@ -1,3 +1,4 @@
+// package authent is responsible for authentication
 package authent
 
 import (
@@ -17,6 +18,7 @@ type Repository interface {
 	UserByEmail(ctx context.Context, email string) (*authsvc.User, error)
 }
 
+// Service is responsible for authentication
 type Service interface {
 	// Login generates, saves and returns auth credentials for the user if the given password and the email are correct
 	Login(ctx context.Context, email, password string) (User, AuthCreds, error)

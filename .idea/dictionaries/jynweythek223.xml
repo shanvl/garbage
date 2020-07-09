@@ -4,6 +4,7 @@
       <w>aggr</w>
       <w>atoi</w>
       <w>authent</w>
+      <w>authoriz</w>
       <w>authsvc</w>
       <w>conns</w>
       <w>creds</w>
@@ -18,6 +19,7 @@
       <w>marshaler</w>
       <w>openapiv</w>
       <w>protoc</w>
+      <w>rpcs</w>
       <w>shanvl</w>
       <w>sqlx</w>
       <w>structs</w>
