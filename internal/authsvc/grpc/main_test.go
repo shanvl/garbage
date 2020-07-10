@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	server      *grpc.Server
-	usersRepo   users.Repository
-	authentRepo authent.Repository
+	server       *grpc.Server
+	usersRepo    users.Repository
+	authentRepo  authent.Repository
+	tokenManager authsvc.TokenManager
 )
 
 func TestMain(m *testing.M) {
@@ -59,7 +60,7 @@ func testMain(m *testing.M) int {
 		log.Print(err)
 		return 1
 	}
-	tokenManager := jwt.NewManagerRSA(30*time.Minute, 120*time.Hour, prKey, pubKey)
+	tokenManager = jwt.NewManagerRSA(30*time.Minute, 120*time.Hour, prKey, pubKey)
 	// create services
 	authentSvc := authent.NewService(authentRepo, tokenManager)
 	authorizSvc := authoriz.NewService(tokenManager, map[string][]authsvc.Role{})

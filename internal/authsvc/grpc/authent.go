@@ -48,7 +48,7 @@ func (s *Server) LogoutAllClients(ctx context.Context, _ *empty.Empty) (*empty.E
 func (s *Server) RefreshTokens(ctx context.Context, req *authv1pb.RefreshTokensRequest) (*authv1pb.
 	RefreshTokensResponse, error) {
 
-	creds, err := s.authent.RefreshTokens(ctx, req.RefreshToken)
+	creds, err := s.authent.RefreshTokens(ctx, req.GetRefreshToken())
 	if err != nil {
 		return nil, s.handleError(err)
 	}

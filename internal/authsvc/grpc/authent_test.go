@@ -147,13 +147,6 @@ func TestServer_Logout(t *testing.T) {
 				if st.Code() != tt.code {
 					t.Errorf("Logout() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
 				}
-				if tt.code == codes.OK {
-					c := getClient(t, c.ID)
-					emptyC := authent.Client{}
-					if c != emptyC {
-						t.Errorf("Logout() code == OK, client wasn't deleted %+v", c)
-					}
-				}
 			}
 		})
 	}
@@ -235,13 +228,73 @@ func TestServer_LogoutAllClients(t *testing.T) {
 				if st.Code() != tt.code {
 					t.Errorf("LogoutAllClients() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
 				}
-				if tt.code == codes.OK {
-					c1 := getClient(t, c1.ID)
-					c2 := getClient(t, c2.ID)
-					emptyC := authent.Client{}
-					if c1 != emptyC || c2 != emptyC {
-						t.Errorf("LogoutAllClients() code == OK, clients weren't deleted")
-					}
+			}
+		})
+	}
+}
+
+func TestServer_RefreshTokens(t *testing.T) {
+	ctx := context.Background()
+	const (
+		email    = "email"
+		password = "password"
+		clientID = "someclientid"
+	)
+	u := newUser(t, "someid", email, password, authsvc.Member)
+	storeUser(t, u)
+	defer deleteUserByID(t, u.ID)
+	rt := generateRefreshToken(t, clientID, u.ID, u.Role)
+	c := authent.Client{
+		ID:           clientID,
+		UserID:       u.ID,
+		RefreshToken: rt,
+	}
+	storeClient(t, c)
+	defer deleteClientByID(t, c.ID)
+	tests := []struct {
+		name string
+		req  *authv1pb.RefreshTokensRequest
+		code codes.Code
+	}{
+		{
+			name: "no token",
+			req:  &authv1pb.RefreshTokensRequest{},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "invalid token",
+			req:  &authv1pb.RefreshTokensRequest{RefreshToken: "invalid token"},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "ok",
+			req:  &authv1pb.RefreshTokensRequest{RefreshToken: rt},
+			code: codes.OK,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := server.RefreshTokens(ctx, tt.req)
+			if tt.code == codes.OK {
+				if err != nil {
+					t.Errorf("RefreshTokens() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("RefreshTokens() res == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("RefreshTokens() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("RefreshTokens() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("RefreshTokens() couldn't get status from err %v", err)
+				}
+				if st.Code() != tt.code {
+					t.Errorf("RefreshTokens() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
 				}
 			}
 		})
@@ -304,4 +357,12 @@ func newUser(t *testing.T, id, email, password string, role authsvc.Role) *auths
 		t.Fatalf("couldn't create a user: %v", err)
 	}
 	return u
+}
+
+func generateRefreshToken(t *testing.T, clientID, userID string, role authsvc.Role) string {
+	rt, err := tokenManager.Generate(authsvc.Refresh, clientID, userID, role)
+	if err != nil {
+		t.Fatalf("couldn't generate a token")
+	}
+	return rt
 }
