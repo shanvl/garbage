@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/golang/protobuf/ptypes/empty"
 	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
 	"github.com/shanvl/garbage/internal/authsvc"
 	"github.com/shanvl/garbage/internal/authsvc/authent"
@@ -150,6 +152,95 @@ func TestServer_Logout(t *testing.T) {
 					emptyC := authent.Client{}
 					if c != emptyC {
 						t.Errorf("Logout() code == OK, client wasn't deleted %+v", c)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestServer_LogoutAllClients(t *testing.T) {
+	u := newUser(t, "someid", "someemail", "psw", authsvc.Member)
+	storeUser(t, u)
+	defer deleteUserByID(t, u.ID)
+	c1 := authent.Client{
+		ID:           "clientid",
+		UserID:       u.ID,
+		RefreshToken: "token",
+	}
+	storeClient(t, c1)
+	defer deleteClientByID(t, c1.ID)
+	c2 := authent.Client{
+		ID:           "clientid1",
+		UserID:       u.ID,
+		RefreshToken: "token",
+	}
+	storeClient(t, c2)
+	defer deleteClientByID(t, c2.ID)
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name string
+		args args
+		code codes.Code
+	}{
+		{
+			name: "empty context",
+			args: args{
+				ctx: context.Background(),
+			},
+			code: codes.Internal,
+		},
+		{
+			name: "invalid context type",
+			args: args{
+				ctx: context.WithValue(context.Background(), grpc.AuthCtxKey, struct{}{}),
+			},
+			code: codes.Internal,
+		},
+		{
+			name: "ok",
+			args: args{
+				ctx: context.WithValue(context.Background(), grpc.AuthCtxKey, &authsvc.UserClaims{
+					StandardClaims: jwt.StandardClaims{
+						Subject: u.ID,
+					},
+				}),
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := server.LogoutAllClients(tt.args.ctx, &empty.Empty{})
+			if tt.code == codes.OK {
+				if err != nil {
+					t.Errorf("LogoutAllClients() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("LogoutAllClients() res == nil, want != nil")
+				}
+			} else {
+				if err == nil {
+					t.Errorf("LogoutAllClients() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("LogoutAllClients() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("LogoutAllClients() couldn't get status from err %v", err)
+				}
+				if st.Code() != tt.code {
+					t.Errorf("LogoutAllClients() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
+				}
+				if tt.code == codes.OK {
+					c1 := getClient(t, c1.ID)
+					c2 := getClient(t, c2.ID)
+					emptyC := authent.Client{}
+					if c1 != emptyC || c2 != emptyC {
+						t.Errorf("LogoutAllClients() code == OK, clients weren't deleted")
 					}
 				}
 			}

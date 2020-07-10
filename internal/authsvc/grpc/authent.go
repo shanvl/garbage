@@ -38,7 +38,7 @@ func (s *Server) LogoutAllClients(ctx context.Context, _ *empty.Empty) (*empty.E
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	err = s.authent.Logout(ctx, claims.ClientID)
+	err = s.authent.LogoutAllClients(ctx, claims.Subject)
 	if err != nil {
 		return nil, s.handleError(err)
 	}
