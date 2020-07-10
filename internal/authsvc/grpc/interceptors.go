@@ -16,10 +16,10 @@ func (s *Server) handleRecovery(p interface{}) error {
 	return status.Error(codes.Internal, "internal server error")
 }
 
-const authCtxKey = "auth"
+const AuthCtxKey = "auth"
 
 func authClaimsFromCtx(ctx context.Context) (*authsvc.UserClaims, error) {
-	creds, ok := ctx.Value(authCtxKey).(*authsvc.UserClaims)
+	creds, ok := ctx.Value(AuthCtxKey).(*authsvc.UserClaims)
 	if !ok {
 		return nil, errors.New("no auth claims in ctx")
 	}
@@ -27,5 +27,5 @@ func authClaimsFromCtx(ctx context.Context) (*authsvc.UserClaims, error) {
 }
 
 func authClaimsToCtx(ctx context.Context, claims *authsvc.UserClaims) context.Context {
-	return context.WithValue(ctx, authCtxKey, claims)
+	return context.WithValue(ctx, AuthCtxKey, claims)
 }

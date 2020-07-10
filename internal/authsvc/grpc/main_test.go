@@ -13,6 +13,7 @@ import (
 	"github.com/shanvl/garbage/internal/authsvc/jwt"
 	"github.com/shanvl/garbage/internal/authsvc/postgres"
 	"github.com/shanvl/garbage/internal/authsvc/users"
+	"go.uber.org/zap"
 )
 
 var (
@@ -64,6 +65,11 @@ func testMain(m *testing.M) int {
 	authorizSvc := authoriz.NewService(tokenManager, map[string][]authsvc.Role{})
 	usersSvc := users.NewService(usersRepo)
 	// create gRPC server
-	server = grpc.NewServer(authentSvc, authorizSvc, usersSvc, nil)
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Print(err)
+		return 1
+	}
+	server = grpc.NewServer(authentSvc, authorizSvc, usersSvc, logger)
 	return m.Run()
 }
