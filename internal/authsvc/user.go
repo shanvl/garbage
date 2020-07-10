@@ -7,11 +7,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var ErrInactiveUser = errors.New("inactive user")
-var ErrInvalidActivationToken = errors.New("invalid activation token")
-var ErrInvalidPassword = errors.New("invalid password")
-var ErrUnknownUser = errors.New("unknown user")
-var ErrUnknownRole = errors.New("unknown role")
+var (
+	ErrInactiveUser           = errors.New("inactive user")
+	ErrInvalidActivationToken = errors.New("invalid activation token")
+	ErrInvalidPassword        = errors.New("invalid password")
+	ErrUnknownUser            = errors.New("unknown user")
+	ErrUnknownRole            = errors.New("unknown role")
+)
 
 // User is a user of the app
 type User struct {

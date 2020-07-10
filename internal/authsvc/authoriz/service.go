@@ -30,7 +30,7 @@ func (s *service) Authorize(accessToken, rpcName string) (*authsvc.UserClaims, e
 	// verify the token and extract its claims
 	claims, err := s.tm.Verify(accessToken)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", authsvc.ErrInvalidActivationToken, err)
+		return nil, fmt.Errorf("%w: %v", authsvc.ErrInvalidAccessToken, err)
 	}
 	// convert string role from the claims to authsvc.Role
 	role, err := authsvc.StringToRole(claims.Role)

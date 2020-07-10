@@ -125,6 +125,34 @@
         "tags": [
           "AuthService"
         ]
+      },
+      "put": {
+        "operationId": "AuthService_RefreshTokens",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RefreshTokensResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
       }
     },
     "/v1/users": {
@@ -425,6 +453,14 @@
         },
         "user": {
           "$ref": "#/definitions/v1User"
+        }
+      }
+    },
+    "v1RefreshTokensResponse": {
+      "type": "object",
+      "properties": {
+        "tokens": {
+          "$ref": "#/definitions/v1Tokens"
         }
       }
     },

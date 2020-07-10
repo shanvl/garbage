@@ -186,3 +186,11 @@ func (s *service) Users(ctx context.Context, nameAndEmail string, sorting Sortin
 	}
 	return s.repo.Users(ctx, nameAndEmail, sorting, amount, skip)
 }
+
+type User struct {
+	ID        string
+	Email     string
+	FirstName string
+	LastName  string
+	Role      authsvc.Role
+}

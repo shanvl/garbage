@@ -21,7 +21,7 @@ type Repository interface {
 // Service is responsible for authentication
 type Service interface {
 	// Login generates, saves and returns auth credentials for the user if the given password and the email are correct
-	Login(ctx context.Context, email, password string) (User, AuthCreds, error)
+	Login(ctx context.Context, email, password string) (*authsvc.User, AuthCreds, error)
 	// Logout deletes the user's client and refresh token from the db, thus, logging the user out
 	Logout(ctx context.Context, clientID string) error
 	// LogoutAllClients deletes all the user's clients and refresh tokens, thus, logging the user out of every device
@@ -40,7 +40,7 @@ func NewService(repository Repository, tokenManager authsvc.TokenManager) Servic
 }
 
 // Login generates, saves and returns auth credentials for the user if the given password and the email are correct
-func (s *service) Login(ctx context.Context, email, password string) (User, AuthCreds, error) {
+func (s *service) Login(ctx context.Context, email, password string) (*authsvc.User, AuthCreds, error) {
 	// validate the arguments
 	errValid := valid.EmptyError()
 	if email == "" {
@@ -50,25 +50,25 @@ func (s *service) Login(ctx context.Context, email, password string) (User, Auth
 		errValid.Add("password", "password is required")
 	}
 	if !errValid.IsEmpty() {
-		return User{}, AuthCreds{}, errValid
+		return nil, AuthCreds{}, errValid
 	}
 	// get the user by its email
 	user, err := s.repo.UserByEmail(ctx, email)
 	if err != nil {
-		return User{}, AuthCreds{}, err
+		return nil, AuthCreds{}, err
 	}
 	// check if the user is in active state
 	if user.Active == false {
-		return User{}, AuthCreds{}, authsvc.ErrInactiveUser
+		return nil, AuthCreds{}, authsvc.ErrInactiveUser
 	}
 	// check the password
 	if !user.IsCorrectPassword(password) {
-		return User{}, AuthCreds{}, authsvc.ErrInvalidPassword
+		return nil, AuthCreds{}, authsvc.ErrInvalidPassword
 	}
 	// generate auth credentials
 	creds, err := s.generateAuthCreds(user.ID, user.Role)
 	if err != nil {
-		return User{}, AuthCreds{}, err
+		return nil, AuthCreds{}, err
 	}
 	// store the credentials
 	c := Client{
@@ -78,15 +78,9 @@ func (s *service) Login(ctx context.Context, email, password string) (User, Auth
 	}
 	err = s.repo.StoreClient(ctx, c)
 	if err != nil {
-		return User{}, AuthCreds{}, err
+		return nil, AuthCreds{}, err
 	}
-	return User{
-		ID:        user.ID,
-		Email:     user.Email,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Role:      user.Role,
-	}, creds, nil
+	return user, creds, nil
 }
 
 // Logout deletes the user's client and refresh token from the db, thus, logging the user out
@@ -197,12 +191,4 @@ type Client struct {
 
 type Tokens struct {
 	Access, Refresh string
-}
-
-type User struct {
-	ID        string
-	Email     string
-	FirstName string
-	LastName  string
-	Role      authsvc.Role
 }

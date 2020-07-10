@@ -86,6 +86,11 @@ service AuthService {
             delete: "/v1/me/clients"
         };
     }
+    rpc RefreshTokens (RefreshTokensRequest) returns (RefreshTokensResponse) {
+        option (google.api.http) = {
+            put: "/v1/me/clients/{client_id}"
+        };
+    }
 }
 
 message ActivateUserRequest {
@@ -150,4 +155,13 @@ message LoginResponse {
 
 message LogoutRequest {
     string client_id = 1;
+}
+
+message RefreshTokensRequest {
+    string client_id = 1;
+    string refresh_token = 2;
+}
+
+message RefreshTokensResponse {
+    Tokens tokens = 1;
 }

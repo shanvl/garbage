@@ -12,18 +12,27 @@ import (
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
 	healthv1pb "github.com/shanvl/garbage/api/health/v1/pb"
+	"github.com/shanvl/garbage/internal/authsvc/authent"
+	"github.com/shanvl/garbage/internal/authsvc/authoriz"
+	"github.com/shanvl/garbage/internal/authsvc/users"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 type Server struct {
-	log *zap.Logger
+	log      *zap.Logger
+	authent  authent.Service
+	authoriz authoriz.Service
+	users    users.Service
 }
 
-func NewServer(log *zap.Logger) *Server {
+func NewServer(authent authent.Service, authoriz authoriz.Service, users users.Service, log *zap.Logger) *Server {
 	server := &Server{
-		log: log,
+		log:      log,
+		authent:  authent,
+		authoriz: authoriz,
+		users:    users,
 	}
 	return server
 }
