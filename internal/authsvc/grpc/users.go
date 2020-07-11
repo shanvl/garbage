@@ -18,13 +18,17 @@ func (s *Server) ActivateUser(ctx context.Context, req *authv1pb.ActivateUserReq
 	return &empty.Empty{}, nil
 }
 
+// ChangeUserRole changes the user's role to the provided role
 func (s *Server) ChangeUserRole(ctx context.Context, req *authv1pb.ChangeUserRoleRequest) (*empty.Empty, error) {
-	// get the user
-	// change its role
-	// store the user
-
-	// repo.StoreUser
-	panic("implement me")
+	role, err := protoToRole(req.GetRole())
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	err = s.users.ChangeUserRole(ctx, req.GetId(), role)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	return &empty.Empty{}, nil
 }
 
 // CreateUser creates and stores a user, which must then be activated with the returned activation token

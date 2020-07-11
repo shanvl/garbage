@@ -233,6 +233,82 @@ func TestServer_ActivateUser(t *testing.T) {
 	}
 }
 
+func TestServer_ChangeUserRole(t *testing.T) {
+	ctx := context.Background()
+	u := &authsvc.User{ID: "someid", Role: authsvc.Member}
+	storeUser(t, u)
+	defer deleteUserByID(t, u.ID)
+	tests := []struct {
+		name string
+		req  *authv1pb.ChangeUserRoleRequest
+		code codes.Code
+	}{
+		{
+			name: "no id",
+			req: &authv1pb.ChangeUserRoleRequest{
+				Id:   "",
+				Role: authv1pb.Role_ROLE_ADMIN,
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no such user",
+			req: &authv1pb.ChangeUserRoleRequest{
+				Id:   "somerandomid",
+				Role: authv1pb.Role_ROLE_ADMIN,
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "invalid role",
+			req: &authv1pb.ChangeUserRoleRequest{
+				Id:   u.ID,
+				Role: authv1pb.Role_ROLE_UNKNOWN,
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "ok",
+			req: &authv1pb.ChangeUserRoleRequest{
+				Id:   u.ID,
+				Role: authv1pb.Role_ROLE_ADMIN,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := server.ChangeUserRole(ctx, tt.req)
+			if tt.code == codes.OK {
+				if err != nil {
+					t.Errorf("ChangeUserRole() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("ChangeUserRole() res == nil, want != nil")
+				}
+				user := userByID(t, u.ID)
+				if user.Role != authsvc.Admin {
+					t.Errorf("ChangeUserRole() role wasn't changed: %v, want: admin", user.Role.String())
+				}
+			} else {
+				if err == nil {
+					t.Errorf("ChangeUserRole() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("ChangeUserRole() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("ChangeUserRole() couldn't get status from err %v", err)
+				}
+				if st.Code() != tt.code {
+					t.Errorf("ChangeUserRole() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
+				}
+			}
+		})
+	}
+}
+
 func userByEmail(t *testing.T, email string) *authsvc.User {
 	u, err := authentRepo.UserByEmail(context.Background(), email)
 	if err != nil {

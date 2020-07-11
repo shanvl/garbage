@@ -43,6 +43,9 @@ func (u *usersRepo) ChangeUserRole(ctx context.Context, id string, role authsvc.
 	var returnedID string
 	err := u.db.QueryRow(ctx, changeUserRoleQuery, role.String(), id).Scan(&returnedID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return authsvc.ErrUnknownUser
+		}
 		return err
 	}
 	if returnedID == "" {
