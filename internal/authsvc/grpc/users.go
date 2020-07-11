@@ -40,11 +40,13 @@ func (s *Server) CreateUser(ctx context.Context, req *authv1pb.CreateUserRequest
 	return &authv1pb.CreateUserResponse{Id: userID, ActivationToken: activationToken}, nil
 }
 
+// DeleteUser deletes the user
 func (s *Server) DeleteUser(ctx context.Context, req *authv1pb.DeleteUserRequest) (*empty.Empty, error) {
-	// delete the user
-
-	// repo.DeleteUserByID
-	panic("implement me")
+	err := s.users.DeleteUser(ctx, req.GetId())
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	return &empty.Empty{}, nil
 }
 
 func (s *Server) FindUser(ctx context.Context, req *authv1pb.FindUserRequest) (*authv1pb.FindUserResponse, error) {
