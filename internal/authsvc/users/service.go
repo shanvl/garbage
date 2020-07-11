@@ -80,6 +80,9 @@ func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, 
 	if len(password) > 50 {
 		validErr.Add("password", "length of the password can't be more than 50")
 	}
+	if len(password) < 6 {
+		validErr.Add("password", "length of the password can't be less than 6")
+	}
 	if !validErr.IsEmpty() {
 		return "", validErr
 	}

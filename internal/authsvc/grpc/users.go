@@ -7,15 +7,15 @@ import (
 	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
 )
 
+// ActivateUser changes the active state of the user to active and populates it with the provided additional info
 func (s *Server) ActivateUser(ctx context.Context, req *authv1pb.ActivateUserRequest) (*empty.Empty, error) {
-	// get the user
-	// compare the activate_tokens
-	// change its active field to true
-	// store the user
+	_, err := s.users.ActivateUser(ctx, req.GetActivationToken(), req.GetFirstName(), req.GetLastName(),
+		req.GetPassword())
 
-	// repo.GetUserByID
-	// repo.StoreUser
-	panic("implement me")
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	return &empty.Empty{}, nil
 }
 
 func (s *Server) ChangeUserRole(ctx context.Context, req *authv1pb.ChangeUserRoleRequest) (*empty.Empty, error) {

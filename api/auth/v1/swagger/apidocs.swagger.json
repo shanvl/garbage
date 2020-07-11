@@ -355,7 +355,7 @@
     "v1ActivateUserRequest": {
       "type": "object",
       "properties": {
-        "activateToken": {
+        "activationToken": {
           "type": "string"
         },
         "firstName": {
