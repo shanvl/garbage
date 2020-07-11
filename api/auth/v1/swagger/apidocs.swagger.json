@@ -178,6 +178,34 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "USER_SORTING_UNKNOWN",
+              "USER_SORTING_NAME_ASC",
+              "USER_SORTING_NAME_DESC",
+              "USER_SORTING_EMAIL_ASC",
+              "USER_SORTING_EMAIL_DESC"
+            ],
+            "default": "USER_SORTING_UNKNOWN"
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -431,6 +459,10 @@
           "items": {
             "$ref": "#/definitions/v1User"
           }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -507,6 +539,17 @@
           "$ref": "#/definitions/v1Role"
         }
       }
+    },
+    "v1UserSorting": {
+      "type": "string",
+      "enum": [
+        "USER_SORTING_UNKNOWN",
+        "USER_SORTING_NAME_ASC",
+        "USER_SORTING_NAME_DESC",
+        "USER_SORTING_EMAIL_ASC",
+        "USER_SORTING_EMAIL_DESC"
+      ],
+      "default": "USER_SORTING_UNKNOWN"
     }
   },
   "securityDefinitions": {

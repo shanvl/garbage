@@ -62,9 +62,23 @@ func (s *Server) FindUser(ctx context.Context, req *authv1pb.FindUserRequest) (*
 	return &authv1pb.FindUserResponse{User: userToProto(user)}, nil
 }
 
+// FindUsers returns a sorted list of users
+// "nameAndEmail" may consist of any combination of the email, first name and last name parts
 func (s *Server) FindUsers(ctx context.Context, req *authv1pb.FindUsersRequest) (*authv1pb.FindUsersResponse, error) {
-	// find users via text_search
-
-	// repo.GetUsers
-	panic("implement me")
+	users, total, err := s.users.Users(
+		ctx,
+		req.GetNameAndEmail(),
+		protoUserSortingMap[req.GetSorting()],
+		int(req.GetAmount()),
+		int(req.GetSkip()),
+	)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	// convert []*authsvc.User to []*authv1pb.User
+	usersProto := make([]*authv1pb.User, len(users))
+	for i, user := range users {
+		usersProto[i] = userToProto(user)
+	}
+	return &authv1pb.FindUsersResponse{Users: usersProto, Total: uint32(total)}, nil
 }

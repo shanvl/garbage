@@ -2,6 +2,7 @@ package grpc_test
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
@@ -367,6 +368,93 @@ func TestServer_FindUser(t *testing.T) {
 				}
 				if st.Code() != tt.code {
 					t.Errorf("FindUser() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
+				}
+			}
+		})
+	}
+}
+
+func TestServer_FindUsers(t *testing.T) {
+	ctx := context.Background()
+	length := 3
+	for i := 0; i < length; i++ {
+		iStr := strconv.Itoa(i)
+		u := &authsvc.User{ID: "someid" + iStr, FirstName: "fnnn" + iStr, LastName: "lnnn" + iStr, Email: "emaillll" + iStr}
+		storeUser(t, u)
+		defer deleteUserByID(t, u.ID)
+	}
+	tests := []struct {
+		name string
+		req  *authv1pb.FindUsersRequest
+		code codes.Code
+	}{
+		{
+			name: "no text search",
+			req: &authv1pb.FindUsersRequest{
+				NameAndEmail: "",
+				Sorting:      authv1pb.UserSorting_USER_SORTING_NAME_DESC,
+				Amount:       10,
+				Skip:         0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "with text search",
+			req: &authv1pb.FindUsersRequest{
+				NameAndEmail: "fnnn lnnn",
+				Sorting:      authv1pb.UserSorting_USER_SORTING_NAME_DESC,
+				Amount:       10,
+				Skip:         0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "with unknown sorting",
+			req: &authv1pb.FindUsersRequest{
+				NameAndEmail: "fn ln",
+				Sorting:      authv1pb.UserSorting_USER_SORTING_UNKNOWN,
+				Amount:       10,
+				Skip:         0,
+			},
+			code: codes.OK,
+		},
+		{
+			name: "skip overflow",
+			req: &authv1pb.FindUsersRequest{
+				NameAndEmail: "fn ln",
+				Sorting:      authv1pb.UserSorting_USER_SORTING_NAME_DESC,
+				Amount:       10,
+				Skip:         999,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := server.FindUsers(ctx, tt.req)
+			if tt.code == codes.OK {
+				if err != nil {
+					t.Errorf("FindUsers() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("FindUsers() res == nil, want != nil")
+				}
+				if tt.name == "with text search" && res.Total != uint32(length) && len(res.Users) != length {
+					t.Errorf("FindUsers() expected length == %d, got %d", length, len(res.Users))
+				}
+			} else {
+				if err == nil {
+					t.Errorf("FindUsers() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("FindUsers() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("FindUsers() couldn't get status from err %v", err)
+				}
+				if st.Code() != tt.code {
+					t.Errorf("FindUsers() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
 				}
 			}
 		})

@@ -4,6 +4,7 @@ import (
 	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
 	"github.com/shanvl/garbage/internal/authsvc"
 	"github.com/shanvl/garbage/internal/authsvc/authent"
+	"github.com/shanvl/garbage/internal/authsvc/users"
 )
 
 var roleProtoMap = map[authsvc.Role]authv1pb.Role{
@@ -16,6 +17,14 @@ var protoRoleMap = map[authv1pb.Role]authsvc.Role{
 	authv1pb.Role_ROLE_ADMIN:  authsvc.Admin,
 	authv1pb.Role_ROLE_MEMBER: authsvc.Member,
 	authv1pb.Role_ROLE_ROOT:   authsvc.Root,
+}
+
+var protoUserSortingMap = map[authv1pb.UserSorting]users.Sorting{
+	authv1pb.UserSorting_USER_SORTING_NAME_ASC:   users.NameAsc,
+	authv1pb.UserSorting_USER_SORTING_NAME_DESC:  users.NameDes,
+	authv1pb.UserSorting_USER_SORTING_EMAIL_ASC:  users.EmailAsc,
+	authv1pb.UserSorting_USER_SORTING_EMAIL_DESC: users.EmailDes,
+	authv1pb.UserSorting_USER_SORTING_UNKNOWN:    users.Unspecified,
 }
 
 // protoToRole converts authv1pb.Role to authsvc.Role

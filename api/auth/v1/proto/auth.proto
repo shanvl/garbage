@@ -24,3 +24,11 @@ message User {
     string last_name = 4;
     Role role = 5;
 }
+
+enum UserSorting {
+    USER_SORTING_UNKNOWN = 0;
+    USER_SORTING_NAME_ASC = 1;
+    USER_SORTING_NAME_DESC = 2;
+    USER_SORTING_EMAIL_ASC = 3;
+    USER_SORTING_EMAIL_DESC = 4;
+}

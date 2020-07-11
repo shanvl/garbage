@@ -137,10 +137,14 @@ message FindUserResponse {
 
 message FindUsersRequest {
     string name_and_email = 1;
+    UserSorting sorting = 2;
+    uint32 amount = 3;
+    uint32 skip = 4;
 }
 
 message FindUsersResponse {
     repeated User users = 1;
+    uint32 total = 2;
 }
 
 message LoginRequest {
