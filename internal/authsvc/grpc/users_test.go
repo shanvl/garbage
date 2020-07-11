@@ -309,6 +309,70 @@ func TestServer_ChangeUserRole(t *testing.T) {
 	}
 }
 
+func TestServer_FindUser(t *testing.T) {
+	ctx := context.Background()
+	u := &authsvc.User{ID: "someid"}
+	storeUser(t, u)
+	defer deleteUserByID(t, u.ID)
+	tests := []struct {
+		name string
+		req  *authv1pb.FindUserRequest
+		code codes.Code
+	}{
+		{
+			name: "no id",
+			req: &authv1pb.FindUserRequest{
+				Id: "",
+			},
+			code: codes.InvalidArgument,
+		},
+		{
+			name: "no such user",
+			req: &authv1pb.FindUserRequest{
+				Id: "somerandomid",
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "ok",
+			req: &authv1pb.FindUserRequest{
+				Id: u.ID,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := server.FindUser(ctx, tt.req)
+			if tt.code == codes.OK {
+				if err != nil {
+					t.Errorf("FindUser() error == %v, wantErr == false", err)
+				}
+				if res == nil {
+					t.Errorf("FindUser() res == nil, want != nil")
+				}
+				if res.User.Id != u.ID {
+					t.Errorf("FindUser() id mismatch, want: %s, got: %s", res.User.Id, u.ID)
+				}
+			} else {
+				if err == nil {
+					t.Errorf("FindUser() error == nil, wantErr == true")
+				}
+				if res != nil {
+					t.Errorf("FindUser() res == %v, want == nil", res)
+				}
+				st, ok := status.FromError(err)
+				if ok != true {
+					t.Errorf("FindUser() couldn't get status from err %v", err)
+				}
+				if st.Code() != tt.code {
+					t.Errorf("FindUser() err codes mismatch: code == %v, want == %v", st.Code(), tt.code)
+				}
+			}
+		})
+	}
+}
+
 func userByEmail(t *testing.T, email string) *authsvc.User {
 	u, err := authentRepo.UserByEmail(context.Background(), email)
 	if err != nil {

@@ -53,11 +53,13 @@ func (s *Server) DeleteUser(ctx context.Context, req *authv1pb.DeleteUserRequest
 	return &empty.Empty{}, nil
 }
 
+// FindUser returns the user with the specified id
 func (s *Server) FindUser(ctx context.Context, req *authv1pb.FindUserRequest) (*authv1pb.FindUserResponse, error) {
-	// find user by id
-
-	// repo.GetUserByID
-	panic("implement me")
+	user, err := s.users.UserByID(ctx, req.GetId())
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+	return &authv1pb.FindUserResponse{User: userToProto(user)}, nil
 }
 
 func (s *Server) FindUsers(ctx context.Context, req *authv1pb.FindUsersRequest) (*authv1pb.FindUsersResponse, error) {
