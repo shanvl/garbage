@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -73,6 +74,12 @@ const storeUserQuery = `
 func (u *usersRepo) StoreUser(ctx context.Context, user *authsvc.User) error {
 	_, err := u.db.Exec(ctx, storeUserQuery, user.ID, user.Active, user.ActivationToken, user.Email, user.FirstName,
 		user.LastName, user.PasswordHash, user.Role.String())
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.ConstraintName == "users_unique_lower_email_idx" {
+			err = authsvc.ErrDuplicateEmail
+		}
+	}
 	return err
 }
 

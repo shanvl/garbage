@@ -70,7 +70,7 @@ func (a *authentRepo) StoreClient(ctx context.Context, client authent.Client) er
 const userByEmailQuery = `
 	select id, active, activation_token, email, first_name, last_name, password_hash, role
 	from users
-	where email = $1;
+	where lower(email) = $1;
 `
 
 func (a *authentRepo) UserByEmail(ctx context.Context, email string) (*authsvc.User, error) {

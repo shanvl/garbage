@@ -789,7 +789,7 @@ true posixrules
     <database id="2" parent="1" name="authsvc">
       <ObjectId>53412</ObjectId>
       <Owner>jynweythek223</Owner>
-      <IntrospectionStateNumber>52670</IntrospectionStateNumber>
+      <IntrospectionStateNumber>52871</IntrospectionStateNumber>
     </database>
     <database id="3" parent="1" name="garbage">
       <ObjectId>52978</ObjectId>
@@ -870,7 +870,7 @@ true posixrules
       <Comment>standard public schema</Comment>
       <StateNumber>275</StateNumber>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>52671</IntrospectionStateNumber>
+      <IntrospectionStateNumber>52872</IntrospectionStateNumber>
       <Current>1</Current>
     </schema>
     <access-method id="21" parent="2" name="heap">
@@ -1185,18 +1185,19 @@ gadgets</Labels>
       <DefaultExpression>to_tsvector(&apos;simple&apos;::regconfig, (((((first_name)::text || &apos; &apos;::text) || (last_name)::text) || &apos; &apos;::text) || (email)::text))</DefaultExpression>
       <TypeId>3614</TypeId>
     </column>
-    <index id="71" parent="50" name="users_pkey">
+    <index id="71" parent="50" name="users_unique_lower_email_idx">
+      <ObjectId>53563</ObjectId>
+      <StateNumber>52850</StateNumber>
+      <ColNames>&#x1b;lower(email::text)</ColNames>
+      <Unique>1</Unique>
+      <FunctionBased>1</FunctionBased>
+    </index>
+    <index id="72" parent="50" name="users_pkey">
       <ObjectId>53468</ObjectId>
       <StateNumber>52214</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
-    </index>
-    <index id="72" parent="50" name="unique_email">
-      <ObjectId>53503</ObjectId>
-      <StateNumber>52426</StateNumber>
-      <ColNames>email</ColNames>
-      <Unique>1</Unique>
     </index>
     <index id="73" parent="50" name="users_active_idx">
       <ObjectId>53471</ObjectId>
@@ -1239,141 +1240,135 @@ first_name</ReverseColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>users_pkey</UnderlyingIndexName>
     </key>
-    <key id="80" parent="50" name="unique_email">
-      <ObjectId>53504</ObjectId>
-      <StateNumber>52426</StateNumber>
-      <ColNames>email</ColNames>
-      <UnderlyingIndexName>unique_email</UnderlyingIndexName>
-    </key>
-    <column id="81" parent="52" name="id">
+    <column id="80" parent="52" name="id">
       <Position>1</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52027</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="82" parent="52" name="date">
+    <column id="81" parent="52" name="date">
       <Position>2</Position>
       <DataType>date|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>51008</StateNumber>
       <TypeId>1082</TypeId>
     </column>
-    <column id="83" parent="52" name="name">
+    <column id="82" parent="52" name="name">
       <Position>3</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>51008</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="84" parent="52" name="resources_allowed">
+    <column id="83" parent="52" name="resources_allowed">
       <Position>4</Position>
       <DataType>resource[]|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>51008</StateNumber>
       <TypeId>53053</TypeId>
     </column>
-    <column id="85" parent="52" name="text_search">
+    <column id="84" parent="52" name="text_search">
       <Position>5</Position>
       <DataType>tsvector|0s</DataType>
       <StateNumber>52000</StateNumber>
       <DefaultExpression>to_tsvector(&apos;simple&apos;::regconfig, (name)::text)</DefaultExpression>
       <TypeId>3614</TypeId>
     </column>
-    <index id="86" parent="52" name="event_pkey">
+    <index id="85" parent="52" name="event_pkey">
       <ObjectId>53336</ObjectId>
       <StateNumber>52027</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
     </index>
-    <index id="87" parent="52" name="event_id_date_name_idx">
+    <index id="86" parent="52" name="event_id_date_name_idx">
       <ObjectId>53338</ObjectId>
       <StateNumber>52027</StateNumber>
       <ColNames>id
 date
 name</ColNames>
     </index>
-    <index id="88" parent="52" name="event_id_name_date_idx">
+    <index id="87" parent="52" name="event_id_name_date_idx">
       <ObjectId>53339</ObjectId>
       <StateNumber>52027</StateNumber>
       <ColNames>id
 name
 date</ColNames>
     </index>
-    <index id="89" parent="52" name="event_resources_allowed">
+    <index id="88" parent="52" name="event_resources_allowed">
       <ObjectId>53211</ObjectId>
       <StateNumber>52027</StateNumber>
       <ColNames>resources_allowed</ColNames>
     </index>
-    <index id="90" parent="52" name="event_text_search">
+    <index id="89" parent="52" name="event_text_search">
       <ObjectId>53297</ObjectId>
       <StateNumber>52027</StateNumber>
       <ColNames>text_search</ColNames>
     </index>
-    <key id="91" parent="52" name="event_pkey">
+    <key id="90" parent="52" name="event_pkey">
       <ObjectId>53337</ObjectId>
       <StateNumber>52027</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>event_pkey</UnderlyingIndexName>
     </key>
-    <check id="92" parent="52" name="event_resources_allowed_check">
+    <check id="91" parent="52" name="event_resources_allowed_check">
       <ObjectId>53205</ObjectId>
       <StateNumber>51008</StateNumber>
       <ColNames>resources_allowed</ColNames>
       <Predicate>cardinality(resources_allowed) &gt;= 1</Predicate>
     </check>
-    <column id="93" parent="53" name="id">
+    <column id="92" parent="53" name="id">
       <Position>1</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52030</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="94" parent="53" name="class_letter">
+    <column id="93" parent="53" name="class_letter">
       <Position>2</Position>
       <DataType>char|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>51012</StateNumber>
       <TypeId>1042</TypeId>
     </column>
-    <column id="95" parent="53" name="class_date_formed">
+    <column id="94" parent="53" name="class_date_formed">
       <Position>3</Position>
       <DataType>date|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>51012</StateNumber>
       <TypeId>1082</TypeId>
     </column>
-    <column id="96" parent="53" name="first_name">
+    <column id="95" parent="53" name="first_name">
       <Position>4</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>51012</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="97" parent="53" name="last_name">
+    <column id="96" parent="53" name="last_name">
       <Position>5</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>51012</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="98" parent="53" name="text_search">
+    <column id="97" parent="53" name="text_search">
       <Position>6</Position>
       <DataType>tsvector|0s</DataType>
       <StateNumber>51012</StateNumber>
       <DefaultExpression>to_tsvector(&apos;simple&apos;::regconfig, ((((((((((first_name)::text || &apos; &apos;::text) || (last_name)::text) || &apos; &apos;::text) || (date_part(&apos;year&apos;::text, class_date_formed))::text) || (class_letter)::text) || &apos; &apos;::text) || (class_letter)::text) || &apos; &apos;::text) || (date_part(&apos;year&apos;::text, class_date_formed))::text))</DefaultExpression>
       <TypeId>3614</TypeId>
     </column>
-    <index id="99" parent="53" name="pupil_pkey">
+    <index id="98" parent="53" name="pupil_pkey">
       <ObjectId>53356</ObjectId>
       <StateNumber>52030</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
     </index>
-    <index id="100" parent="53" name="pupil_class_name_asc_idx">
+    <index id="99" parent="53" name="pupil_class_name_asc_idx">
       <ObjectId>53284</ObjectId>
       <StateNumber>52030</StateNumber>
       <ColNames>class_date_formed
@@ -1382,7 +1377,7 @@ last_name
 first_name</ColNames>
       <ReverseColNames>class_date_formed</ReverseColNames>
     </index>
-    <index id="101" parent="53" name="pupil_class_name_desc_idx">
+    <index id="100" parent="53" name="pupil_class_name_desc_idx">
       <ObjectId>53285</ObjectId>
       <StateNumber>52030</StateNumber>
       <ColNames>class_date_formed
@@ -1393,7 +1388,7 @@ first_name</ColNames>
 last_name
 first_name</ReverseColNames>
     </index>
-    <index id="102" parent="53" name="pupil_class_name_idx">
+    <index id="101" parent="53" name="pupil_class_name_idx">
       <ObjectId>53517</ObjectId>
       <StateNumber>52638</StateNumber>
       <ColNames>class_date_formed
@@ -1401,33 +1396,33 @@ class_letter
 last_name
 first_name</ColNames>
     </index>
-    <index id="103" parent="53" name="pupil_text_search_idx">
+    <index id="102" parent="53" name="pupil_text_search_idx">
       <ObjectId>53223</ObjectId>
       <StateNumber>52030</StateNumber>
       <ColNames>text_search</ColNames>
     </index>
-    <key id="104" parent="53" name="pupil_pkey">
+    <key id="103" parent="53" name="pupil_pkey">
       <ObjectId>53357</ObjectId>
       <StateNumber>52030</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>pupil_pkey</UnderlyingIndexName>
     </key>
-    <column id="105" parent="54" name="pupil_id">
+    <column id="104" parent="54" name="pupil_id">
       <Position>1</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52036</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="106" parent="54" name="event_id">
+    <column id="105" parent="54" name="event_id">
       <Position>2</Position>
       <DataType>varchar(25)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>52033</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="107" parent="54" name="paper">
+    <column id="106" parent="54" name="paper">
       <Position>3</Position>
       <DataType>real|0s</DataType>
       <NotNull>1</NotNull>
@@ -1435,7 +1430,7 @@ first_name</ColNames>
       <DefaultExpression>0</DefaultExpression>
       <TypeId>700</TypeId>
     </column>
-    <column id="108" parent="54" name="plastic">
+    <column id="107" parent="54" name="plastic">
       <Position>4</Position>
       <DataType>real|0s</DataType>
       <NotNull>1</NotNull>
@@ -1443,7 +1438,7 @@ first_name</ColNames>
       <DefaultExpression>0</DefaultExpression>
       <TypeId>700</TypeId>
     </column>
-    <column id="109" parent="54" name="gadgets">
+    <column id="108" parent="54" name="gadgets">
       <Position>5</Position>
       <DataType>real|0s</DataType>
       <NotNull>1</NotNull>
@@ -1451,7 +1446,7 @@ first_name</ColNames>
       <DefaultExpression>0</DefaultExpression>
       <TypeId>700</TypeId>
     </column>
-    <index id="110" parent="54" name="resources_pkey">
+    <index id="109" parent="54" name="resources_pkey">
       <ObjectId>53393</ObjectId>
       <StateNumber>52036</StateNumber>
       <ColNames>pupil_id
@@ -1459,28 +1454,28 @@ event_id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
     </index>
-    <index id="111" parent="54" name="resources_event_id_paper_idx">
+    <index id="110" parent="54" name="resources_event_id_paper_idx">
       <ObjectId>53376</ObjectId>
       <StateNumber>52036</StateNumber>
       <ColNames>event_id
 paper</ColNames>
       <ReverseColNames>paper</ReverseColNames>
     </index>
-    <index id="112" parent="54" name="resources_event_id_plastic_idx">
+    <index id="111" parent="54" name="resources_event_id_plastic_idx">
       <ObjectId>53377</ObjectId>
       <StateNumber>52036</StateNumber>
       <ColNames>event_id
 plastic</ColNames>
       <ReverseColNames>plastic</ReverseColNames>
     </index>
-    <index id="113" parent="54" name="resources_event_id_gadgets_idx">
+    <index id="112" parent="54" name="resources_event_id_gadgets_idx">
       <ObjectId>53375</ObjectId>
       <StateNumber>52036</StateNumber>
       <ColNames>event_id
 gadgets</ColNames>
       <ReverseColNames>gadgets</ReverseColNames>
     </index>
-    <key id="114" parent="54" name="resources_pkey">
+    <key id="113" parent="54" name="resources_pkey">
       <ObjectId>53394</ObjectId>
       <StateNumber>52036</StateNumber>
       <ColNames>pupil_id
@@ -1488,7 +1483,7 @@ event_id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>resources_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="115" parent="54" name="resources_pupil_id_fkey">
+    <foreign-key id="114" parent="54" name="resources_pupil_id_fkey">
       <ObjectId>53395</ObjectId>
       <StateNumber>52036</StateNumber>
       <ColNames>pupil_id</ColNames>
@@ -1500,7 +1495,7 @@ event_id</ColNames>
       <OnDelete>cascade</OnDelete>
       <OnUpdate>cascade</OnUpdate>
     </foreign-key>
-    <foreign-key id="116" parent="54" name="resources_event_id_fkey">
+    <foreign-key id="115" parent="54" name="resources_event_id_fkey">
       <ObjectId>53378</ObjectId>
       <StateNumber>52033</StateNumber>
       <ColNames>event_id</ColNames>

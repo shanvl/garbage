@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	ErrDuplicateEmail         = errors.New("duplicate email")
 	ErrInactiveUser           = errors.New("inactive user")
 	ErrInvalidActivationToken = errors.New("invalid activation token")
 	ErrInvalidPassword        = errors.New("invalid password")

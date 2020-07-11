@@ -3,6 +3,8 @@ package users
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/shanvl/garbage/internal/authsvc"
@@ -147,6 +149,9 @@ func (s *service) CreateUser(ctx context.Context, email string) (string, string,
 	// store the user
 	err = s.repo.StoreUser(ctx, user)
 	if err != nil {
+		if errors.Is(err, authsvc.ErrDuplicateEmail) {
+			return "", "", valid.NewError("email", fmt.Sprintf("email %q is already taken", email))
+		}
 		return "", "", err
 	}
 	return userID, activationToken, nil

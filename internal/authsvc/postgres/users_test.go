@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -106,6 +107,14 @@ func TestRepository_StoreUser(t *testing.T) {
 		savedUser := userByID(t, u.ID)
 		if !reflect.DeepEqual(savedUser, u) {
 			t.Errorf("StoreUser() saved user == %+v, want == %+v", savedUser, u)
+		}
+	})
+	t.Run("duplicate email", func(t *testing.T) {
+		u.ID = "someotherid"
+		err := r.StoreUser(ctx, u)
+		defer deleteUserByID(t, u.ID)
+		if !errors.Is(err, authsvc.ErrDuplicateEmail) {
+			t.Errorf("StoreUser() error == %v, wantErr == authsvc.ErrDuplicateEmail", err)
 		}
 	})
 }

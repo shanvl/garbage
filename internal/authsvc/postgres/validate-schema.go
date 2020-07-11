@@ -25,7 +25,7 @@ create table if not exists users
     activationToken               varchar(50) primary key,
     active           bool        not null,
     activation_token text        not null,
-    email            varchar(50) not null unique,
+    email            varchar(50) not null,
     first_name       varchar(35) not null,
     last_name        varchar(35) not null,
     password_hash    text        not null,
@@ -34,6 +34,7 @@ create table if not exists users
                                                                          email)) stored
 );
 
+create unique index if not exists users_unique_lower_email_idx on users (lower(email));
 create index if not exists users_text_search_idx on users using gin (text_search);
 create index if not exists users_name_asc_index on users (last_name asc, first_name asc);
 create index if not exists users_name_desc_index on users (last_name desc, first_name desc);
