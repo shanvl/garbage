@@ -21,18 +21,18 @@ import (
 )
 
 type Server struct {
-	log      *zap.Logger
-	authent  authent.Service
-	authoriz authoriz.Service
-	users    users.Service
+	log         *zap.Logger
+	authentSvc  authent.Service
+	authorizSvc authoriz.Service
+	usersSvc    users.Service
 }
 
 func NewServer(authent authent.Service, authoriz authoriz.Service, users users.Service, log *zap.Logger) *Server {
 	server := &Server{
-		log:      log,
-		authent:  authent,
-		authoriz: authoriz,
-		users:    users,
+		log:         log,
+		authentSvc:  authent,
+		authorizSvc: authoriz,
+		usersSvc:    users,
 	}
 	return server
 }

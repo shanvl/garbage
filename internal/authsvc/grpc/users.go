@@ -9,7 +9,7 @@ import (
 
 // ActivateUser changes the active state of the user to active and populates it with the provided additional info
 func (s *Server) ActivateUser(ctx context.Context, req *authv1pb.ActivateUserRequest) (*empty.Empty, error) {
-	_, err := s.users.ActivateUser(ctx, req.GetActivationToken(), req.GetFirstName(), req.GetLastName(),
+	_, err := s.usersSvc.ActivateUser(ctx, req.GetActivationToken(), req.GetFirstName(), req.GetLastName(),
 		req.GetPassword())
 
 	if err != nil {
@@ -24,7 +24,7 @@ func (s *Server) ChangeUserRole(ctx context.Context, req *authv1pb.ChangeUserRol
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	err = s.users.ChangeUserRole(ctx, req.GetId(), role)
+	err = s.usersSvc.ChangeUserRole(ctx, req.GetId(), role)
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -36,7 +36,7 @@ func (s *Server) ChangeUserRole(ctx context.Context, req *authv1pb.ChangeUserRol
 func (s *Server) CreateUser(ctx context.Context, req *authv1pb.CreateUserRequest) (*authv1pb.CreateUserResponse,
 	error) {
 
-	userID, activationToken, err := s.users.CreateUser(ctx, req.GetEmail())
+	userID, activationToken, err := s.usersSvc.CreateUser(ctx, req.GetEmail())
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -46,7 +46,7 @@ func (s *Server) CreateUser(ctx context.Context, req *authv1pb.CreateUserRequest
 
 // DeleteUser deletes the user
 func (s *Server) DeleteUser(ctx context.Context, req *authv1pb.DeleteUserRequest) (*empty.Empty, error) {
-	err := s.users.DeleteUser(ctx, req.GetId())
+	err := s.usersSvc.DeleteUser(ctx, req.GetId())
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -55,7 +55,7 @@ func (s *Server) DeleteUser(ctx context.Context, req *authv1pb.DeleteUserRequest
 
 // FindUser returns the user with the specified id
 func (s *Server) FindUser(ctx context.Context, req *authv1pb.FindUserRequest) (*authv1pb.FindUserResponse, error) {
-	user, err := s.users.UserByID(ctx, req.GetId())
+	user, err := s.usersSvc.UserByID(ctx, req.GetId())
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -65,7 +65,7 @@ func (s *Server) FindUser(ctx context.Context, req *authv1pb.FindUserRequest) (*
 // FindUsers returns a sorted list of users
 // "nameAndEmail" may consist of any combination of the email, first name and last name parts
 func (s *Server) FindUsers(ctx context.Context, req *authv1pb.FindUsersRequest) (*authv1pb.FindUsersResponse, error) {
-	users, total, err := s.users.Users(
+	users, total, err := s.usersSvc.Users(
 		ctx,
 		req.GetNameAndEmail(),
 		protoUserSortingMap[req.GetSorting()],

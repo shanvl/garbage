@@ -63,7 +63,7 @@ func testMain(m *testing.M) int {
 	tokenManager = jwt.NewManagerRSA(30*time.Minute, 120*time.Hour, prKey, pubKey)
 	// create services
 	authentSvc := authent.NewService(authentRepo, tokenManager)
-	authorizSvc := authoriz.NewService(tokenManager, protectedRPC)
+	authorizSvc := authoriz.NewService(tokenManager, authoriz.ProtectedRPCMap())
 	usersSvc := users.NewService(usersRepo)
 	// logger
 	logger, err := zap.NewProduction()
@@ -74,9 +74,4 @@ func testMain(m *testing.M) int {
 	// create gRPC server
 	server = grpc.NewServer(authentSvc, authorizSvc, usersSvc, logger)
 	return m.Run()
-}
-
-var protectedRPC = map[string][]authsvc.Role{
-	"/shanvl.garbage.auth.v1.AuthService/ActivateUser": {authsvc.Admin, authsvc.Root},
-	"/shanvl.garbage.auth.v1.AuthService/Logout":       {authsvc.Admin, authsvc.Member, authsvc.Root},
 }

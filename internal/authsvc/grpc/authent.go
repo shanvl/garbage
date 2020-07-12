@@ -9,7 +9,7 @@ import (
 
 // Login generates, saves and returns auth credentials for the user if the given password and the email are correct
 func (s *Server) Login(ctx context.Context, req *authv1pb.LoginRequest) (*authv1pb.LoginResponse, error) {
-	user, creds, err := s.authent.Login(ctx, req.GetEmail(), req.GetPassword())
+	user, creds, err := s.authentSvc.Login(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -24,7 +24,7 @@ func (s *Server) Logout(ctx context.Context, _ *authv1pb.LogoutRequest) (*empty.
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	err = s.authent.Logout(ctx, claims.ClientID)
+	err = s.authentSvc.Logout(ctx, claims.ClientID)
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -38,7 +38,7 @@ func (s *Server) LogoutAllClients(ctx context.Context, _ *empty.Empty) (*empty.E
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	err = s.authent.LogoutAllClients(ctx, claims.Subject)
+	err = s.authentSvc.LogoutAllClients(ctx, claims.Subject)
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -49,7 +49,7 @@ func (s *Server) LogoutAllClients(ctx context.Context, _ *empty.Empty) (*empty.E
 func (s *Server) RefreshTokens(ctx context.Context, req *authv1pb.RefreshTokensRequest) (*authv1pb.
 	RefreshTokensResponse, error) {
 
-	creds, err := s.authent.RefreshTokens(ctx, req.GetRefreshToken())
+	creds, err := s.authentSvc.RefreshTokens(ctx, req.GetRefreshToken())
 	if err != nil {
 		return nil, s.handleError(err)
 	}

@@ -36,7 +36,7 @@ func (s *Server) authUnaryInterceptor() grpc.UnaryServerInterceptor {
 		}
 
 		// call the authorization service
-		claims, err := s.authoriz.Authorize(ctx, token, info.FullMethod)
+		claims, err := s.authorizSvc.Authorize(ctx, token, info.FullMethod)
 		if err != nil {
 			return nil, s.handleError(err)
 		}
@@ -65,7 +65,7 @@ func (s *Server) authStreamInterceptor() grpc.StreamServerInterceptor {
 		}
 
 		// call the authorization service
-		claims, err := s.authoriz.Authorize(stream.Context(), token, info.FullMethod)
+		claims, err := s.authorizSvc.Authorize(stream.Context(), token, info.FullMethod)
 		if err != nil {
 			return s.handleError(err)
 		}
