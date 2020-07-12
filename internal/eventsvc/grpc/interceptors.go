@@ -18,7 +18,8 @@ func (s *Server) handleRecovery(p interface{}) error {
 	return status.Error(codes.Internal, "internal server error")
 }
 
-// authUnaryInterceptor talks to the auth service to get the permission to access the rpc
+// authUnaryInterceptor talks to the auth service to get the permission to access the rpc and populates ctx with info
+// about the request
 func (s *Server) authUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -43,7 +44,8 @@ func (s *Server) authUnaryInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-// authServerInterceptor talks to the auth service to get the permission to access the rpc
+// authUnaryInterceptor talks to the auth service to get the permission to access the rpc and populates ctx with info
+// about the request
 func (s *Server) authStreamInterceptor() grpc.StreamServerInterceptor {
 	return func(
 		srv interface{},

@@ -18,7 +18,7 @@ import (
 const (
 	testInvalidToken = "invalid token"
 	testTimeout      = "timeout"
-	testUnauthorized = "unathorized"
+	testUnauthorized = "unauthorized"
 	testUnknown      = "testUnknown"
 	testUserID       = "some user id"
 )
@@ -136,43 +136,47 @@ func (t testAuthSvc) Authorize(_ context.Context, req *authv1pb.AuthorizeRequest
 	return &authv1pb.AuthorizeResponse{UserId: testUserID}, nil
 }
 
-func (t testAuthSvc) ActivateUser(ctx context.Context, request *authv1pb.ActivateUserRequest) (*empty.Empty, error) {
+func (t testAuthSvc) ActivateUser(_ context.Context, _ *authv1pb.ActivateUserRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) ChangeUserRole(ctx context.Context, request *authv1pb.ChangeUserRoleRequest) (*empty.Empty, error) {
+func (t testAuthSvc) ChangeUserRole(_ context.Context, _ *authv1pb.ChangeUserRoleRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) CreateUser(ctx context.Context, request *authv1pb.CreateUserRequest) (*authv1pb.CreateUserResponse, error) {
+func (t testAuthSvc) CreateUser(_ context.Context, _ *authv1pb.CreateUserRequest) (*authv1pb.
+	CreateUserResponse, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) DeleteUser(ctx context.Context, request *authv1pb.DeleteUserRequest) (*empty.Empty, error) {
+func (t testAuthSvc) DeleteUser(_ context.Context, _ *authv1pb.DeleteUserRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) FindUser(ctx context.Context, request *authv1pb.FindUserRequest) (*authv1pb.FindUserResponse, error) {
+func (t testAuthSvc) FindUser(_ context.Context, _ *authv1pb.FindUserRequest) (*authv1pb.FindUserResponse,
+	error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) FindUsers(ctx context.Context, request *authv1pb.FindUsersRequest) (*authv1pb.FindUsersResponse, error) {
+func (t testAuthSvc) FindUsers(_ context.Context, _ *authv1pb.FindUsersRequest) (*authv1pb.FindUsersResponse,
+	error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) Login(ctx context.Context, request *authv1pb.LoginRequest) (*authv1pb.LoginResponse, error) {
+func (t testAuthSvc) Login(_ context.Context, _ *authv1pb.LoginRequest) (*authv1pb.LoginResponse, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) Logout(ctx context.Context, request *authv1pb.LogoutRequest) (*empty.Empty, error) {
+func (t testAuthSvc) Logout(_ context.Context, _ *authv1pb.LogoutRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) LogoutAllClients(ctx context.Context, e *empty.Empty) (*empty.Empty, error) {
+func (t testAuthSvc) LogoutAllClients(_ context.Context, _ *empty.Empty) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) RefreshTokens(ctx context.Context, request *authv1pb.RefreshTokensRequest) (*authv1pb.RefreshTokensResponse, error) {
+func (t testAuthSvc) RefreshTokens(_ context.Context, _ *authv1pb.RefreshTokensRequest) (*authv1pb.
+	RefreshTokensResponse, error) {
 	return nil, nil
 }
 

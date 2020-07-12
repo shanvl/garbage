@@ -1,6 +1,7 @@
 package authoriz_test
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -27,7 +28,7 @@ func Test_service_Authorize(t *testing.T) {
 	s := authoriz.NewService(tm, protectedRPC)
 	type args struct {
 		accessToken string
-		rpcName     string
+		method      string
 	}
 	tests := []struct {
 		name       string
@@ -36,10 +37,28 @@ func Test_service_Authorize(t *testing.T) {
 		wantErr    bool
 	}{
 		{
+			name: "no token",
+			args: args{
+				accessToken: "",
+				method:      protectedRPCName,
+			},
+			wantClaims: nil,
+			wantErr:    true,
+		},
+		{
+			name: "no method",
+			args: args{
+				accessToken: "member",
+				method:      "",
+			},
+			wantClaims: nil,
+			wantErr:    true,
+		},
+		{
 			name: "invalid token",
 			args: args{
 				accessToken: invalidToken,
-				rpcName:     protectedRPCName,
+				method:      protectedRPCName,
 			},
 			wantClaims: nil,
 			wantErr:    true,
@@ -48,7 +67,7 @@ func Test_service_Authorize(t *testing.T) {
 			name: "invalid role",
 			args: args{
 				accessToken: "member",
-				rpcName:     protectedRPCName,
+				method:      protectedRPCName,
 			},
 			wantClaims: nil,
 			wantErr:    true,
@@ -57,7 +76,7 @@ func Test_service_Authorize(t *testing.T) {
 			name: "unprotected RPC",
 			args: args{
 				accessToken: "member",
-				rpcName:     "unprotected rpc",
+				method:      "unprotected rpc",
 			},
 			wantClaims: &authsvc.UserClaims{Role: "member"},
 			wantErr:    false,
@@ -66,7 +85,7 @@ func Test_service_Authorize(t *testing.T) {
 			name: "protected RPC admin",
 			args: args{
 				accessToken: "admin",
-				rpcName:     protectedRPCName,
+				method:      protectedRPCName,
 			},
 			wantClaims: &authsvc.UserClaims{Role: "admin"},
 			wantErr:    false,
@@ -75,7 +94,7 @@ func Test_service_Authorize(t *testing.T) {
 			name: "protected RPC root",
 			args: args{
 				accessToken: "root",
-				rpcName:     protectedRPCName,
+				method:      protectedRPCName,
 			},
 			wantClaims: &authsvc.UserClaims{Role: "root"},
 			wantErr:    false,
@@ -83,7 +102,7 @@ func Test_service_Authorize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.Authorize(tt.args.accessToken, tt.args.rpcName)
+			got, err := s.Authorize(context.Background(), tt.args.accessToken, tt.args.method)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Authorize() error = %v, wantErr %v", err, tt.wantErr)
 				return
