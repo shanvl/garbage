@@ -29,7 +29,7 @@ func testMain(m *testing.M) int {
 	// connect to the test db. Config values are hardcoded in order not to corrupt production db in case the wrong
 	// compose file is used
 	db, err := postgres.Connect(postgres.Config{
-		Host:            "db",
+		Host:            "eventsvc_db",
 		Database:        "testdb",
 		User:            "root",
 		Password:        "root",

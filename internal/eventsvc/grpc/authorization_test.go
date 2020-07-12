@@ -74,16 +74,18 @@ func TestAuthorization_Authorize(t *testing.T) {
 	authClient := newTestAuthClient(t, srvAddr)
 	authSvc := NewAuthService(authClient, 100*time.Millisecond)
 	for _, tt := range tests {
-		authClaims, err := authSvc.Authorize(context.Background(), tt.method, tt.token)
-		if err != nil && !errors.Is(err, tt.err) {
-			t.Errorf("Authorize() want err: %v, got: %v", tt.err, err)
-		}
-		if err != nil && tt.userID != "" {
-			t.Errorf("Authorize() err == %v, testUserID: %v", err, authClaims.UserID)
-		}
-		if err == nil && tt.userID != authClaims.UserID {
-			t.Errorf("Authorize() testUserID == %v, want: %v", authClaims.UserID, tt.userID)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			authClaims, err := authSvc.Authorize(context.Background(), tt.token, tt.method)
+			if err != nil && !errors.Is(err, tt.err) {
+				t.Errorf("Authorize() want err: %v, got: %v", tt.err, err)
+			}
+			if err != nil && tt.userID != "" {
+				t.Errorf("Authorize() err == %v, testUserID: %v", err, authClaims.UserID)
+			}
+			if err == nil && tt.userID != authClaims.UserID {
+				t.Errorf("Authorize() testUserID == %v, want: %v", authClaims.UserID, tt.userID)
+			}
+		})
 	}
 }
 
@@ -119,7 +121,6 @@ type testAuthSvc struct {
 
 func (t testAuthSvc) Authorize(_ context.Context, req *authv1pb.AuthorizeRequest) (*authv1pb.AuthorizeResponse,
 	error) {
-
 	if req.GetMethod() == testInvalidToken {
 		return nil, status.Error(codes.InvalidArgument, "invalid token")
 	}

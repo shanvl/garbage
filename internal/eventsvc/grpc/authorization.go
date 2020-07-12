@@ -52,7 +52,7 @@ func (a *authService) Authorize(ctx context.Context, token, method string) (*Aut
 			return nil, err
 		}
 	}
-	return &AuthClaims{UserID: resp.GetUserId()}, nil
+	return &AuthClaims{UserID: resp.GetUserId(), ClientID: resp.GetClientId()}, nil
 }
 
 // AuthClaims contain some info about the request
