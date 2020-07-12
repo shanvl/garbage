@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/shanvl/garbage/internal/eventsvc"
-	"github.com/shanvl/garbage/internal/eventsvc/idgen"
 	"github.com/shanvl/garbage/internal/eventsvc/sorting"
 	"github.com/shanvl/garbage/pkg/valid"
 )
@@ -131,9 +131,9 @@ func (s *service) CreateEvent(ctx context.Context, date time.Time, name string,
 		name = fmt.Sprintf("%02d-%02d-%d", day, month, year)
 	}
 	// generate eventID
-	id, err := idgen.CreateEventID()
+	id, err := gonanoid.Nanoid(14)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("couldn't generate event id: %w", err)
 	}
 	// create an event
 	event := &eventsvc.Event{

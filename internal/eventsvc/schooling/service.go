@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/shanvl/garbage/internal/eventsvc"
-	"github.com/shanvl/garbage/internal/eventsvc/idgen"
 	"github.com/shanvl/garbage/pkg/valid"
 )
 
@@ -85,9 +85,9 @@ func (s *service) AddPupils(ctx context.Context, pupilsBio []PupilBio) ([]string
 			continue
 		}
 		// create a pupil entity
-		pupilID, err := idgen.CreatePupilID()
+		pupilID, err := gonanoid.Nanoid(14)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("couldn't generate pupil id: %w", err)
 		}
 		p := &Pupil{
 			Pupil: eventsvc.Pupil{
