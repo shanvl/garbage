@@ -2,6 +2,7 @@
 package authoriz
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -13,7 +14,7 @@ var ErrUnauthorized = errors.New("unauthorized")
 // Service is responsible for authorization of the users' requests
 type Service interface {
 	// Authorize decides whether the user has access to the requested RPC
-	Authorize(accessToken, rpcName string) (*authsvc.UserClaims, error)
+	Authorize(ctx context.Context, accessToken, rpcName string) (*authsvc.UserClaims, error)
 }
 
 type service struct {
@@ -26,7 +27,7 @@ func NewService(tm authsvc.TokenManager, protectedRPC map[string][]authsvc.Role)
 }
 
 // Authorize decides whether the user has access to the requested RPC
-func (s *service) Authorize(accessToken, rpcName string) (*authsvc.UserClaims, error) {
+func (s *service) Authorize(_ context.Context, accessToken, rpcName string) (*authsvc.UserClaims, error) {
 	// verify the token and extract its claims
 	claims, err := s.tm.Verify(accessToken)
 	if err != nil {
