@@ -8,9 +8,9 @@ import (
 
 // Authorize decides whether the user has access to the requested RPC
 func (s *Server) Authorize(ctx context.Context, req *authv1pb.AuthorizeRequest) (*authv1pb.AuthorizeResponse, error) {
-	details, err := s.authoriz.Authorize(ctx, req.GetToken(), req.GetMethod())
+	claims, err := s.authoriz.Authorize(ctx, req.GetToken(), req.GetMethod())
 	if err != nil {
 		return nil, s.handleError(err)
 	}
-	return &authv1pb.AuthorizeResponse{UserId: details.Subject}, nil
+	return &authv1pb.AuthorizeResponse{UserId: claims.Subject, ClientId: claims.ClientID}, nil
 }

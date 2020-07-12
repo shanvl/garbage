@@ -39,14 +39,14 @@ func TestAuthorization_Authorize(t *testing.T) {
 			method: testInvalidToken,
 			token:  token,
 			userID: "",
-			err:    ErrInvalidToken,
+			err:    ErrInvalidAccessToken,
 		},
 		{
 			name:   "unauthorized",
 			method: testUnauthorized,
 			token:  token,
 			userID: "",
-			err:    ErrPermissionDenied,
+			err:    ErrUnauthorized,
 		},
 		{
 			name:   "unknown error",
@@ -74,15 +74,15 @@ func TestAuthorization_Authorize(t *testing.T) {
 	authClient := newTestAuthClient(t, srvAddr)
 	authSvc := NewAuthService(authClient, 100*time.Millisecond)
 	for _, tt := range tests {
-		userID, err := authSvc.Authorize(context.Background(), tt.method, tt.token)
+		authClaims, err := authSvc.Authorize(context.Background(), tt.method, tt.token)
 		if err != nil && !errors.Is(err, tt.err) {
 			t.Errorf("Authorize() want err: %v, got: %v", tt.err, err)
 		}
 		if err != nil && tt.userID != "" {
-			t.Errorf("Authorize() err == %v, testUserID: %v", err, userID)
+			t.Errorf("Authorize() err == %v, testUserID: %v", err, authClaims.UserID)
 		}
-		if err == nil && tt.userID != userID {
-			t.Errorf("Authorize() testUserID == %v, want: %v", userID, tt.userID)
+		if err == nil && tt.userID != authClaims.UserID {
+			t.Errorf("Authorize() testUserID == %v, want: %v", authClaims.UserID, tt.userID)
 		}
 	}
 }
@@ -99,7 +99,7 @@ func newTestAuthClient(t *testing.T, srvAddress string) authv1pb.AuthServiceClie
 func startTestAuthServer(t *testing.T) string {
 	t.Helper()
 	authServer := grpc.NewServer()
-	authv1pb.RegisterAuthServiceServer(authServer, newTestAuthSvc())
+	authv1pb.RegisterAuthServiceServer(authServer, newTestAuthServer())
 
 	l, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -110,7 +110,7 @@ func startTestAuthServer(t *testing.T) string {
 	return l.Addr().String()
 }
 
-func newTestAuthSvc() authv1pb.AuthServiceServer {
+func newTestAuthServer() authv1pb.AuthServiceServer {
 	return testAuthSvc{}
 }
 
@@ -136,31 +136,55 @@ func (t testAuthSvc) Authorize(_ context.Context, req *authv1pb.AuthorizeRequest
 	return &authv1pb.AuthorizeResponse{UserId: testUserID}, nil
 }
 
-func (t testAuthSvc) ActivateUser(_ context.Context, _ *authv1pb.ActivateUserRequest) (*empty.Empty, error) {
+func (t testAuthSvc) ActivateUser(ctx context.Context, request *authv1pb.ActivateUserRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) ChangeUserRole(_ context.Context, _ *authv1pb.ChangeUserRoleRequest) (*empty.Empty, error) {
+func (t testAuthSvc) ChangeUserRole(ctx context.Context, request *authv1pb.ChangeUserRoleRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) CreateUser(_ context.Context, _ *authv1pb.CreateUserRequest) (*authv1pb.
-	CreateUserResponse, error) {
+func (t testAuthSvc) CreateUser(ctx context.Context, request *authv1pb.CreateUserRequest) (*authv1pb.CreateUserResponse, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) DeleteUser(_ context.Context, _ *authv1pb.DeleteUserRequest) (*empty.Empty, error) {
+func (t testAuthSvc) DeleteUser(ctx context.Context, request *authv1pb.DeleteUserRequest) (*empty.Empty, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) Login(_ context.Context, _ *authv1pb.LoginRequest) (*authv1pb.LoginResponse, error) {
+func (t testAuthSvc) FindUser(ctx context.Context, request *authv1pb.FindUserRequest) (*authv1pb.FindUserResponse, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) Logout(_ context.Context, _ *authv1pb.LogoutRequest) (*empty.Empty, error) {
+func (t testAuthSvc) FindUsers(ctx context.Context, request *authv1pb.FindUsersRequest) (*authv1pb.FindUsersResponse, error) {
 	return nil, nil
 }
 
-func (t testAuthSvc) LogoutAllClients(_ context.Context, _ *empty.Empty) (*empty.Empty, error) {
+func (t testAuthSvc) Login(ctx context.Context, request *authv1pb.LoginRequest) (*authv1pb.LoginResponse, error) {
 	return nil, nil
+}
+
+func (t testAuthSvc) Logout(ctx context.Context, request *authv1pb.LogoutRequest) (*empty.Empty, error) {
+	return nil, nil
+}
+
+func (t testAuthSvc) LogoutAllClients(ctx context.Context, e *empty.Empty) (*empty.Empty, error) {
+	return nil, nil
+}
+
+func (t testAuthSvc) RefreshTokens(ctx context.Context, request *authv1pb.RefreshTokensRequest) (*authv1pb.RefreshTokensResponse, error) {
+	return nil, nil
+}
+
+func newTestAuthService() AuthorizationService {
+	return &testAuthService{}
+}
+
+type testAuthService struct{}
+
+func (t testAuthService) Authorize(_ context.Context, _, _ string) (*AuthClaims, error) {
+	return &AuthClaims{
+		ClientID: "clientid",
+		UserID:   "userid",
+	}, nil
 }

@@ -106,7 +106,8 @@ message AuthorizeRequest {
 }
 
 message AuthorizeResponse {
-    string user_id = 1;
+    string client_id = 1;
+    string user_id = 2;
 }
 
 message ChangeUserRoleRequest {

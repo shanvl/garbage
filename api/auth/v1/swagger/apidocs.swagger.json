@@ -400,6 +400,9 @@
     "v1AuthorizeResponse": {
       "type": "object",
       "properties": {
+        "clientId": {
+          "type": "string"
+        },
         "userId": {
           "type": "string"
         }

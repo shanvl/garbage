@@ -65,12 +65,13 @@ func testMain(m *testing.M) int {
 	authentSvc := authent.NewService(authentRepo, tokenManager)
 	authorizSvc := authoriz.NewService(tokenManager, map[string][]authsvc.Role{})
 	usersSvc := users.NewService(usersRepo)
-	// create gRPC server
+	// logger
 	logger, err := zap.NewProduction()
 	if err != nil {
 		log.Print(err)
 		return 1
 	}
+	// create gRPC server
 	server = grpc.NewServer(authentSvc, authorizSvc, usersSvc, logger)
 	return m.Run()
 }

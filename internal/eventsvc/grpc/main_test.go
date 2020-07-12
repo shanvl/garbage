@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	"context"
 	"log"
 	"os"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	"github.com/shanvl/garbage/internal/eventsvc/eventing"
 	"github.com/shanvl/garbage/internal/eventsvc/postgres"
 	"github.com/shanvl/garbage/internal/eventsvc/schooling"
+	"go.uber.org/zap"
 )
 
 var (
@@ -52,17 +52,13 @@ func testMain(m *testing.M) int {
 	aggregatingService := aggregating.NewService(aggregatingRepo)
 	eventingService := eventing.NewService(eventingRepo)
 	schoolingService := schooling.NewService(schoolingRepo)
+	// logger
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Print(err)
+		return 1
+	}
 	// create gRPC server
-	server = NewServer(authService, aggregatingService, eventingService, schoolingService, nil)
+	server = NewServer(authService, aggregatingService, eventingService, schoolingService, logger)
 	return m.Run()
-}
-
-func newTestAuthService() AuthorizationService {
-	return &testAuthService{}
-}
-
-type testAuthService struct{}
-
-func (t testAuthService) Authorize(_ context.Context, _, _ string) (string, error) {
-	return "", nil
 }

@@ -11,12 +11,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var ErrInvalidToken = errors.New("invalid token")
-var ErrPermissionDenied = errors.New("no permission to access this RPC")
+var ErrInvalidAccessToken = errors.New("invalid token")
+var ErrUnauthorized = errors.New("no permission to access this RPC")
 
 // AuthorizationService is used to determine whether the user has access to the requested RPC
 type AuthorizationService interface {
-	Authorize(ctx context.Context, method, token string) (string, error)
+	Authorize(ctx context.Context, token, method string) (*AuthClaims, error)
 }
 
 // authService is an implementation of AuthorizationService which uses a gRPC client to call separate auth server
@@ -33,7 +33,7 @@ func NewAuthService(pbAuthSvc authv1pb.AuthServiceClient, timeout time.Duration)
 
 // Authorize requests the permission to use one of the eventsvc methods and returns the user's id if it gets the
 // permission
-func (a *authService) Authorize(ctx context.Context, method, token string) (string, error) {
+func (a *authService) Authorize(ctx context.Context, token, method string) (*AuthClaims, error) {
 	ctxWithDeadline, cancel := context.WithDeadline(ctx, time.Now().Add(a.timeout))
 	defer cancel()
 
@@ -45,12 +45,18 @@ func (a *authService) Authorize(ctx context.Context, method, token string) (stri
 		grpcErr := status.Convert(err)
 		switch grpcErr.Code() {
 		case codes.PermissionDenied:
-			return "", fmt.Errorf("%w: %v", ErrPermissionDenied, grpcErr.Message())
+			return nil, fmt.Errorf("%w: %v", ErrUnauthorized, grpcErr.Message())
 		case codes.InvalidArgument:
-			return "", fmt.Errorf("%w: %v", ErrInvalidToken, grpcErr.Message())
+			return nil, fmt.Errorf("%w: %v", ErrInvalidAccessToken, grpcErr.Message())
 		default:
-			return "", err
+			return nil, err
 		}
 	}
-	return resp.GetUserId(), nil
+	return &AuthClaims{UserID: resp.GetUserId()}, nil
+}
+
+// AuthClaims contain some info about the request
+type AuthClaims struct {
+	ClientID string
+	UserID   string
 }

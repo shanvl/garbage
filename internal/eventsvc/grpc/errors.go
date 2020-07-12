@@ -37,6 +37,10 @@ func (s *Server) handleError(err error) error {
 		fallthrough
 	case errors.Is(err, eventsvc.ErrUnknownEvent):
 		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, ErrInvalidAccessToken):
+		return status.Error(codes.Unauthenticated, err.Error())
+	case errors.Is(err, ErrUnauthorized):
+		return status.Error(codes.PermissionDenied, err.Error())
 	default:
 		s.log.Error("internal error", zap.Error(err))
 		return status.Error(codes.Internal, "internal svc error")
