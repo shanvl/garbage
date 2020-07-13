@@ -109,7 +109,7 @@ type TokenManager struct {
 	GenerateFn      func(tokenType authsvc.TokenType, clientID, userID string, role authsvc.Role) (string, error)
 	GenerateInvoked bool
 
-	VerifyFn      func(token string) (*authsvc.UserClaims, error)
+	VerifyFn      func(token string) (authsvc.UserClaims, error)
 	VerifyInvoked bool
 }
 
@@ -118,7 +118,7 @@ func (t *TokenManager) Generate(tokenType authsvc.TokenType, clientID, userID st
 	return t.GenerateFn(tokenType, clientID, userID, role)
 }
 
-func (t *TokenManager) Verify(token string) (*authsvc.UserClaims, error) {
+func (t *TokenManager) Verify(token string) (authsvc.UserClaims, error) {
 	t.VerifyInvoked = true
 	return t.VerifyFn(token)
 }

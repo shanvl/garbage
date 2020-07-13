@@ -29,13 +29,10 @@ func (s *Server) authUnaryInterceptor() grpc.UnaryServerInterceptor {
 	) (interface{}, error) {
 
 		// get access token from auth header
-		token, err := getAccessTokenFromAuthHeader(ctx, "bearer")
-		if err != nil {
-			return nil, s.handleError(err)
-		}
+		token := getAccessTokenFromAuthHeader(ctx, "bearer")
 
 		// call the authorization service
-		_, err = s.authSvc.Authorize(ctx, token, info.FullMethod)
+		_, err := s.authSvc.Authorize(ctx, token, info.FullMethod)
 		if err != nil {
 			return nil, s.handleError(err)
 		}
@@ -55,10 +52,7 @@ func (s *Server) authStreamInterceptor() grpc.StreamServerInterceptor {
 	) error {
 
 		// get access token from auth header
-		token, err := getAccessTokenFromAuthHeader(stream.Context(), "bearer")
-		if err != nil {
-			return s.handleError(err)
-		}
+		token := getAccessTokenFromAuthHeader(stream.Context(), "bearer")
 
 		// call the authorization service
 		claims, err := s.authSvc.Authorize(stream.Context(), token, info.FullMethod)
@@ -92,23 +86,23 @@ func newStreamWithAuthCtx(claims *AuthClaims, s grpc.ServerStream) grpc.ServerSt
 }
 
 // getAccessTokenFromAuthHeader extracts an access token from the ctx
-func getAccessTokenFromAuthHeader(ctx context.Context, scheme string) (string, error) {
+func getAccessTokenFromAuthHeader(ctx context.Context, scheme string) string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return "", ErrInvalidAccessToken
+		return ""
 	}
 	authHeader := md["authorization"]
 	if len(authHeader) < 1 {
-		return "", ErrInvalidAccessToken
+		return ""
 	}
 	splits := strings.SplitN(authHeader[0], " ", 2)
 	if len(splits) < 2 {
-		return "", ErrInvalidAccessToken
+		return ""
 	}
 	if !strings.EqualFold(splits[0], scheme) {
-		return "", ErrInvalidAccessToken
+		return ""
 	}
-	return splits[1], nil
+	return splits[1]
 }
 
 const AuthCtxKey = "auth"

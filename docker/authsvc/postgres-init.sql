@@ -42,6 +42,10 @@ create table if not exists clients
 
 create index if not exists clients_user_id_idx on clients (user_id);
 
+-- add root user with email "root@garbage.com" and password "rootpassword"
+insert into users (id, active, activation_token, email, first_name, last_name, password_hash, role)
+values ('rootid', true, '', 'root@garbage.com', 'root', 'root', '$2a$10$BqGMeC9yDpQWFChaq2vDpOXpsvMYG9Z9CABChI9XLeq' ||
+                                                                '.4a3wcerMC', 'root');
 -- populate users
 insert into users (id, first_name, last_name, email, role, active, activation_token, password_hash)
 values ('fb670cf2-9461-4568-990c-e9cf322f182f', 'Giralda', 'Brognot', 'gbrognot0@printfriendly.com', 'admin', true, '',

@@ -30,10 +30,7 @@ func (s *Server) authUnaryInterceptor() grpc.UnaryServerInterceptor {
 	) (interface{}, error) {
 
 		// get access token from auth header
-		token, err := getAccessTokenFromAuthHeader(ctx, "bearer")
-		if err != nil {
-			return nil, s.handleError(err)
-		}
+		token := getAccessTokenFromAuthHeader(ctx, "bearer")
 
 		// call the authorization service
 		claims, err := s.authorizSvc.Authorize(ctx, token, info.FullMethod)
@@ -59,10 +56,7 @@ func (s *Server) authStreamInterceptor() grpc.StreamServerInterceptor {
 	) error {
 
 		// get access token from auth header
-		token, err := getAccessTokenFromAuthHeader(stream.Context(), "bearer")
-		if err != nil {
-			return s.handleError(err)
-		}
+		token := getAccessTokenFromAuthHeader(stream.Context(), "bearer")
 
 		// call the authorization service
 		claims, err := s.authorizSvc.Authorize(stream.Context(), token, info.FullMethod)
@@ -79,7 +73,7 @@ func (s *Server) authStreamInterceptor() grpc.StreamServerInterceptor {
 
 // ServerStream wrapper used in adding auth claims to ctx
 type streamWithAuthCtx struct {
-	claims *authsvc.UserClaims
+	claims authsvc.UserClaims
 	grpc.ServerStream
 }
 
@@ -88,7 +82,7 @@ func (s *streamWithAuthCtx) Context() context.Context {
 	return authClaimsToCtx(s.ServerStream.Context(), s.claims)
 }
 
-func newStreamWithAuthCtx(claims *authsvc.UserClaims, s grpc.ServerStream) grpc.ServerStream {
+func newStreamWithAuthCtx(claims authsvc.UserClaims, s grpc.ServerStream) grpc.ServerStream {
 	return &streamWithAuthCtx{
 		claims:       claims,
 		ServerStream: s,
@@ -96,37 +90,37 @@ func newStreamWithAuthCtx(claims *authsvc.UserClaims, s grpc.ServerStream) grpc.
 }
 
 // getAccessTokenFromAuthHeader extracts an access token from the ctx
-func getAccessTokenFromAuthHeader(ctx context.Context, scheme string) (string, error) {
+func getAccessTokenFromAuthHeader(ctx context.Context, scheme string) string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return "", authsvc.ErrInvalidAccessToken
+		return ""
 	}
 	authHeader := md["authorization"]
 	if len(authHeader) < 1 {
-		return "", authsvc.ErrInvalidAccessToken
+		return ""
 	}
 	splits := strings.SplitN(authHeader[0], " ", 2)
 	if len(splits) < 2 {
-		return "", authsvc.ErrInvalidAccessToken
+		return ""
 	}
 	if !strings.EqualFold(splits[0], scheme) {
-		return "", authsvc.ErrInvalidAccessToken
+		return ""
 	}
-	return splits[1], nil
+	return splits[1]
 }
 
 const AuthCtxKey = "auth"
 
 // authClaimsFromCtx extracts auth claims from ctx
-func authClaimsFromCtx(ctx context.Context) (*authsvc.UserClaims, error) {
-	creds, ok := ctx.Value(AuthCtxKey).(*authsvc.UserClaims)
+func authClaimsFromCtx(ctx context.Context) (authsvc.UserClaims, error) {
+	creds, ok := ctx.Value(AuthCtxKey).(authsvc.UserClaims)
 	if !ok {
-		return nil, errors.New("no auth claims in ctx")
+		return authsvc.UserClaims{}, errors.New("no auth claims in ctx")
 	}
 	return creds, nil
 }
 
 // authClaimsToCtx adds auth claims to ctx
-func authClaimsToCtx(ctx context.Context, claims *authsvc.UserClaims) context.Context {
+func authClaimsToCtx(ctx context.Context, claims authsvc.UserClaims) context.Context {
 	return context.WithValue(ctx, AuthCtxKey, claims)
 }

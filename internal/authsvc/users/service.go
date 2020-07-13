@@ -60,7 +60,7 @@ func (s *service) ActivateUser(ctx context.Context, activationToken, firstName, 
 	// validate the arguments
 	validErr := valid.EmptyError()
 	if activationToken == "" {
-		validErr.Add("activation token", "activation token is required")
+		validErr.Add("activationToken", "activation token is required")
 	}
 	if firstName == "" {
 		validErr.Add("firstName", "first name is required")

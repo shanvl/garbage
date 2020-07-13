@@ -10,17 +10,16 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/log/zapadapter"
-	authv1pb "github.com/shanvl/garbage/api/auth/v1/pb"
-	"github.com/shanvl/garbage/internal/eventsvc/aggregating"
-	"github.com/shanvl/garbage/internal/eventsvc/eventing"
-	"github.com/shanvl/garbage/internal/eventsvc/grpc"
-	"github.com/shanvl/garbage/internal/eventsvc/postgres"
-	"github.com/shanvl/garbage/internal/eventsvc/rest"
-	"github.com/shanvl/garbage/internal/eventsvc/schooling"
+	"github.com/shanvl/garbage/internal/authsvc/authent"
+	"github.com/shanvl/garbage/internal/authsvc/authoriz"
+	"github.com/shanvl/garbage/internal/authsvc/grpc"
+	"github.com/shanvl/garbage/internal/authsvc/jwt"
+	"github.com/shanvl/garbage/internal/authsvc/postgres"
+	"github.com/shanvl/garbage/internal/authsvc/rest"
+	"github.com/shanvl/garbage/internal/authsvc/users"
 	"github.com/shanvl/garbage/pkg/env"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	goGRPC "google.golang.org/grpc"
 )
 
 func main() {
@@ -41,7 +40,7 @@ func main() {
 	}
 	// create postgres connection pool
 	postgresConf := postgres.Config{
-		Database:             env.String("POSTGRES_DB", "garbage1"),
+		Database:             env.String("POSTGRES_DB", "authsvc"),
 		Host:                 env.String("POSTGRES_HOST", "localhost"),
 		User:                 env.String("POSTGRES_USER", "jynweythek223"),
 		Password:             env.String("POSTGRES_PASSWORD", "postgres"),
@@ -66,26 +65,29 @@ func main() {
 	}
 
 	// create repos
-	aggregatingRepo := postgres.NewAggregatingRepo(postgresPool)
-	eventingRepo := postgres.NewEventingRepo(postgresPool)
-	schoolingRepo := postgres.NewSchoolingRepo(postgresPool)
+	authentRepo := postgres.NewAuthentRepo(postgresPool)
+	usersRepo := postgres.NewUsersRepo(postgresPool)
 
-	// get conn to auth server and create its client
-	authSrvAddr := env.String("GRPC_AUTH_SERVICE_ADDR", "")
-	cc, err := goGRPC.Dial(authSrvAddr, goGRPC.WithInsecure())
+	// get private and public keys for the token manager
+	privateKeyPath := env.String("RSA_PRIVATE_KEY_PATH", "./internal/authsvc/jwt/keys_test/test.rsa")
+	publicKeyPath := env.String("RSA_PUBLIC_KEY_PATH", "./internal/authsvc/jwt/keys_test/test.rsa.pub")
+	privateKey, err := jwt.PrivateKeyFromFile(privateKeyPath)
 	if err != nil {
-		logger.Fatal("auth server connection error", zap.Error(err), zap.String("addr", authSrvAddr))
+		logger.Fatal("couldn't load private key for the token manager", zap.Error(err))
 	}
-	authClient := authv1pb.NewAuthServiceClient(cc)
+	publicKey, err := jwt.PublicKeyFromFile(publicKeyPath)
+	if err != nil {
+		logger.Fatal("couldn't load public key for the token manager", zap.Error(err))
+	}
 
 	// create services
-	authSvcTimeout := env.Duration("GRPC_AUTH_SERVICE_TIMEOUT", 500*time.Millisecond)
-	authorizationService := grpc.NewAuthService(authClient, authSvcTimeout)
-	aggregatingService := aggregating.NewService(aggregatingRepo)
-	eventingService := eventing.NewService(eventingRepo)
-	schoolingService := schooling.NewService(schoolingRepo)
+	tokenManager := jwt.NewManagerRSA(env.Duration("ACCESS_TOKEN_DURATION", 30*time.Minute),
+		env.Duration("REFRESH_TOKEN_DURATION", 720*time.Hour), privateKey, publicKey)
+	authentSvc := authent.NewService(authentRepo, tokenManager)
+	authorizSvc := authoriz.NewService(tokenManager, authoriz.ProtectedRPCMap())
+	usersSvc := users.NewService(usersRepo)
 
-	grpcPort, restPort := env.Int("GRPC_PORT", 3000), env.Int("REST_PORT", 4000)
+	grpcPort, restPort := env.Int("GRPC_PORT", 3001), env.Int("REST_PORT", 4001)
 	// run REST gateway
 	go func() {
 		if err := rest.NewServer(logger).Run(restPort, fmt.Sprintf(":%d", grpcPort)); err != nil && !errors.Is(err,
@@ -99,14 +101,7 @@ func main() {
 		}
 	}()
 	// run gRPC server
-	if err := grpc.NewServer(
-		authorizationService,
-		aggregatingService,
-		eventingService,
-		schoolingService,
-		logger,
-	).Run(grpcPort); err != nil {
-
+	if err := grpc.NewServer(authentSvc, authorizSvc, usersSvc, logger).Run(grpcPort); err != nil {
 		logger.Fatal("gRPC server error",
 			zap.Error(err),
 			zap.Int("port", grpcPort),

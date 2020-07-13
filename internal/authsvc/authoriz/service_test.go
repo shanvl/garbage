@@ -19,11 +19,11 @@ func Test_service_Authorize(t *testing.T) {
 		protectedRPCName: {authsvc.Root, authsvc.Admin},
 	}
 	tm := &mock.TokenManager{}
-	tm.VerifyFn = func(token string) (*authsvc.UserClaims, error) {
+	tm.VerifyFn = func(token string) (authsvc.UserClaims, error) {
 		if token == invalidToken {
-			return nil, errors.New("error")
+			return authsvc.UserClaims{}, errors.New("error")
 		}
-		return &authsvc.UserClaims{Role: token}, nil
+		return authsvc.UserClaims{Role: token}, nil
 	}
 	s := authoriz.NewService(tm, protectedRPC)
 	type args struct {
@@ -33,7 +33,7 @@ func Test_service_Authorize(t *testing.T) {
 	tests := []struct {
 		name       string
 		args       args
-		wantClaims *authsvc.UserClaims
+		wantClaims authsvc.UserClaims
 		wantErr    bool
 	}{
 		{
@@ -42,7 +42,7 @@ func Test_service_Authorize(t *testing.T) {
 				accessToken: "",
 				method:      protectedRPCName,
 			},
-			wantClaims: nil,
+			wantClaims: authsvc.UserClaims{},
 			wantErr:    true,
 		},
 		{
@@ -51,7 +51,7 @@ func Test_service_Authorize(t *testing.T) {
 				accessToken: "member",
 				method:      "",
 			},
-			wantClaims: nil,
+			wantClaims: authsvc.UserClaims{},
 			wantErr:    true,
 		},
 		{
@@ -60,7 +60,7 @@ func Test_service_Authorize(t *testing.T) {
 				accessToken: invalidToken,
 				method:      protectedRPCName,
 			},
-			wantClaims: nil,
+			wantClaims: authsvc.UserClaims{},
 			wantErr:    true,
 		},
 		{
@@ -69,7 +69,7 @@ func Test_service_Authorize(t *testing.T) {
 				accessToken: "member",
 				method:      protectedRPCName,
 			},
-			wantClaims: nil,
+			wantClaims: authsvc.UserClaims{},
 			wantErr:    true,
 		},
 		{
@@ -78,7 +78,7 @@ func Test_service_Authorize(t *testing.T) {
 				accessToken: "member",
 				method:      "unprotected rpc",
 			},
-			wantClaims: &authsvc.UserClaims{Role: "member"},
+			wantClaims: authsvc.UserClaims{},
 			wantErr:    false,
 		},
 		{
@@ -87,7 +87,7 @@ func Test_service_Authorize(t *testing.T) {
 				accessToken: "admin",
 				method:      protectedRPCName,
 			},
-			wantClaims: &authsvc.UserClaims{Role: "admin"},
+			wantClaims: authsvc.UserClaims{Role: "admin"},
 			wantErr:    false,
 		},
 		{
@@ -96,7 +96,7 @@ func Test_service_Authorize(t *testing.T) {
 				accessToken: "root",
 				method:      protectedRPCName,
 			},
-			wantClaims: &authsvc.UserClaims{Role: "root"},
+			wantClaims: authsvc.UserClaims{Role: "root"},
 			wantErr:    false,
 		},
 	}

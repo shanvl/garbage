@@ -60,21 +60,24 @@ func (m *managerRSA) Generate(tokenType authsvc.TokenType, clientID, userID stri
 }
 
 // Verify verifies jwt
-func (m *managerRSA) Verify(token string) (*authsvc.UserClaims, error) {
+func (m *managerRSA) Verify(token string) (authsvc.UserClaims, error) {
+	if token == "" {
+		return authsvc.UserClaims{}, errors.New("no token has been provided")
+	}
 	t, err := jwt.ParseWithClaims(token, &authsvc.UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodRSA)
 		if !ok {
-			return nil, errors.New("unexpected signing algorithm")
+			return authsvc.UserClaims{}, errors.New("unexpected signing algorithm")
 		}
 		return m.publicKey, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("invalid token: %w", err)
+		return authsvc.UserClaims{}, fmt.Errorf("invalid token: %w", err)
 	}
 
 	claims, ok := t.Claims.(*authsvc.UserClaims)
 	if !ok {
-		return nil, errors.New("invalid claims")
+		return authsvc.UserClaims{}, errors.New("invalid claims")
 	}
-	return claims, nil
+	return *claims, nil
 }

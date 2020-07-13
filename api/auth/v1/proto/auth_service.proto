@@ -78,7 +78,8 @@ service AuthService {
     }
     rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/v1/me/clients/{client_id}"
+            post: "/v1/me/clients/{client_id}"
+            body: "*"
         };
     }
     rpc LogoutAllClients (google.protobuf.Empty) returns (google.protobuf.Empty) {
@@ -89,6 +90,7 @@ service AuthService {
     rpc RefreshTokens (RefreshTokensRequest) returns (RefreshTokensResponse) {
         option (google.api.http) = {
             put: "/v1/me/clients/{client_id}"
+            body: "*"
         };
     }
 }

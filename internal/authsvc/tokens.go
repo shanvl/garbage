@@ -15,7 +15,7 @@ var (
 // TokenManager is used for generation and verification of tokens
 type TokenManager interface {
 	Generate(tokenType TokenType, clientID, userID string, role Role) (string, error)
-	Verify(token string) (*UserClaims, error)
+	Verify(token string) (UserClaims, error)
 }
 
 // TokenType is a type of token. There are two token types: refresh tokens and access tokens.

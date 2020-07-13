@@ -15,7 +15,7 @@ var ErrUnauthorized = errors.New("unauthorized")
 // Service is responsible for authorization of the users' requests
 type Service interface {
 	// Authorize decides whether the user has access to the requested RPC
-	Authorize(ctx context.Context, accessToken, method string) (*authsvc.UserClaims, error)
+	Authorize(ctx context.Context, accessToken, method string) (authsvc.UserClaims, error)
 }
 
 type service struct {
@@ -28,30 +28,26 @@ func NewService(tm authsvc.TokenManager, protectedRPC map[string][]authsvc.Role)
 }
 
 // Authorize decides whether the user has access to the requested RPC
-func (s *service) Authorize(_ context.Context, accessToken, method string) (*authsvc.UserClaims, error) {
+func (s *service) Authorize(_ context.Context, accessToken, method string) (authsvc.UserClaims, error) {
 	// validate the arguments
-	errValid := valid.EmptyError()
-	if accessToken == "" {
-		errValid.Add("accessToken", "access token is required")
-	}
 	if method == "" {
-		errValid.Add("method", "method is required")
+		return authsvc.UserClaims{}, valid.NewError("method", "method is required")
 	}
-	if !errValid.IsEmpty() {
-		return nil, errValid
+	// if the method is not protected, it doesn't need an access token. A method isn't protected if it isn't in the map
+	if _, ok := s.protectedRPC[method]; !ok {
+		return authsvc.UserClaims{}, nil
 	}
 	// verify the token and extract its claims
 	claims, err := s.tm.Verify(accessToken)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", authsvc.ErrInvalidAccessToken, err)
+		return authsvc.UserClaims{}, fmt.Errorf("%w: %v", authsvc.ErrInvalidAccessToken, err)
 	}
 	// convert string role from the claims to authsvc.Role
 	role, err := authsvc.StringToRole(claims.Role)
 	if err != nil {
-		return nil, fmt.Errorf("%w: invalid role: %s: %v", authsvc.ErrInvalidAccessToken, role, err)
+		return authsvc.UserClaims{}, fmt.Errorf("%w: invalid role: %s: %v", authsvc.ErrInvalidAccessToken, role, err)
 	}
-	// check whether the requested RPC is protected and if so, whether the user's role has access to it.
-	// If RPC is not in the map, it means that everyone can access it
+	// check whether the user's role has access to the method
 	roles, ok := s.protectedRPC[method]
 	if ok {
 		for _, r := range roles {
@@ -59,7 +55,7 @@ func (s *service) Authorize(_ context.Context, accessToken, method string) (*aut
 				return claims, nil
 			}
 		}
-		return nil, ErrUnauthorized
+		return authsvc.UserClaims{}, ErrUnauthorized
 	}
 	return claims, nil
 }
@@ -70,7 +66,6 @@ func ProtectedRPCMap() map[string][]authsvc.Role {
 	const authSvcPrefix = "/shanvl.garbage.auth.v1.AuthService/"
 	const eventSvcPrefix = "/shanvl.garbage.events.v1.EventsService/"
 	return map[string][]authsvc.Role{
-		authSvcPrefix + "ActivateUser":          {authsvc.Admin, authsvc.Root},
 		authSvcPrefix + "ChangeUserRole":        {authsvc.Admin, authsvc.Root},
 		authSvcPrefix + "CreateUser":            {authsvc.Admin, authsvc.Root},
 		authSvcPrefix + "DeleteUser":            {authsvc.Admin, authsvc.Root},

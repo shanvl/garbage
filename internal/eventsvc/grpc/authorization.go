@@ -41,12 +41,15 @@ func (a *authService) Authorize(ctx context.Context, token, method string) (*Aut
 		Method: method,
 		Token:  token,
 	})
+	// convert gRPC specific errors to domain errors
 	if err != nil {
 		grpcErr := status.Convert(err)
 		switch grpcErr.Code() {
 		case codes.PermissionDenied:
 			return nil, fmt.Errorf("%w: %v", ErrUnauthorized, grpcErr.Message())
 		case codes.InvalidArgument:
+			fallthrough
+		case codes.Unauthenticated:
 			return nil, fmt.Errorf("%w: %v", ErrInvalidAccessToken, grpcErr.Message())
 		default:
 			return nil, err
