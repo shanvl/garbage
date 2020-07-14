@@ -1,4 +1,30 @@
-Garbage events service
-======================
+#### TODO:
 
-This is a core service of Garbage app, responsible for event and pupil management
+- [ ] notification service powered by NATS/RabbitMQ
+- [ ] kubernetes
+
+О проекте
+---------
+Garbage
+ — это бекенд для приложения по проведению событий по сбору вторсырья в школе. На данный момент состоит из сервиса 
+менеджмента событий и сервиса аутентификации/авторизации. Сервис уведомлений в разработке.
+
+Между собой сервисы взаимодействуют по `gRPC`, с остальными по `gRPC` и `REST` через `nginx`.
+
+Структура
+---------
+Я старался следовать заветам [golang-standards/package-layout](https://github.com/golang-standards/project-layout
+) с поправкой на небольшой размер проекта.
+
+
+- Каждый сервис полностью автономен и находится в своей директории в `internal`
+    - В основе сервисов мимикрия под Onion/Hex Architecture и соответственно 3 слоя: network, domain
+    и persistence, связанных между собой интерфейсами. В domain
+     слое пакеты названы по их юзкейсам, в остальных по зависимостям (postgres, grpc)
+- Общие библиотеки в `pkg`
+- `proto` и `swagger` для каждого из сервисов в соответствующих директориях в `api`
+- Волшебство превращения в бинарники в `cmd`
+
+Запуск
+------
+`make up`

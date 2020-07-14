@@ -18,6 +18,7 @@
       <w>grpc</w>
       <w>idgen</w>
       <w>marshaler</w>
+      <w>nats</w>
       <w>openapiv</w>
       <w>pgtextsearch</w>
       <w>protoc</w>
