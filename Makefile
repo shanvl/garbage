@@ -14,9 +14,6 @@ test:
 	docker-compose -f ./docker/docker-compose.test.yml up --build --abort-on-container-exit -V
 	docker-compose -f ./docker/docker-compose.test.yml down --volumes
 
-db-only-down:
-	docker-compose -f ./docker/docker-compose.test.yml down --volumes
-
 build-authsvc:
 	GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build \
 		-o bin/authsvc ./cmd/authsvc
