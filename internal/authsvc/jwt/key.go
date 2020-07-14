@@ -33,3 +33,16 @@ func PublicKeyFromFile(path string) (*rsa.PublicKey, error) {
 	}
 	return key, nil
 }
+
+// KeysFromFiles loads private and public keys
+func KeysFromFiles(privateKeyPath, publicKeyPath string) (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	prKey, err := PrivateKeyFromFile(privateKeyPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	pubKey, err := PublicKeyFromFile(publicKeyPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	return prKey, pubKey, nil
+}

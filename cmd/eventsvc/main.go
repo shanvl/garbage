@@ -41,11 +41,11 @@ func main() {
 	}
 	// create postgres connection pool
 	postgresConf := postgres.Config{
-		Database:             env.String("POSTGRES_DB", "garbage1"),
-		Host:                 env.String("POSTGRES_HOST", "localhost"),
-		User:                 env.String("POSTGRES_USER", "jynweythek223"),
-		Password:             env.String("POSTGRES_PASSWORD", "postgres"),
-		Port:                 env.Int("POSTGRES_PORT", 5432),
+		Database:             env.String("POSTGRES_DB", ""),
+		Host:                 env.String("POSTGRES_HOST", ""),
+		User:                 env.String("POSTGRES_USER", ""),
+		Password:             env.String("POSTGRES_PASSWORD", ""),
+		Port:                 env.Int("POSTGRES_PORT", 0),
 		MaxConns:             env.Int("POSTGRES_MAX_CONN", 25),
 		MaxConnLifetime:      env.Duration("POSTGRES_CON_LIFE", 5*time.Minute),
 		PreferSimpleProtocol: env.Bool("POSTGRES_SIMPLE_PROTOCOL", false),
@@ -72,7 +72,7 @@ func main() {
 
 	// get conn to auth server and create its client
 	// TODO: remove fallback
-	authSrvAddr := env.String("GRPC_AUTH_SERVICE_ADDR", "localhost:3001")
+	authSrvAddr := env.String("GRPC_AUTH_SERVICE_ADDR", "")
 	cc, err := goGRPC.Dial(authSrvAddr, goGRPC.WithInsecure())
 	if err != nil {
 		logger.Fatal("auth server connection error", zap.Error(err), zap.String("addr", authSrvAddr))
@@ -86,7 +86,7 @@ func main() {
 	eventingService := eventing.NewService(eventingRepo)
 	schoolingService := schooling.NewService(schoolingRepo)
 
-	grpcPort, restPort := env.Int("GRPC_PORT", 3000), env.Int("REST_PORT", 4000)
+	grpcPort, restPort := env.Int("GRPC_PORT", 0), env.Int("REST_PORT", 0)
 	// run REST gateway
 	go func() {
 		if err := rest.NewServer(logger).Run(restPort, fmt.Sprintf(":%d", grpcPort)); err != nil && !errors.Is(err,

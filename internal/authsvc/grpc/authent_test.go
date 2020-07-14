@@ -117,7 +117,7 @@ func TestServer_Logout(t *testing.T) {
 		{
 			name: "ok",
 			args: args{
-				ctx: context.WithValue(context.Background(), grpc.AuthCtxKey, &authsvc.UserClaims{ClientID: c.ID}),
+				ctx: context.WithValue(context.Background(), grpc.AuthCtxKey, authsvc.UserClaims{ClientID: c.ID}),
 				req: &authv1pb.LogoutRequest{},
 			},
 			code: codes.OK,
@@ -195,7 +195,7 @@ func TestServer_LogoutAllClients(t *testing.T) {
 		{
 			name: "ok",
 			args: args{
-				ctx: context.WithValue(context.Background(), grpc.AuthCtxKey, &authsvc.UserClaims{
+				ctx: context.WithValue(context.Background(), grpc.AuthCtxKey, authsvc.UserClaims{
 					StandardClaims: jwt.StandardClaims{
 						Subject: u.ID,
 					},

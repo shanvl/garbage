@@ -40,11 +40,11 @@ func main() {
 	}
 	// create postgres connection pool
 	postgresConf := postgres.Config{
-		Database:             env.String("POSTGRES_DB", "authsvc"),
-		Host:                 env.String("POSTGRES_HOST", "localhost"),
-		User:                 env.String("POSTGRES_USER", "jynweythek223"),
-		Password:             env.String("POSTGRES_PASSWORD", "postgres"),
-		Port:                 env.Int("POSTGRES_PORT", 5432),
+		Database:             env.String("POSTGRES_DB", ""),
+		Host:                 env.String("POSTGRES_HOST", ""),
+		User:                 env.String("POSTGRES_USER", ""),
+		Password:             env.String("POSTGRES_PASSWORD", ""),
+		Port:                 env.Int("POSTGRES_PORT", 0),
 		MaxConns:             env.Int("POSTGRES_MAX_CONN", 25),
 		MaxConnLifetime:      env.Duration("POSTGRES_CON_LIFE", 5*time.Minute),
 		PreferSimpleProtocol: env.Bool("POSTGRES_SIMPLE_PROTOCOL", false),
@@ -69,25 +69,23 @@ func main() {
 	usersRepo := postgres.NewUsersRepo(postgresPool)
 
 	// get private and public keys for the token manager
-	privateKeyPath := env.String("RSA_PRIVATE_KEY_PATH", "./internal/authsvc/jwt/keys/test.rsa")
-	publicKeyPath := env.String("RSA_PUBLIC_KEY_PATH", "./internal/authsvc/jwt/keys_test/test.rsa.pub")
-	privateKey, err := jwt.PrivateKeyFromFile(privateKeyPath)
+	privateKeyPath := env.String("TOKEN_PRIVATE_KEY_PATH", "./internal/authsvc/jwt/keys/test.rsa")
+	publicKeyPath := env.String("TOKEN_PUBLIC_KEY_PATH", "./internal/authsvc/jwt/keys_test/test.rsa.pub")
+	privateKey, publicKey, err := jwt.KeysFromFiles(privateKeyPath, publicKeyPath)
 	if err != nil {
-		logger.Fatal("couldn't load private key for the token manager", zap.Error(err))
+		logger.Fatal("couldn't load keys for the token manager", zap.Error(err))
 	}
-	publicKey, err := jwt.PublicKeyFromFile(publicKeyPath)
-	if err != nil {
-		logger.Fatal("couldn't load public key for the token manager", zap.Error(err))
-	}
+	// get tokens duration
+	accessTokenDuration := env.Duration("ACCESS_TOKEN_DURATION", 30*time.Minute)
+	refreshTokenDuration := env.Duration("REFRESH_TOKEN_DURATION", 720*time.Hour)
 
 	// create services
-	tokenManager := jwt.NewManagerRSA(env.Duration("ACCESS_TOKEN_DURATION", 30*time.Minute),
-		env.Duration("REFRESH_TOKEN_DURATION", 720*time.Hour), privateKey, publicKey)
+	tokenManager := jwt.NewManagerRSA(accessTokenDuration, refreshTokenDuration, privateKey, publicKey)
 	authentSvc := authent.NewService(authentRepo, tokenManager)
 	authorizSvc := authoriz.NewService(tokenManager, authoriz.ProtectedRPCMap())
 	usersSvc := users.NewService(usersRepo)
 
-	grpcPort, restPort := env.Int("GRPC_PORT", 3000), env.Int("REST_PORT", 4000)
+	grpcPort, restPort := env.Int("GRPC_PORT", 0), env.Int("REST_PORT", 0)
 	// run REST gateway
 	go func() {
 		if err := rest.NewServer(logger).Run(restPort, fmt.Sprintf(":%d", grpcPort)); err != nil && !errors.Is(err,

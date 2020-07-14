@@ -11,4 +11,5 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 USER notroot
 COPY --from=builder /garbage/bin/authsvc /authsvc
+COPY --from=builder /garbage/internal/authsvc/jwt/keys_test /keys/
 CMD ["/authsvc"]

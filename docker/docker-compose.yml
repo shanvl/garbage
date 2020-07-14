@@ -50,6 +50,8 @@ services:
       - POSTGRES_LOG=false
       - POSTGRES_CONN_LIFE=5m
       - POSTGRES_SIMPLE_PROTOCOL=false
+      - TOKEN_PRIVATE_KEY_PATH=/keys/test.rsa
+      - TOKEN_PUBLIC_KEY_PATH=/keys/test.rsa.pub
     networks:
       - garbage
     ports:

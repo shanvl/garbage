@@ -287,11 +287,11 @@ func Test_service_RefreshTokens(t *testing.T) {
 		}
 		return validRefreshToken, nil
 	}
-	tm.VerifyFn = func(token string) (*authsvc.UserClaims, error) {
+	tm.VerifyFn = func(token string) (authsvc.UserClaims, error) {
 		if token == verifyError {
-			return nil, errors.New("error")
+			return authsvc.UserClaims{}, errors.New("error")
 		}
-		return &authsvc.UserClaims{ClientID: clientID, StandardClaims: jwt.StandardClaims{Subject: userID},
+		return authsvc.UserClaims{ClientID: clientID, StandardClaims: jwt.StandardClaims{Subject: userID},
 			Role: "member"}, nil
 	}
 	s := authent.NewService(r, tm)

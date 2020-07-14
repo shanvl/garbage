@@ -24,7 +24,7 @@ func TestServer_Authorize(t *testing.T) {
 				Method: "/shanvl.garbage.auth.v1.AuthService/Logout",
 				Token:  "",
 			},
-			code: codes.InvalidArgument,
+			code: codes.Unauthenticated,
 		},
 		{
 			name: "no method",
@@ -37,7 +37,7 @@ func TestServer_Authorize(t *testing.T) {
 		{
 			name: "no permission",
 			req: &authv1pb.AuthorizeRequest{
-				Method: "/shanvl.garbage.auth.v1.AuthService/ActivateUser",
+				Method: "/shanvl.garbage.auth.v1.AuthService/ChangeUserRole",
 				Token:  accessToken,
 			},
 			code: codes.PermissionDenied,

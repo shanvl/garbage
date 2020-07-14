@@ -2,7 +2,7 @@ GOOS?=darwin
 GOARCH?=amd64
 
 up:
-	docker-compose -f ./docker/docker-compose.yml up -d
+	docker-compose -f ./docker/docker-compose.yml up -d --build
 
 down:
 	docker-compose -f ./docker/docker-compose.yml down
