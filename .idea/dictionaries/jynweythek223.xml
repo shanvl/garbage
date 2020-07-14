@@ -19,6 +19,7 @@
       <w>idgen</w>
       <w>marshaler</w>
       <w>openapiv</w>
+      <w>pgtextsearch</w>
       <w>protoc</w>
       <w>rpcs</w>
       <w>shanvl</w>

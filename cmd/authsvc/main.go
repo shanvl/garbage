@@ -69,7 +69,7 @@ func main() {
 	usersRepo := postgres.NewUsersRepo(postgresPool)
 
 	// get private and public keys for the token manager
-	privateKeyPath := env.String("RSA_PRIVATE_KEY_PATH", "./internal/authsvc/jwt/keys_test/test.rsa")
+	privateKeyPath := env.String("RSA_PRIVATE_KEY_PATH", "./internal/authsvc/jwt/keys/test.rsa")
 	publicKeyPath := env.String("RSA_PUBLIC_KEY_PATH", "./internal/authsvc/jwt/keys_test/test.rsa.pub")
 	privateKey, err := jwt.PrivateKeyFromFile(privateKeyPath)
 	if err != nil {
@@ -87,7 +87,7 @@ func main() {
 	authorizSvc := authoriz.NewService(tokenManager, authoriz.ProtectedRPCMap())
 	usersSvc := users.NewService(usersRepo)
 
-	grpcPort, restPort := env.Int("GRPC_PORT", 3001), env.Int("REST_PORT", 4001)
+	grpcPort, restPort := env.Int("GRPC_PORT", 3000), env.Int("REST_PORT", 4000)
 	// run REST gateway
 	go func() {
 		if err := rest.NewServer(logger).Run(restPort, fmt.Sprintf(":%d", grpcPort)); err != nil && !errors.Is(err,

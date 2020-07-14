@@ -1,3 +1,4 @@
+// package pgtextsearch provides tools to transform strings to postgres text search queries
 package pgtextsearch
 
 import (
